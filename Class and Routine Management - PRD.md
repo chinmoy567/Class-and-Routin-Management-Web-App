@@ -2,7 +2,7 @@
 
 Oct 10, 2026 · @chinmoy
 
-A web platform where teachers and students sign in, keep rich profiles, message and form groups like WhatsApp, and read their level–term–section class routines; an admin approves CR/DCR applications and publishes routines, and any student or CR can book a free classroom if they request at least 12 hours ahead.
+A web platform where teachers and students sign in, keep rich profiles, message and form groups like WhatsApp, and read their level–term–section class routines; an admin approves teachers, chooses each section's CR and DCR, and publishes routines; the CR and DCR approve their section's students; and any student or CR can book a free classroom if they request at least 12 hours ahead.
 
 ## Overview & goals
 
@@ -12,7 +12,7 @@ What it commits to:
 
 1. Give every teacher and student a single sign-in and an editable profile (level, term, section, phone, photo, CR/DCR status).
 2. Let students and teachers message one-to-one and in groups, like WhatsApp.
-3. Let an admin approve CR/DCR applications and publish routines that each student sees filtered to their own level, term and section.
+3. Let an admin approve teachers, choose each section's CR and DCR, and publish routines that each student sees filtered to their own level, term, section and lab group.
 4. Show which classroom is free at which time, and let a student or CR book a free room if the request is placed at least 12 hours ahead.
 5. Show each student, live, whether they are in class or free right now according to their routine, with a countdown to the next change, and give teachers a "free now" list of students.
 
@@ -20,20 +20,20 @@ Out of scope for the first version: attendance, grades/marks, fee payment, and p
 
 ## Users & roles
 
-There are three account types. CR and DCR are not separate account types — they are students with an approved extra role, so everything a student can do, a CR or DCR can do too, plus the room-request power.
+There are three account types. CR and DCR are not separate account types — they are students given an extra role by the admin, so everything a student can do, a CR or DCR can do too, plus the dashboard for their own section (including approving their classmates' UV ID claims).
 
 | Role | Signs in with | Can do | Cannot do |
 | --- | --- | --- | --- |
-| Admin | Own user ID + password (seeded, not self-registered) | Approve/reject teacher registrations and CR & DCR applications, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
+| Admin | Own user ID + password (seeded, not self-registered) | Approve/reject teacher registrations, choose and remove each section's CR and DCR, approve ID claims that no CR/DCR can handle, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
 | Teacher (after admin approval) | Email + password | Edit own profile, message & create groups, view own teaching routine, see which rooms are free, request a free room (12-hour rule), see the roster and "free now" list of sections they teach, send announcements to those sections | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
-| Student | Unique UV ID + password | Edit own profile, message & create groups, view own level–term–section routine, apply to be CR/DCR | Publish routines, approve others |
-| CR (approved student) | Same as student | Everything a student can, plus **request a free classroom** and use the **CR/DCR dashboard** for their own section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
-| DCR (approved student) | Same as student | Same as CR | Same as CR |
+| Student | Email + password (the UV ID is claimed after sign-up) | Edit own profile, claim their UV ID, and once the CR or DCR approves the claim: message & create groups, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, use the app before the ID claim is approved |
+| CR (student chosen by the admin) | Same as student | Everything a student can, plus **request a free classroom**, use the **CR/DCR dashboard** for their own section, and approve or reject UV ID claims from students of that section | Approve CR/DCR or teachers, approve their own claim, publish or edit routines, delete or deactivate accounts, see other sections' students |
+| DCR (student chosen by the admin) | Same as student | Same as CR | Same as CR |
 
 Notes:
 
-- A section has one CR and up to two DCRs (your "2 DCR" rule). The system should block a third DCR approval for the same section and tell the admin why.
-- The UV ID is the student's institutional ID, issued offline and unique. Students do not pick it; they use it to claim their account.
+- A section has one CR and up to two DCRs (your "2 DCR" rule). The system should block a second CR or a third DCR for the same section and tell the admin why.
+- The UV ID is the student's institutional ID, issued offline and unique. Students do not pick it; they enter it after signing up to claim it, and the CR or DCR of their section approves the claim (see Student ID claim).
 - Admin is seeded by whoever installs the system; there is no public admin sign-up.
 
 ## Authentication & onboarding
@@ -41,10 +41,12 @@ Notes:
 Each role claims its account differently, but all land in the same profile editor afterward.
 
 - **Teacher** signs up with email + password and verifies the email. Email is their login from the start. The account then stays **pending** until the admin approves it (see Teacher approval); a pending teacher can sign in only to see a "waiting for admin approval" screen.
-- **Student** signs up with their unique UV ID + a password they set. They have no email at sign-up, but the profile is not complete until they add and verify an email, which is required (see below). The email is used for password recovery and for the automatic messages the system sends to students.
+- **Student** signs up with an **email + password** and verifies the email, like a teacher. After that they claim their unique UV ID in their profile (see Student ID claim). The email is used to sign in, for password recovery, and for the automatic messages the system sends to students.
 - **Admin** does not sign up. Credentials are seeded at install; admin just logs in with the user ID and password.
 
-First-login flow for a new student or teacher: claim account → forced to complete profile (level, term, section, **email**, phone, photo optional) → the app assigns the lab group automatically from the UV ID → land on the dashboard.
+First-login flow for a new teacher: sign up and verify email → wait for admin approval → complete profile → land on the dashboard.
+
+First-login flow for a new student: sign up and verify email → complete profile (level, term, section, phone, photo optional) and enter the UV ID → wait for the CR or DCR of that section to approve the claim → the app assigns the lab group automatically from the UV ID → land on the dashboard.
 
 At the start of every new semester, a returning student goes through the same forced step again for their level, term and section; the lab group is recalculated from their UV ID (see Semesters and student updates and Lab groups and ID ranges).
 
@@ -55,12 +57,31 @@ Password rules and recovery:
 
 Required student email:
 
-- A student cannot finish onboarding, and cannot reach the dashboard, until they enter an email and verify it by clicking a link sent to that address.
-- Students who already have an account without an email (for example imported before this rule) see a blocking "add your email" screen at their next login.
+- A student cannot sign in until they verify their email by clicking a link sent to that address.
 - Each email can belong to only one student account.
 - A student can change their email later, but the new address must be verified before it replaces the old one. If an email stops working (bounces), the student is asked to update it at next login.
 - The email is used to send the student automatic messages from the system. The list of what is sent (for example routine changes, approval results, booking results) is still to be decided and is tracked in Open questions.
 - Sessions should expire after a period of inactivity and on password change.
+
+### Student ID claim
+
+A student's email only proves they own an inbox. The UV ID proves who they are at the university. Because UV IDs are sequential and easy to guess, a student does not become a student by typing an ID; the CR or DCR of their section has to approve it. The CR and DCR know their classmates, so they do not need a student list.
+
+1. After verifying their email, the student fills in level, term and section in their profile and enters the UV ID the university gave them.
+2. Automatic checks run first. The claim is blocked, with a reason, if: the ID format is invalid; the ID is outside every ID range of the chosen section in the imported routine file (this catches typos and claims for the wrong section or term); or the ID is already claimed by another account (the admin is told).
+3. If the checks pass, the claim goes to the CR and DCRs of that section as a **pending ID claim**. Until it is approved the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats.
+4. The CR or DCR sees the student's name, email, photo, level, term, section and UV ID, and approves or rejects (a reason is required for a rejection). Whoever acts first decides, and the student is told by email.
+5. On approval the account becomes active and the lab group is set from the UV ID.
+
+Rules:
+
+- A CR or DCR cannot approve their own claim or another CR/DCR's claim. Those go to the admin.
+- A section with no CR or DCR yet is handled by the admin until one is chosen.
+- If nobody acts on a claim within a set time, it moves to the admin (the time is an open question).
+- A student whose ID is outside every range (for example a repeat student) is sent to the admin, who assigns a section and group by hand.
+- If someone else claimed a student's ID, the real student reports it. The admin checks in person, can revoke the wrong claim, and the action is logged.
+- A student has a limited number of wrong claims before they are blocked for a while.
+- Every claim, approval, rejection and revocation is logged with who and when.
 
 ## Core features
 
@@ -73,9 +94,10 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F1b | Automatic lab group | The app works out a student's lab group (G1, G2, G3, …) from their UV ID using the ID ranges the admin keeps for each section; students cannot choose or edit it | System, Admin | P0 |
 | F2 | Direct messaging | One-to-one chat with read receipts and timestamps, like WhatsApp | Teacher, Student | P0 |
 | F3 | Group chat | Create a group, add members, send messages; creator is group admin | Teacher, Student | P0 |
-| F4 | CR/DCR application | A student applies for a CR or DCR role for their section | Student | P0 |
+| F4 | CR/DCR assignment | The admin chooses each section's CR and DCRs by hand (one CR, up to two DCRs); students do not apply | Admin | P0 |
 | F4a | Teacher registration approval | A new teacher account is held as pending until the admin approves or rejects it | Teacher, Admin | P0 |
-| F5 | Approval dashboard | Admin sees pending teacher registrations and pending CR/DCR applications and approves or rejects each | Admin | P0 |
+| F4b | Student ID claim approval | A student claims their UV ID after signing up; the CR or DCR of their section approves or rejects the claim | Student, CR, DCR | P0 |
+| F5 | Approval dashboard | Admin sees pending teacher registrations and ID claims that need the admin, and manages CR/DCR assignments | Admin | P0 |
 | F6 | Routine publishing | Admin builds and publishes routines per level–term–section | Admin | P0 |
 | F7 | Routine viewing ("My routine") | A student opens the app and automatically sees their own routine, picked from the level, term and section in their profile and the lab group worked out from their UV ID, with no manual searching or filtering; a teacher sees their own classes | Teacher, Student | P0 |
 | F7a | Full week routine on the dashboard | The student's dashboard shows their whole week (Sunday to Thursday) as a weekly grid, with today highlighted and the class happening now marked | Student | P0 |
@@ -84,7 +106,7 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F7d | Teacher announcements | A teacher sends a message to a section or lab group they teach | Teacher | P1 |
 | F8 | Free-room view | See which classroom is free at which time slot | Everyone | P0 |
 | F9 | Room booking request | Request a free room, only if ≥ 12 hours ahead of the slot | CR, DCR, Student, Teacher | P0 |
-| F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, bookings) and act (book and cancel rooms, announce, confirm unmatched students, flag problems) | CR, DCR | P0 |
+| F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, bookings) and act (book and cancel rooms, announce, approve student ID claims, flag problems) | CR, DCR | P0 |
 | F9b | Section announcements | CR/DCR sends a message to the whole section or to one lab group | CR, DCR | P1 |
 | F9c | Student removal request | CR/DCR asks the admin to deactivate a student; only the admin acts on it | CR, DCR, Admin | P1 |
 | F10 | Media in messages | Send images/files in chats | Teacher, Student | P1 |
@@ -126,7 +148,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 - **CR and DCRs** of the student's section, with a button to message them.
 - **Courses this semester** with the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
-- **CR/DCR application status** if the student applied (pending, approved, rejected), and a link to the CR/DCR dashboard if they hold the role.
+- **ID claim status** while the claim is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
 
 **6. Profile reminders**
 
@@ -161,7 +183,7 @@ The dashboard is the first page an approved teacher sees after login (a pending 
 
 **3. Students**
 
-- **"Free now" list (F14):** students currently free, filterable by level, term, section and group. For a teacher it covers the sections they teach by default, and can be widened to all sections for planning a makeup class.
+- **"Free now" list (F14):** students currently free, filterable by level, term, section and group. For a teacher it covers only the sections they teach.
 - **Section roster:** for each section the teacher teaches, the students with name, UV ID and lab group. A teacher cannot open the roster of a section they do not teach.
 
 **4. Rooms (F8, F9)**
@@ -212,7 +234,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 - **Request a free room** for the section under the 12-hour rule (F9), and **cancel** the section's own booking.
 - **Send an announcement** to the whole section or to one lab group (F9b). Announcements are also emailed to those students (F11) and are logged with the sender.
-- **Confirm students the system could not place.** A new student's section is normally set automatically from their UV ID and the imported routine file. Only when the system cannot match a student to a section does the CR or DCR of the section they claim see them in a "needs confirmation" list and confirm or decline. The CR and DCR do not approve every new student.
+- **Approve or reject UV ID claims** from students of their section (see Student ID claim). The CR and DCR use what they know about their classmates; no student list is needed. They cannot approve their own claim.
 - **Flag a problem to the admin**, for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
 - **Request removal of a student** (F9c). The request says who and why. It does not delete anything.
 
@@ -248,13 +270,20 @@ Rules:
 - The admin can later suspend or remove an approved teacher (for example when they leave the department).
 - The same short code cannot be linked to two active accounts, and the shared `AR` code in the current sheet must be resolved before it can be linked.
 
-## CR/DCR approval workflow
+## CR/DCR assignment
 
-![CR/DCR approval flow · 4 steps, 1 decision — diagram in the live doc]
+The admin chooses each section's CR and DCRs by hand. Students do not apply, because the admin knows who should lead each section.
 
-A student's application sits in a pending queue until the admin acts. The admin approves only if the section's CR/DCR cap is not already full; otherwise it is rejected with a reason.
+1. The admin opens the section (for example 3-II-A, Fall 2026) and picks a student whose ID claim is already approved.
+2. The admin sets the role: CR or DCR.
+3. The system blocks a second CR, or a third DCR, in the same section and tells the admin why.
+4. The student sees the role on their profile and gets the CR/DCR dashboard. The assignment is logged with who and when.
 
-Flow: Student applies → Pending queue → Admin reviews (cap ok?) → if approve: Role granted; if reject or cap full: Rejected.
+Rules:
+
+- A role belongs to one section and one semester. It ends at rollover and the admin chooses again for the new semester.
+- The admin can remove a role at any time.
+- For a brand new section with no CR yet, the admin approves the first ID claims and then names the CR and DCRs.
 
 ## Classroom booking rules
 
@@ -297,7 +326,7 @@ How a student's group is decided:
 1. A student's routine is decided in this order: **level → term → section → group**.
 2. The group comes from the student's **UV ID**, never from a choice the student makes. Each section has ID ranges, one per group, for example IDs 1–25 are G1, IDs 26–50 are G2, IDs 51–75 are G3 (as written in the "Level wise Student number" sheet of the routine file, for example `G1 = 1123001–1123025`).
 3. The routine Excel sheet is the only source for these ranges. Each semester a teacher gives the department's new Excel sheet (for example "Dept of CSE Routine Spring 2026"), and the main admin imports it (see Routine file import). The ranges are never typed in by students or teachers.
-4. When a student's profile is saved or a semester changes, the app finds the range containing their UV ID and stores that group on the profile as read-only.
+4. When a student's ID claim is approved or a semester changes, the app finds the range containing their UV ID and stores that group on the profile as read-only.
 5. A lab slot tagged with a group (such as `CSE-422 (G1)`) is shown only to students whose group matches, with that group's teacher, time and room. Slots for the whole section (no group tag) are shown to everyone in it.
 6. Because every group has its own teacher, the routine stores teacher, time and room per group, never per course. A teacher's own routine (F7) is built from the group slots they are assigned to, so a teacher can appear in several groups of the same course, and a student sees only their own group's teacher.
 
@@ -327,7 +356,7 @@ Rules:
 
 - A student who is on a break and has not confirmed sees only the update screen and their profile; the app does not guess their section.
 - Students who have not confirmed by a deadline set by the admin appear in an "unconfirmed students" list for the admin, so they can be followed up.
-- A student's CR or DCR role belongs to a section and semester. It ends at rollover and must be re-applied for or re-approved (see Open questions).
+- A student's CR or DCR role belongs to a section and semester. It ends at rollover and the admin chooses the CR and DCR again for the new semester.
 - The student's profile always shows the semester it was last confirmed for, so a wrong or stale section is easy to spot.
 
 The routine is also the source of truth for free rooms (next section): a room is free in a slot when no published routine, and no approved booking, uses it.
@@ -379,22 +408,22 @@ Countdown (F13):
 
 - **Security.** Passwords hashed with a modern algorithm (bcrypt/argon2). All traffic over HTTPS. Role checks enforced on the server, not just hidden in the UI — a student cannot reach admin actions by guessing a URL.
 - **Privacy.** Phone numbers and email are visible per the profile owner's choice; default to visible only to the institution, not public. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
-- **Authorization.** Every routine-edit, approval and booking action is checked against the caller's role and scope (a CR can request rooms, only the admin approves CR/DCR).
+- **Authorization.** Every routine-edit, approval and booking action is checked against the caller's role and scope (a CR can request rooms and approve their own section's ID claims; only the admin chooses CR/DCR).
 - **Performance.** Routine and free-room views should load in under ~2 seconds for a section. Messaging should feel real-time (delivery within ~1–2 seconds). The live status and countdown are computed from the already-loaded routine, so the minute refresh needs no extra server call; the teacher "free now" list loads in under ~2 seconds for all sections.
 - **Platform.** Responsive web app, works on phone and desktop browsers. No native app required for the first release.
 - **Availability & data.** Daily backups; archived routines and chat history retained. Account lockout after repeated failed logins.
-- **Auditability.** Admin approvals, rejections and routine publishes are logged with who and when.
+- **Auditability.** Admin approvals, rejections, CR/DCR assignments, ID claim approvals and revocations, and routine publishes are logged with who and when.
 
 ## Open questions
 
 These need your decision before build:
 
-1. **Who can request a room?** Your brief says both CR/DCR and any student. Current assumption: any logged-in student may request; CR/DCR is not required. Confirm or restrict to CR/DCR.
+1. **Who can request a room?** Your brief says both CR/DCR and any student. Current assumption: any logged-in student may request, and approved teachers may request too (for example for a makeup class); CR/DCR is not required. Confirm or restrict.
 2. **What does "12 hours ahead" block exactly?** Assumption: the request must be submitted at least 12 hours before the slot's start time, otherwise it is rejected. Confirm.
 3. **Does a room booking need approval?** Assumption: if the room is free and the 12-hour rule is met, the booking is auto-confirmed (no admin step). Or should admin/CR approve it?
 4. **Is a term exactly six months?** Or driven by an academic calendar with set start/end dates?
-4a. **Semester rollover.** Should the app move students up one term automatically for them to confirm (for example 2-I to 2-II), or should the student pick everything from scratch? Current assumption: it pre-fills the next term and the student confirms. Also: do CR and DCR roles reset every semester, and what is the deadline for confirming?
-5. **One CR + two DCRs per section** — confirm these caps, and whether a teacher or admin nominates them or students self-apply.
+4a. **Semester rollover.** Should the app move students up one term automatically for them to confirm (for example 2-I to 2-II), or should the student pick everything from scratch? Current assumption: it pre-fills the next term and the student confirms. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
+5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Still to confirm: the caps (one CR, up to two DCRs).
 6. **Password policy** — minimum length, complexity, lockout threshold.
 7. **Media limits** — max file size and allowed types in messages.
 8. **Institution scope** — one institution per deployment, or should it support multiple?
@@ -405,5 +434,7 @@ These need your decision before build:
 13. **Routine file quality.** The current spreadsheet has inconsistent batch labels (for example `3-1-A` vs `3-I-A`, and `4-I` stored as a date), a duplicated `CSE-301 (G1)` slot in the Tuesday 3-II-A row, and one short code (`AR`) used by two teachers. These should be cleaned up before import.
 14. **Teacher approval details.** Decided: only the admin approves teachers. Still to confirm: should the admin check teachers against a list of allowed email domains or the routine's teacher list, and may a teacher use the app (for example to see routines) while pending? Current assumption: no access until approved.
 15. **Automatic emails to students.** Which messages should be sent to a student's email automatically (for example routine published or changed, CR/DCR approval result, room booking result, new semester update reminder, unconfirmed-profile warning)? Also: should students be able to turn some of them off? Current assumption: every student must have a verified email, and the list above is sent by default.
-16. **CR/DCR dashboard.** Decided: the CR/DCR confirm only students the system could not place in a section, and they can only request removal of a student, never delete. Still to confirm: how many removal and flag requests a CR can send per day, whether a student should be told when a removal is requested about them, and whether announcements need admin or teacher review first.
+16. **CR/DCR dashboard.** Decided: the CR/DCR approve every student's ID claim, and they can only request removal of a student, never delete. Still to confirm: how many removal and flag requests a CR can send per day, whether a student should be told when a removal is requested about them, and whether announcements need admin or teacher review first.
 17. **Student dashboard extras.** Should the dashboard also show the academic calendar (exams and holidays, for example from `academic callender.pdf`) and class-cancelled or room-changed alerts? Both depend on the holiday and cancellation handling in open question 10, so they are left out of the first version.
+18. **Teacher dashboard.** Decided: teachers see the roster and "free now" list of sections they teach, may request free rooms under the 12-hour rule, and may announce to those sections. Still to confirm: whether the "free now" list may be widened to all sections (for example to plan a makeup class; the current rule keeps it to sections they teach), whether students can mute teacher announcements, and whether a room booked by a teacher should override a student's request for the same slot (current assumption: first valid request wins).
+19. **Student ID claim.** Decided: students sign up with email + password and then claim their UV ID; the CR or DCR of the section approves the claim without a student list; the admin chooses CR/DCR by hand. Still to confirm: how many days before an unanswered claim moves to the admin, how many wrong claims block a student, and whether a rejected student may try again with the same ID.
