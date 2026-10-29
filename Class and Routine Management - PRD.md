@@ -24,10 +24,10 @@ There are three account types. CR and DCR are not separate account types — the
 
 | Role | Signs in with | Can do | Cannot do |
 | --- | --- | --- | --- |
-| Admin | Own user ID + password (seeded, not self-registered) | Approve/reject CR & DCR applications, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
-| Teacher | Email + password | Edit own profile, message & create groups, view routines, see which rooms are free | Approve CR/DCR, publish routines |
+| Admin | Own user ID + password (seeded, not self-registered) | Approve/reject teacher registrations and CR & DCR applications, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
+| Teacher (after admin approval) | Email + password | Edit own profile, message & create groups, view routines, see which rooms are free | Approve CR/DCR, publish routines, use the app before the admin approves the account |
 | Student | Unique UV ID + password | Edit own profile, message & create groups, view own level–term–section routine, apply to be CR/DCR | Publish routines, approve others |
-| CR (approved student) | Same as student | Everything a student can, plus **request a free classroom** | Approve others, publish routines |
+| CR (approved student) | Same as student | Everything a student can, plus **request a free classroom** and use the **CR/DCR dashboard** for their own section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
 | DCR (approved student) | Same as student | Same as CR | Same as CR |
 
 Notes:
@@ -40,18 +40,26 @@ Notes:
 
 Each role claims its account differently, but all land in the same profile editor afterward.
 
-- **Teacher** signs up with email + password, verifies the email, and is in. Email is their login from the start.
-- **Student** signs up with their unique UV ID + a password they set. They have no email at sign-up. Later, in their profile, they can add an email (and use it for password recovery).
+- **Teacher** signs up with email + password and verifies the email. Email is their login from the start. The account then stays **pending** until the admin approves it (see Teacher approval); a pending teacher can sign in only to see a "waiting for admin approval" screen.
+- **Student** signs up with their unique UV ID + a password they set. They have no email at sign-up, but the profile is not complete until they add and verify an email, which is required (see below). The email is used for password recovery and for the automatic messages the system sends to students.
 - **Admin** does not sign up. Credentials are seeded at install; admin just logs in with the user ID and password.
 
-First-login flow for a new student or teacher: claim account → forced to complete profile (level, term, section, phone, photo optional) → the app assigns the lab group automatically from the UV ID → land on the dashboard.
+First-login flow for a new student or teacher: claim account → forced to complete profile (level, term, section, **email**, phone, photo optional) → the app assigns the lab group automatically from the UV ID → land on the dashboard.
 
 At the start of every new semester, a returning student goes through the same forced step again for their level, term and section; the lab group is recalculated from their UV ID (see Semesters and student updates and Lab groups and ID ranges).
 
 Password rules and recovery:
 
 - Passwords are stored hashed (never plain text). Minimum length and complexity to be set in the open questions.
-- Teacher recovery is by email link. Student recovery works only after they have added an email; before that, recovery goes through the admin resetting it. This gap should be called out to students when they skip adding an email.
+- Teacher and student recovery are both by email link. Because a student's email is required, every student can recover their own password. Admin reset remains only as a fallback for a student whose email address no longer works.
+
+Required student email:
+
+- A student cannot finish onboarding, and cannot reach the dashboard, until they enter an email and verify it by clicking a link sent to that address.
+- Students who already have an account without an email (for example imported before this rule) see a blocking "add your email" screen at their next login.
+- Each email can belong to only one student account.
+- A student can change their email later, but the new address must be verified before it replaces the old one. If an email stops working (bounces), the student is asked to update it at next login.
+- The email is used to send the student automatic messages from the system. The list of what is sent (for example routine changes, approval results, booking results) is still to be decided and is tracked in Open questions.
 - Sessions should expire after a period of inactivity and on password change.
 
 ## Core features
@@ -60,17 +68,21 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 
 | # | Feature | What it does | Who | Priority |
 | --- | --- | --- | --- | --- |
-| F1 | Profile editor | Edit level, term, section, phone, profile picture; add/change email; view CR/DCR status and the automatically assigned lab group (read-only) | Teacher, Student | P0 |
+| F1 | Profile editor | Edit level, term, section, phone, profile picture; **required, verified email** (add and change); view CR/DCR status and the automatically assigned lab group (read-only) | Teacher, Student | P0 |
 | F1a | Semester update | At the start of each semester (for example Spring 2026, then Fall 2026) the student must confirm or change their level, term and section before using the app; the lab group is recalculated from their UV ID | Student | P0 |
 | F1b | Automatic lab group | The app works out a student's lab group (G1, G2, G3, …) from their UV ID using the ID ranges the admin keeps for each section; students cannot choose or edit it | System, Admin | P0 |
 | F2 | Direct messaging | One-to-one chat with read receipts and timestamps, like WhatsApp | Teacher, Student | P0 |
 | F3 | Group chat | Create a group, add members, send messages; creator is group admin | Teacher, Student | P0 |
 | F4 | CR/DCR application | A student applies for a CR or DCR role for their section | Student | P0 |
-| F5 | Approval dashboard | Admin sees pending CR/DCR applications and approves or rejects | Admin | P0 |
+| F4a | Teacher registration approval | A new teacher account is held as pending until the admin approves or rejects it | Teacher, Admin | P0 |
+| F5 | Approval dashboard | Admin sees pending teacher registrations and pending CR/DCR applications and approves or rejects each | Admin | P0 |
 | F6 | Routine publishing | Admin builds and publishes routines per level–term–section | Admin | P0 |
 | F7 | Routine viewing ("My routine") | A student opens the app and automatically sees their own routine, picked from the level, term and section in their profile and the lab group worked out from their UV ID, with no manual searching or filtering; a teacher sees their own classes | Teacher, Student | P0 |
 | F8 | Free-room view | See which classroom is free at which time slot | Everyone | P0 |
 | F9 | Room booking request | Request a free room, only if ≥ 12 hours ahead of the slot | CR, DCR, Student | P0 |
+| F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, bookings) and act (book and cancel rooms, announce, confirm unmatched students, flag problems) | CR, DCR | P0 |
+| F9b | Section announcements | CR/DCR sends a message to the whole section or to one lab group | CR, DCR | P1 |
+| F9c | Student removal request | CR/DCR asks the admin to deactivate a student; only the admin acts on it | CR, DCR, Admin | P1 |
 | F10 | Media in messages | Send images/files in chats | Teacher, Student | P1 |
 | F11 | Notifications | Alert on new message, approval result, booking result, routine change | Everyone | P1 |
 | F12 | Live class status | Shows whether a student is **in class** or **free** right now, computed from their published routine; refreshes automatically every minute | Student (own), Teacher (any student) | P0 |
@@ -78,6 +90,60 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F14 | "Free now" student list | Teacher sees every student currently free (and, optionally, who is in class), filterable by level, term, section and group | Teacher | P1 |
 
 F9's requester scope needs a decision — your brief says both "CR/DCR can request" and "the student can request"; the table assumes any student may request and CR/DCR is not required. This is flagged in Open questions.
+
+## CR/DCR dashboard
+
+CR and DCR have the same dashboard. It is scoped to **one section and one semester** (for example 3-II-A, Fall 2026). They never see another section's students. The dashboard is the only place where a student has more power than other students, and it ends at semester rollover with the role itself.
+
+**Monitor (read-only views)**
+
+- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are shown only if the student's privacy setting allows it.
+- **Unconfirmed students:** students who have not done the semester update, with a button to send them a reminder (limited to one reminder per student per day).
+- **Section routine:** the published routine for the section, today's classes first, and which classes are happening now.
+- **Live status:** who in the section is in class or free right now, with the countdown (F12/F13).
+- **Free rooms:** which rooms are free in which slots (F8).
+- **Room bookings:** all of the section's booking requests and whether each is confirmed, rejected or cancelled, with the reason.
+- **Flags:** the status of anything the CR or DCR reported to the admin (open, fixed, rejected).
+
+**Act**
+
+- **Request a free room** for the section under the 12-hour rule (F9), and **cancel** the section's own booking.
+- **Send an announcement** to the whole section or to one lab group (F9b). Announcements are also emailed to those students (F11) and are logged with the sender.
+- **Confirm students the system could not place.** A new student's section is normally set automatically from their UV ID and the imported routine file. Only when the system cannot match a student to a section does the CR or DCR of the section they claim see them in a "needs confirmation" list and confirm or decline. The CR and DCR do not approve every new student.
+- **Flag a problem to the admin**, for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
+- **Request removal of a student** (F9c). The request says who and why. It does not delete anything.
+
+**What a CR or DCR cannot do**
+
+- Delete or deactivate any account. Only the admin can, and every removal is logged with who and when, so a mistaken request can be reversed. Student history is kept.
+- Approve CR/DCR or teachers.
+- Publish or edit routines, or change group ID ranges.
+- See students, bookings or flags of any other section.
+- Change a student's profile, section or group. A change is made by the student, or by the admin after a flag.
+
+**Rules**
+
+- Both CR and DCR can act. If two of them act on the same request, the first action wins and the other sees that it is already done.
+- Every action on the dashboard is logged with who and when, and the admin can see the log.
+- If a CR or DCR loses the role (end of semester, removed by the admin), the dashboard disappears at once and anything they started stays with the admin.
+
+## Teacher approval
+
+Anyone can reach the teacher sign-up page, so a teacher account is not trusted until the admin checks it. Teachers are approved by the admin, not by other teachers or students.
+
+1. A teacher signs up with email + password and verifies the email.
+2. The account is created as **pending**. The teacher can sign in only to a "waiting for admin approval" screen; they cannot message, see student profiles or see routines.
+3. The admin sees the request in the approval dashboard (F5) with the teacher's name, email, department and short code (for example `MYA`), and checks it against the department's teacher list in the routine file.
+4. The admin approves or rejects (a reason is required for a rejection). The teacher is told the result by email.
+5. On approval the account becomes active, and the admin links the account to the teacher's short code from the routine sheet so the teacher's own classes appear in "My routine" (F7).
+6. Approval and rejection are logged with who and when.
+
+Rules:
+
+- Only the admin can approve teachers; there is no self-approval and no way to become admin through this flow.
+- A rejected teacher can re-apply, but the admin sees the earlier rejection.
+- The admin can later suspend or remove an approved teacher (for example when they leave the department).
+- The same short code cannot be linked to two active accounts, and the shared `AR` code in the current sheet must be resolved before it can be linked.
 
 ## CR/DCR approval workflow
 
@@ -201,7 +267,7 @@ Countdown (F13):
 ## Non-functional requirements
 
 - **Security.** Passwords hashed with a modern algorithm (bcrypt/argon2). All traffic over HTTPS. Role checks enforced on the server, not just hidden in the UI — a student cannot reach admin actions by guessing a URL.
-- **Privacy.** Phone numbers and email are visible per the profile owner's choice; default to visible only to the institution, not public. Email is used only to identify the user and for recovery, never shared externally.
+- **Privacy.** Phone numbers and email are visible per the profile owner's choice; default to visible only to the institution, not public. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
 - **Authorization.** Every routine-edit, approval and booking action is checked against the caller's role and scope (a CR can request rooms, only the admin approves CR/DCR).
 - **Performance.** Routine and free-room views should load in under ~2 seconds for a section. Messaging should feel real-time (delivery within ~1–2 seconds). The live status and countdown are computed from the already-loaded routine, so the minute refresh needs no extra server call; the teacher "free now" list loads in under ~2 seconds for all sections.
 - **Platform.** Responsive web app, works on phone and desktop browsers. No native app required for the first release.
@@ -226,3 +292,6 @@ These need your decision before build:
 11. **Timezone.** Assumption: all status is computed in one institution timezone, not the viewer's device clock.
 12. **Teacher visibility of status.** Should a student be able to hide their in-class/free status from the teacher "free now" list, or is it always visible to teachers?
 13. **Routine file quality.** The current spreadsheet has inconsistent batch labels (for example `3-1-A` vs `3-I-A`, and `4-I` stored as a date), a duplicated `CSE-301 (G1)` slot in the Tuesday 3-II-A row, and one short code (`AR`) used by two teachers. These should be cleaned up before import.
+14. **Teacher approval details.** Decided: only the admin approves teachers. Still to confirm: should the admin check teachers against a list of allowed email domains or the routine's teacher list, and may a teacher use the app (for example to see routines) while pending? Current assumption: no access until approved.
+15. **Automatic emails to students.** Which messages should be sent to a student's email automatically (for example routine published or changed, CR/DCR approval result, room booking result, new semester update reminder, unconfirmed-profile warning)? Also: should students be able to turn some of them off? Current assumption: every student must have a verified email, and the list above is sent by default.
+16. **CR/DCR dashboard.** Decided: the CR/DCR confirm only students the system could not place in a section, and they can only request removal of a student, never delete. Still to confirm: how many removal and flag requests a CR can send per day, whether a student should be told when a removal is requested about them, and whether announcements need admin or teacher review first.
