@@ -34,6 +34,7 @@ There are three account types. CR and DCR are not separate account types — the
 
 Notes:
 
+- **Only the admin approves or assigns teachers, CR and DCR; no other role can.** Teachers, students, CR and DCR have no way to approve, assign or remove these roles.
 - A section has one CR and up to two DCRs (your "2 DCR" rule). The system should block a second CR or a third DCR for the same section and tell the admin why.
 - The UV ID is the student's institutional ID, issued offline and unique. Students do not pick it; they enter it after signing up to claim it, and the CR or DCR of their section approves the claim (see Student ID claim).
 - Admin is seeded by whoever installs the system; there is no public admin sign-up.
