@@ -25,7 +25,7 @@ There are three account types. CR and DCR are not separate account types — the
 | Role | Signs in with | Can do | Cannot do |
 | --- | --- | --- | --- |
 | Admin | Own user ID + password (seeded, not self-registered) | Approve/reject teacher registrations and CR & DCR applications, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
-| Teacher (after admin approval) | Email + password | Edit own profile, message & create groups, view routines, see which rooms are free | Approve CR/DCR, publish routines, use the app before the admin approves the account |
+| Teacher (after admin approval) | Email + password | Edit own profile, message & create groups, view own teaching routine, see which rooms are free, request a free room (12-hour rule), see the roster and "free now" list of sections they teach, send announcements to those sections | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
 | Student | Unique UV ID + password | Edit own profile, message & create groups, view own level–term–section routine, apply to be CR/DCR | Publish routines, approve others |
 | CR (approved student) | Same as student | Everything a student can, plus **request a free classroom** and use the **CR/DCR dashboard** for their own section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
 | DCR (approved student) | Same as student | Same as CR | Same as CR |
@@ -78,8 +78,12 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F5 | Approval dashboard | Admin sees pending teacher registrations and pending CR/DCR applications and approves or rejects each | Admin | P0 |
 | F6 | Routine publishing | Admin builds and publishes routines per level–term–section | Admin | P0 |
 | F7 | Routine viewing ("My routine") | A student opens the app and automatically sees their own routine, picked from the level, term and section in their profile and the lab group worked out from their UV ID, with no manual searching or filtering; a teacher sees their own classes | Teacher, Student | P0 |
+| F7a | Full week routine on the dashboard | The student's dashboard shows their whole week (Sunday to Thursday) as a weekly grid, with today highlighted and the class happening now marked | Student | P0 |
+| F7b | Student dashboard | One home page for a student showing live status and countdown, today's classes, the full week, announcements, notifications, rooms, messages and profile reminders | Student | P0 |
+| F7c | Teacher dashboard | One home page for a teacher showing teaching status and countdown, today's classes, the week, free students, rooms, messages and notices | Teacher | P0 |
+| F7d | Teacher announcements | A teacher sends a message to a section or lab group they teach | Teacher | P1 |
 | F8 | Free-room view | See which classroom is free at which time slot | Everyone | P0 |
-| F9 | Room booking request | Request a free room, only if ≥ 12 hours ahead of the slot | CR, DCR, Student | P0 |
+| F9 | Room booking request | Request a free room, only if ≥ 12 hours ahead of the slot | CR, DCR, Student, Teacher | P0 |
 | F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, bookings) and act (book and cancel rooms, announce, confirm unmatched students, flag problems) | CR, DCR | P0 |
 | F9b | Section announcements | CR/DCR sends a message to the whole section or to one lab group | CR, DCR | P1 |
 | F9c | Student removal request | CR/DCR asks the admin to deactivate a student; only the admin acts on it | CR, DCR, Admin | P1 |
@@ -90,6 +94,105 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F14 | "Free now" student list | Teacher sees every student currently free (and, optionally, who is in class), filterable by level, term, section and group | Teacher | P1 |
 
 F9's requester scope needs a decision — your brief says both "CR/DCR can request" and "the student can request"; the table assumes any student may request and CR/DCR is not required. This is flagged in Open questions.
+
+## Student dashboard
+
+The dashboard is the first page a student sees after login. Everything on it is based on the student's level, term, section and lab group for the current semester, and a student who has not confirmed the semester update (F1a) sees the update screen instead. The page is a summary: each card links to the full feature.
+
+**1. Right now (top of the page)**
+
+- **Live status:** "In class" or "Free", from the routine (F12). On Friday and Saturday it says "No classes today".
+- **Countdown:** time left in the current class, or time until the next one (F13), refreshed every minute.
+- **Current or next class card:** course, teacher for the student's group, room and time.
+
+**2. Routine**
+
+- **Today's classes** in time order, with the current one marked.
+- **Full week grid** from Sunday to Thursday (F7a), with today highlighted.
+- **Tomorrow preview:** the first class tomorrow and its start time, so the student knows when they must arrive.
+
+**3. Notices**
+
+- **Announcements** from the CR/DCR or admin for the student's section or lab group (F9b), newest first.
+- **Notifications** for routine changes, approval results and booking results (F11), with an unread count.
+- **Unread messages** count for direct chats and groups (F2, F3), linking to the chat.
+
+**4. Rooms**
+
+- **Free rooms now** from the free-room view (F8).
+- **My room requests** and whether each is confirmed, rejected or cancelled (F9), with a button to request a new one.
+
+**5. My section**
+
+- **CR and DCRs** of the student's section, with a button to message them.
+- **Courses this semester** with the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
+- **CR/DCR application status** if the student applied (pending, approved, rejected), and a link to the CR/DCR dashboard if they hold the role.
+
+**6. Profile reminders**
+
+- **Level, term, section and lab group** shown read-only (the group comes from the UV ID).
+- **Semester badge** such as "Fall 2026 confirmed", with a warning when the update is overdue.
+- **Email status:** a banner if the student's email is missing or unverified.
+- **Group problem notice** if the admin must still assign a group (see Lab groups and ID ranges).
+
+Rules:
+
+- Cards only show data the student is allowed to see. A student never sees another section's routine, bookings or students.
+- The dashboard works on a phone first: cards stack in one column, and the week grid becomes a day-by-day list (see F7a).
+- A card with nothing to show is hidden or shows a short empty message, never a blank box.
+- Priority order on a small screen: status and countdown, today's classes, notices, rooms, section, profile reminders.
+- The dashboard loads in under ~2 seconds and the status and countdown refresh on their own without reloading the page.
+
+## Teacher dashboard
+
+The dashboard is the first page an approved teacher sees after login (a pending teacher sees only the waiting screen; see Teacher approval). Everything on it is based on the classes assigned to the teacher's linked short code in the current semester's routine. Each card links to the full feature.
+
+**1. Right now (top of the page)**
+
+- **My status:** "Teaching" or "Free", from the classes assigned to the teacher (same rule as F12, applied to the teacher instead of a student). On Friday and Saturday it says "No classes today".
+- **Countdown:** time left in the current class, or time until the next one (F13), refreshed every minute.
+- **Current or next class card:** course, section, lab group, room and time. For a lab shared with another teacher, the other teacher's short code is shown too.
+
+**2. My routine (F7)**
+
+- **Today's classes** in time order, across all sections, with the current one marked.
+- **Full week grid** from Sunday to Thursday. A teacher teaches several sections and several lab groups of the same course, so each cell shows the course, section, group and room.
+- **Next teaching day preview** when there are no more classes today.
+
+**3. Students**
+
+- **"Free now" list (F14):** students currently free, filterable by level, term, section and group. For a teacher it covers the sections they teach by default, and can be widened to all sections for planning a makeup class.
+- **Section roster:** for each section the teacher teaches, the students with name, UV ID and lab group. A teacher cannot open the roster of a section they do not teach.
+
+**4. Rooms (F8, F9)**
+
+- **Free rooms now.**
+- **My room requests** and whether each is confirmed, rejected or cancelled, with a button to request a room. Teachers follow the same rules as students: the room must be free and the request made at least 12 hours before the slot.
+
+**5. Messages and notices**
+
+- **Unread messages and groups** count (F2, F3), linking to the chat.
+- **Notifications** for routine changes and approval results (F11), with an unread count.
+- **Announcements:** the teacher can send an announcement to a section or lab group they teach (F7d). It is emailed to those students and logged with the sender and time. Announcements from the admin appear here too.
+
+**6. Account**
+
+- **Linked short code and name** from the routine sheet. If the account is not yet linked, a notice asks the admin to link it.
+- **Profile reminders** when email, phone or photo is missing.
+
+What teachers cannot do or see:
+
+- A student's location, messages or attendance, and any section's roster outside the sections they teach.
+- Another user's private chats.
+- Admin controls: approvals, routine import and group ranges.
+
+Rules:
+
+- Cards only show data the teacher is allowed to see. Roster and announcement access is derived from the routine: a teacher qualifies for a section only if they are assigned to at least one of its slots this semester.
+- Where two teachers share a short code (the current sheet has `AR` used twice), the account cannot be linked until the admin fixes the sheet, and the dashboard shows the unlinked notice.
+- The dashboard works on a phone first: cards stack in one column and the week grid becomes a day-by-day list.
+- A card with nothing to show is hidden or shows a short empty message.
+- It loads in under ~2 seconds and the status and countdown refresh without reloading.
 
 ## CR/DCR dashboard
 
@@ -233,6 +336,14 @@ The routine is also the source of truth for free rooms (next section): a room is
 
 - **Automatic:** the student never chooses a routine. Level, term and section come from their profile, the lab group is worked out from their UV ID, and the app shows the matching published routine.
 - **Today first:** the page opens on today's classes, then offers the full week (Sunday to Thursday). Each class shows time, subject, teacher and room.
+- **Full week on the dashboard (F7a):** the student's dashboard has a weekly routine, so they do not need to open another page to plan their week.
+  - It is a grid with the days (Sunday to Thursday) as rows or columns and the time slots (8:30–9:25 up to 4:35–5:30) on the other axis, matching the layout of the department's Excel sheet.
+  - Each filled cell shows the course code, the teacher for the student's own group, and the room. Empty cells are free periods.
+  - A lab that runs for several periods is shown as one block across those periods, and classes with their own time (for example 12:00–3:00) are placed at that time.
+  - Today's column or row is highlighted, and the class happening right now is marked, with the live status and countdown (F12/F13) shown above the grid.
+  - It shows only the student's own section and group, so classes of other groups are never listed.
+  - On a phone, the grid switches to a day-by-day list with swipe or tabs between days, because a nine-period grid does not fit a narrow screen.
+  - The week shown is always the current semester's published routine, and it updates when the admin imports a changed sheet.
 - **Group-aware:** a lab tagged for one group (for example G1) is shown only to that group. Classes for the whole section are shown to everyone in it.
 - **Always current:** when the admin publishes a changed routine, the student sees the new one on their next visit with no action on their part. Archived routines from earlier terms are not shown here.
 - **Missing profile data:** if a student has not set their level, term or section, the page asks them to complete their profile. If their group could not be worked out from their UV ID, the page shows the whole-section classes with a notice that the admin must assign a group, instead of showing a wrong routine.
@@ -295,3 +406,4 @@ These need your decision before build:
 14. **Teacher approval details.** Decided: only the admin approves teachers. Still to confirm: should the admin check teachers against a list of allowed email domains or the routine's teacher list, and may a teacher use the app (for example to see routines) while pending? Current assumption: no access until approved.
 15. **Automatic emails to students.** Which messages should be sent to a student's email automatically (for example routine published or changed, CR/DCR approval result, room booking result, new semester update reminder, unconfirmed-profile warning)? Also: should students be able to turn some of them off? Current assumption: every student must have a verified email, and the list above is sent by default.
 16. **CR/DCR dashboard.** Decided: the CR/DCR confirm only students the system could not place in a section, and they can only request removal of a student, never delete. Still to confirm: how many removal and flag requests a CR can send per day, whether a student should be told when a removal is requested about them, and whether announcements need admin or teacher review first.
+17. **Student dashboard extras.** Should the dashboard also show the academic calendar (exams and holidays, for example from `academic callender.pdf`) and class-cancelled or room-changed alerts? Both depend on the holiday and cancellation handling in open question 10, so they are left out of the first version.
