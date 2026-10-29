@@ -12,9 +12,11 @@ What it commits to:
 
 1. Give every teacher and student a single sign-in and an editable profile (level, term, section, phone, photo, CR/DCR status).
 2. Let students and teachers message one-to-one and in groups, like WhatsApp.
-3. Let an admin approve teachers, choose each section's CR and DCR, and publish routines that each student sees filtered to their own level, term, section and lab group.
+3. Let an admin approve teachers, choose each section's CR and DCR, and publish routines that each student sees filtered to their own department, level, term, section and sessional group.
 4. Show which classroom is free at which time, and let a student or CR book a free room if the request is placed at least 12 hours ahead.
 5. Show each student, live, whether they are in class or free right now according to their routine, with a countdown to the next change, and give teachers a "free now" list of students.
+
+**How people and routines are identified.** Every student, section and routine is identified by five things: **department** (for example CSE), **level**, **term**, **section**, and, for sessional (lab) classes only, **group**. A section is department + level + term + section, for example "CSE 2-II-A", and its routine, its CR and its DCRs belong to that exact section. Wherever this document says "level, term and section" it means the department as well. Teachers belong to a department too, and a teacher is identified by department + short code.
 
 Out of scope for the first version: attendance, grades/marks, fee payment, and parent accounts. These are noted so the data model leaves room for them later.
 
@@ -46,9 +48,9 @@ Each role claims its account differently, but all land in the same profile edito
 
 First-login flow for a new teacher: sign up and verify email → wait for admin approval → complete profile → land on the dashboard.
 
-First-login flow for a new student: sign up and verify email → complete profile (level, term, section, phone, photo optional) and enter the UV ID → wait for the CR or DCR of that section to approve the claim → the app assigns the lab group automatically from the UV ID → land on the dashboard.
+First-login flow for a new student: sign up and verify email → fill in the join form (name, UV ID, department, level, term, section, sessional group; phone and photo optional) → the request goes to the CR and DCR of that section → wait for them to accept → land on the dashboard.
 
-At the start of every new semester, a returning student goes through the same forced step again for their level, term and section; the lab group is recalculated from their UV ID (see Semesters and student updates and Lab groups and ID ranges).
+At the start of every new semester, a returning student must submit a new join form with their new level, term, section and sessional group, and the CR and DCR of that section accept it again (see Semesters and student updates and Sessional groups).
 
 Password rules and recovery:
 
@@ -67,18 +69,19 @@ Required student email:
 
 A student's email only proves they own an inbox. The UV ID proves who they are at the university. Because UV IDs are sequential and easy to guess, a student does not become a student by typing an ID; the CR or DCR of their section has to approve it. The CR and DCR know their classmates, so they do not need a student list.
 
-1. After verifying their email, the student fills in level, term and section in their profile and enters the UV ID the university gave them.
-2. Automatic checks run first. The claim is blocked, with a reason, if: the ID format is invalid; the ID is outside every ID range of the chosen section in the imported routine file (this catches typos and claims for the wrong section or term); or the ID is already claimed by another account (the admin is told).
-3. If the checks pass, the claim goes to the CR and DCRs of that section as a **pending ID claim**. Until it is approved the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats.
-4. The CR or DCR sees the student's name, email, photo, level, term, section and UV ID, and approves or rejects (a reason is required for a rejection). Whoever acts first decides, and the student is told by email.
-5. On approval the account becomes active and the lab group is set from the UV ID.
+1. After verifying their email, the student fills in the **join form** in their profile: name, UV ID, department, level, term, section, and sessional group (if they know it). The student chooses these themselves.
+2. The only automatic check is that the UV ID is not already used by another account; if it is, the request is blocked and the admin is told. The system does not check the ID against any ID range or student list.
+3. The request goes to the CR and DCRs of the department, level, term and section the student chose, as a **pending join request**. Until it is accepted the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats.
+4. The CR or DCR sees the student's name, email, photo, UV ID, and the department, level, term, section and group they asked for. They decide whether the student belongs in that section, and can accept, reject (a reason is required for a rejection), or accept with a corrected sessional group. Whoever acts first decides, and the student is told by email.
+5. On acceptance the account becomes active and the student enters that section; the routine appears automatically. The sessional group affects only sessional (lab) classes; theory classes depend on level, term and section only.
+6. If the student chose the wrong section, the CR or DCR rejects the request with a reason and the student applies again to the right section.
 
 Rules:
 
 - A CR or DCR cannot approve their own claim or another CR/DCR's claim. Those go to the admin.
 - A section with no CR or DCR yet is handled by the admin until one is chosen.
 - If nobody acts on a claim within a set time, it moves to the admin (the time is an open question).
-- A student whose ID is outside every range (for example a repeat student) is sent to the admin, who assigns a section and group by hand.
+- A repeat or irregular student applies to the section they mostly attend. Special cases, such as a student who sits in classes of two sections, are handled by the admin.
 - If someone else claimed a student's ID, the real student reports it. The admin checks in person, can revoke the wrong claim, and the action is logged.
 - A student has a limited number of wrong claims before they are blocked for a while.
 - Every claim, approval, rejection and revocation is logged with who and when.
@@ -89,17 +92,18 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 
 | # | Feature | What it does | Who | Priority |
 | --- | --- | --- | --- | --- |
-| F1 | Profile editor | Edit level, term, section, phone, profile picture; **required, verified email** (add and change); view CR/DCR status and the automatically assigned lab group (read-only) | Teacher, Student | P0 |
-| F1a | Semester update | At the start of each semester (for example Spring 2026, then Fall 2026) the student must confirm or change their level, term and section before using the app; the lab group is recalculated from their UV ID | Student | P0 |
-| F1b | Automatic lab group | The app works out a student's lab group (G1, G2, G3, …) from their UV ID using the ID ranges the admin keeps for each section; students cannot choose or edit it | System, Admin | P0 |
+| F1 | Profile editor | Edit phone and profile picture; submit the join form (name, UV ID, department, level, term, section, sessional group) for the CR/DCR to accept; **required, verified email** (add and change); view CR/DCR status | Teacher, Student | P0 |
+| F1a | Semester update | At the start of each semester (for example Spring 2026, then Fall 2026) the student must submit a new join form with their department, level, term, section and sessional group, and the CR/DCR of that section accept it, before using the app | Student | P0 |
+| F1b | Sessional group assignment | The CR or DCR sets or corrects each student's sessional (lab) group (G1, G2, G3, …) when accepting the join request; the group affects only sessional classes, never theory classes | CR, DCR | P0 |
 | F2 | Direct messaging | One-to-one chat with read receipts and timestamps, like WhatsApp | Teacher, Student | P0 |
 | F3 | Group chat | Create a group, add members, send messages; creator is group admin | Teacher, Student | P0 |
 | F4 | CR/DCR assignment | The admin chooses each section's CR and DCRs by hand (one CR, up to two DCRs); students do not apply | Admin | P0 |
 | F4a | Teacher registration approval | A new teacher account is held as pending until the admin approves or rejects it | Teacher, Admin | P0 |
-| F4b | Student ID claim approval | A student claims their UV ID after signing up; the CR or DCR of their section approves or rejects the claim | Student, CR, DCR | P0 |
+| F4b | Student ID claim approval | A student submits a join form (UV ID, department, level, term, section, sessional group) after signing up; the request goes to that section's CR and DCR, who accept, reject, or correct the group | Student, CR, DCR | P0 |
 | F5 | Approval dashboard | Admin sees pending teacher registrations and ID claims that need the admin, and manages CR/DCR assignments | Admin | P0 |
-| F6 | Routine publishing | Admin builds and publishes routines per level–term–section | Admin | P0 |
-| F7 | Routine viewing ("My routine") | A student opens the app and automatically sees their own routine, picked from the level, term and section in their profile and the lab group worked out from their UV ID, with no manual searching or filtering; a teacher sees their own classes | Teacher, Student | P0 |
+| F5a | Admin dashboard and controls | One home page for the admin showing everything that needs attention, plus the tools to manage semesters, routines, teachers, CR/DCR, students, classrooms and departments, with an audit log | Admin | P0 |
+| F6 | Routine publishing | Admin uploads the routine template and edits any slot on a routine page (add, edit, delete), then publishes routines per level–term–section | Admin | P0 |
+| F7 | Routine viewing ("My routine") | A student opens the app and automatically sees their own routine, picked from the department, level, term, section and sessional group the CR or DCR accepted, with no manual searching or filtering; a teacher sees their own classes | Teacher, Student | P0 |
 | F7a | Full week routine on the dashboard | The student's dashboard shows their whole week (Sunday to Thursday) as a weekly grid, with today highlighted and the class happening now marked | Student | P0 |
 | F7b | Student dashboard | One home page for a student showing live status and countdown, today's classes, the full week, announcements, notifications, rooms, messages and profile reminders | Student | P0 |
 | F7c | Teacher dashboard | One home page for a teacher showing teaching status and countdown, today's classes, the week, free students, rooms, messages and notices | Teacher | P0 |
@@ -117,6 +121,47 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 
 F9's requester scope needs a decision — your brief says both "CR/DCR can request" and "the student can request"; the table assumes any student may request and CR/DCR is not required. This is flagged in Open questions.
 
+## Admin dashboard and controls
+
+The admin runs the system. This section collects the admin's duties, which are described piece by piece elsewhere in this document, into one place.
+
+**Who the admin is**
+
+- The admin account is seeded at install and cannot be created from the sign-up page.
+- It signs in with its own user ID and password, plus a second step (such as a code sent to the admin's phone or email), because this account controls everyone else's access.
+- There must be a recovery plan if the main admin leaves or loses access, for example a second admin account.
+- Whether there is one main admin for all departments or an admin per department is an open question.
+
+**Admin dashboard (home page)**
+
+Cards showing what needs attention, newest first:
+
+- **Teacher registrations waiting** for approval (F4a), with approve and reject.
+- **ID claims that need the admin:** claims from a CR or DCR, claims in a section that has no CR yet, and claims no CR or DCR acted on in time.
+- **Reports from CR and DCR:** flags and removal requests.
+- **Routine problems:** the errors and warnings from the last import that are still open.
+- **Current semester:** its name and status, and the button to start a new semester.
+- **Unconfirmed students:** who has not been accepted into a section for the current semester, per section.
+- **Recent activity:** the latest entries of the audit log.
+
+**What the admin manages**
+
+- **Semesters:** create a semester (for example Fall 2026), make it current, and run the rollover (see Semesters and student updates).
+- **Routines:** upload the import template and check the preview, edit any slot on the routine edit page, and publish (see Routine file import, Import template and checks, Routine edit page).
+- **Teachers:** approve or reject registrations, suspend or remove a teacher, and link each teacher account to its department and short code (see Teacher approval).
+- **CR and DCR:** choose and remove them for each section (see CR/DCR assignment).
+- **Students:** search for a student, deactivate an account, handle a request such as "someone took my UV ID", and set a student's sessional group by hand.
+- **Classrooms:** keep the list of rooms with type (classroom or lab) and capacity.
+- **Departments:** keep the list of departments used on the join form and in the routine.
+
+**Rules**
+
+- **Audit log:** every admin action is logged with who, when, and the old and new values. The log cannot be edited or deleted, and only the admin can read it.
+- **Confirmation:** destructive actions (deactivate an account, remove a role, publish a routine) ask the admin to confirm first.
+- **Nothing is hard-deleted:** removing a student or teacher deactivates the account and keeps its history, so a mistake can be undone.
+- **Private chats:** the admin cannot read users' private messages.
+- **Server checks:** every admin action is checked on the server, not only hidden in the page (see Non-functional requirements).
+
 ## Student dashboard
 
 The dashboard is the first page a student sees after login. Everything on it is based on the student's level, term, section and lab group for the current semester, and a student who has not confirmed the semester update (F1a) sees the update screen instead. The page is a summary: each card links to the full feature.
@@ -125,7 +170,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 - **Live status:** "In class" or "Free", from the routine (F12). On Friday and Saturday it says "No classes today".
 - **Countdown:** time left in the current class, or time until the next one (F13), refreshed every minute.
-- **Current or next class card:** course, teacher for the student's group, room and time.
+- **Current or next class card:** course, the full name of the teacher for the student's group, room and time.
 
 **2. Routine**
 
@@ -147,15 +192,15 @@ The dashboard is the first page a student sees after login. Everything on it is 
 **5. My section**
 
 - **CR and DCRs** of the student's section, with a button to message them.
-- **Courses this semester** with the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
+- **Courses this semester** with the full name of the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
 - **ID claim status** while the claim is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
 
 **6. Profile reminders**
 
-- **Level, term, section and lab group** shown read-only (the group comes from the UV ID).
+- **Level, term, section and sessional group** shown read-only, as accepted by the CR or DCR.
 - **Semester badge** such as "Fall 2026 confirmed", with a warning when the update is overdue.
 - **Email status:** a banner if the student's email is missing or unverified.
-- **Group problem notice** if the admin must still assign a group (see Lab groups and ID ranges).
+- **Group notice** if the CR or DCR has not set a sessional group yet (see Sessional groups).
 
 Rules:
 
@@ -173,7 +218,7 @@ The dashboard is the first page an approved teacher sees after login (a pending 
 
 - **My status:** "Teaching" or "Free", from the classes assigned to the teacher (same rule as F12, applied to the teacher instead of a student). On Friday and Saturday it says "No classes today".
 - **Countdown:** time left in the current class, or time until the next one (F13), refreshed every minute.
-- **Current or next class card:** course, section, lab group, room and time. For a lab shared with another teacher, the other teacher's short code is shown too.
+- **Current or next class card:** course, section, lab group, room and time. For a lab shared with another teacher, both teachers' full names are shown.
 
 **2. My routine (F7)**
 
@@ -206,12 +251,12 @@ What teachers cannot do or see:
 
 - A student's location, messages or attendance, and any section's roster outside the sections they teach.
 - Another user's private chats.
-- Admin controls: approvals, routine import and group ranges.
+- Admin controls: approvals and routine import.
 
 Rules:
 
 - Cards only show data the teacher is allowed to see. Roster and announcement access is derived from the routine: a teacher qualifies for a section only if they are assigned to at least one of its slots this semester.
-- Where two teachers share a short code (the current sheet has `AR` used twice), the account cannot be linked until the admin fixes the sheet, and the dashboard shows the unlinked notice.
+- Teachers are identified by department + short code. If the same code appears twice inside one department, the account cannot be linked until the admin fixes the import, and the dashboard shows the unlinked notice.
 - The dashboard works on a phone first: cards stack in one column and the week grid becomes a day-by-day list.
 - A card with nothing to show is hidden or shows a short empty message.
 - It loads in under ~2 seconds and the status and countdown refresh without reloading.
@@ -234,7 +279,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 - **Request a free room** for the section under the 12-hour rule (F9), and **cancel** the section's own booking.
 - **Send an announcement** to the whole section or to one lab group (F9b). Announcements are also emailed to those students (F11) and are logged with the sender.
-- **Approve or reject UV ID claims** from students of their section (see Student ID claim). The CR and DCR use what they know about their classmates; no student list is needed. They cannot approve their own claim.
+- **Accept or reject join requests** from students of their section, and set each student's sessional group (see Student ID claim). The CR and DCR use what they know about their classmates; no student list or ID range is checked. They cannot approve their own claim.
 - **Flag a problem to the admin**, for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
 - **Request removal of a student** (F9c). The request says who and why. It does not delete anything.
 
@@ -242,7 +287,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 - Delete or deactivate any account. Only the admin can, and every removal is logged with who and when, so a mistaken request can be reversed. Student history is kept.
 - Approve CR/DCR or teachers.
-- Publish or edit routines, or change group ID ranges.
+- Publish or edit routines.
 - See students, bookings or flags of any other section.
 - Change a student's profile, section or group. A change is made by the student, or by the admin after a flag.
 
@@ -268,7 +313,7 @@ Rules:
 - Only the admin can approve teachers; there is no self-approval and no way to become admin through this flow.
 - A rejected teacher can re-apply, but the admin sees the earlier rejection.
 - The admin can later suspend or remove an approved teacher (for example when they leave the department).
-- The same short code cannot be linked to two active accounts, and the shared `AR` code in the current sheet must be resolved before it can be linked.
+- A teacher is identified by department + short code, so the same code in two departments (for example `AR` in CSE and in CE) is fine. The same department + code cannot be linked to two active accounts.
 
 ## CR/DCR assignment
 
@@ -304,51 +349,93 @@ How it works:
 1. Admin creates a routine for a level, term and section — for example, Level 2, Term 1, Section A.
 2. For each slot (day × time), admin assigns subject, teacher and room.
 3. Admin publishes it. Publishing is what makes it visible to students and teachers.
-4. A student opens "My routine" and sees only the routine for their own level, term, section and lab group — no manual filtering. The app reads level, term and section from the student's profile (F1) and works out the group from their UV ID (F1b), so the right routine appears as soon as they log in.
+4. A student opens "My routine" and sees only the routine for their own level, term, section and lab group — no manual filtering. The app uses the level, term, section and sessional group that the CR or DCR accepted (F1b), so the right routine appears as soon as they accept the student.
 
 ### Routine file import
 
-The Excel sheet is the source of truth for the whole routine: classes, teachers, rooms, and which UV ID range belongs to which group. The app does not invent or guess any of it.
+The uploaded file is the starting point for the routine: classes, teachers, rooms and sessional groups. The app does not invent or guess any of it. Once it is imported, the routine in the app is the source of truth, and the admin can correct it on the routine edit page (see Routine edit page).
 
 1. Every semester, a teacher gives the department's new Excel sheet to the main admin. The sheet changes every semester, so last semester's data is never reused.
-2. The main admin uploads it to the new semester. The system reads the weekly routine sheet and the "Level wise Student number" sheet (sections, groups and ID ranges).
-3. Before publishing, the admin sees a preview and a list of problems found in the file (see the data-quality list in Open questions, for example inconsistent batch labels, overlapping ID ranges, or a short teacher code used by two people). The admin fixes the file or corrects the entries, then publishes.
-4. Publishing is what makes the new routine and group assignments take effect: students' groups are recalculated from their UV IDs against the new ranges.
-5. If the teacher later sends a corrected sheet, the admin re-imports it for the same semester and the changes replace the draft or published routine. This is logged with who and when, and affected students are notified (F11).
-6. Only the main admin can import. Teachers and students never edit the routine or the group ranges directly.
+2. The main admin uploads the filled import template to the new semester (see Import template and checks). The "Level wise Student number" sheet is not used to place students.
+3. Before publishing, the admin sees a preview and a list of problems found in the file (see the data-quality list in Open questions, for example inconsistent batch labels or a short teacher code used by two people). The admin fixes the file or corrects the entries, then publishes.
+4. Publishing is what makes the new routine take effect for the students of each section.
+5. If the teacher later sends a corrected sheet, the admin re-imports it for the same semester. Before anything is replaced, the admin sees what would change, including any slots the admin edited by hand on the routine edit page, and chooses what to keep. This is logged with who and when, and affected students are notified (F11).
+6. Only the main admin can import. Teachers and students never edit the routine directly.
 
-### Lab groups and ID ranges
+### Import template and checks
+
+The department's current Excel sheet is made for people to read: merged cells, free-text times such as `(12.00pm- 2.00pm)`, notes inside cells, and labels like `4-I` that Excel turns into a date. A program cannot read it reliably. So the first version imports a **clean template**, and the department's sheet is copied into it once per semester. Reading the old layout directly is out of scope for the first version; it would be a project of its own (merged cells, special times, mangled labels).
+
+Template, one row per class slot, plain text with drop-down lists where possible:
+
+- **Department** (for example CSE, EEE, CE, LAW), **level** (1–4) and **term** (I or II) as separate text columns, **section** (A, B, C) and **group** (G1, G2, … or empty for the whole section). Classes for other departments' batches, such as Law or Civil students taught by CSE teachers, are normal rows with that department.
+- **Day** (Sunday to Thursday), **start time** and **end time** in 24-hour form (for example 12:00 and 14:00). A lab over several periods, or a class with its own time, is just one row.
+- **Course code** and course name.
+- **Teachers**, each written as department:code (for example `CSE:AR`), separated by a plus sign when two teachers share a class. `TBA` is allowed.
+- **Room**.
+- A second sheet lists the teachers (department, short code, full name) and a third lists the rooms (room, type, capacity).
+
+Checks run when the admin uploads the template. The admin sees the full list and the preview before anything is published.
+
+Errors (publishing is blocked until fixed):
+
+- **Teacher double-booked:** the same teacher has two classes that overlap in time on the same day.
+- **Room double-booked:** the same room is used by two classes that overlap in time.
+- **Section overlaps itself:** a section or group has two classes at overlapping times, including a whole-section class that overlaps a group's lab.
+- **Unknown teacher:** a teacher code that is not in the teacher list (for example `AA` or `NR` in the current sheet).
+- **Unknown room**, a missing required field, an unreadable day or time, an end time before the start time, or a day outside Sunday to Thursday.
+
+Warnings (the admin can accept them):
+
+- A teacher is `TBA`.
+- The same course and group appear twice on one day (this would flag the duplicated `CSE-301 (G1)` in the current sheet).
+- A class starts before 8:30 or ends after 17:30.
+
+Fixing is done in the template and re-uploading it. Nothing is published, and no student sees any change, until the admin publishes with zero errors.
+
+### Routine edit page
+
+The uploaded file can have mistakes, and the routine can change during the semester. So the admin does not have to upload a new file for every fix: after the import, the admin can change the routine on a web page.
+
+- The page shows the routine of one department, level, term and section as a weekly grid, in the same layout students see.
+- The admin can **add** a class slot, **edit** its course, teacher, room, day, time or group, and **delete** it.
+- Every add, edit and delete goes through the same conflict checks as the import (teacher, room or section double-booked, unknown teacher or room). A change with an error cannot be saved.
+- Every change is logged with who, when, and the old and new values. The students and teachers affected are notified (F11).
+- A saved change on a published routine shows to students right away.
+- Only the admin can use this page. CR, DCR, teachers and students cannot edit the routine.
+
+### Sessional groups
 
 Theory classes are for the whole section, but sessional (lab) courses are split into groups so that each group fits a lab. For example, a 2-II batch has a Data Structures and Algorithms sessional that is split into G1, G2 and G3. Each group has its own teacher (or pair of teachers), day, time and lab room: G1 may be taken by one teacher on Sunday in one lab, G2 by a different teacher on Tuesday, and G3 by another teacher on Thursday. The course is the same, but the teacher, time and room are not. Two students in the same section can therefore have different routines, and see different teachers for the same course.
 
 How a student's group is decided:
 
 1. A student's routine is decided in this order: **level → term → section → group**.
-2. The group comes from the student's **UV ID**, never from a choice the student makes. Each section has ID ranges, one per group, for example IDs 1–25 are G1, IDs 26–50 are G2, IDs 51–75 are G3 (as written in the "Level wise Student number" sheet of the routine file, for example `G1 = 1123001–1123025`).
-3. The routine Excel sheet is the only source for these ranges. Each semester a teacher gives the department's new Excel sheet (for example "Dept of CSE Routine Spring 2026"), and the main admin imports it (see Routine file import). The ranges are never typed in by students or teachers.
-4. When a student's ID claim is approved or a semester changes, the app finds the range containing their UV ID and stores that group on the profile as read-only.
-5. A lab slot tagged with a group (such as `CSE-422 (G1)`) is shown only to students whose group matches, with that group's teacher, time and room. Slots for the whole section (no group tag) are shown to everyone in it.
+2. The student chooses level, term and section on the join form and may suggest their group. The CR or DCR who accepts the request decides the final group, because they know which group each classmate belongs to. The system does not check the UV ID against any ID range.
+3. The list of groups for each section (G1, G2, …) comes from the imported routine Excel sheet, so the CR or DCR picks from groups that really exist for that section.
+4. The group applies only to sessional (lab) courses. Theory classes depend only on level, term and section.
+5. A lab slot tagged with a group (such as `CSE-422 (G1)`) is shown only to students whose group matches, with that group's teacher (full name), time and room. Slots for the whole section (no group tag) are shown to everyone in it.
 6. Because every group has its own teacher, the routine stores teacher, time and room per group, never per course. A teacher's own routine (F7) is built from the group slots they are assigned to, so a teacher can appear in several groups of the same course, and a student sees only their own group's teacher.
 
 Edge cases the system must handle:
 
-- **UV ID outside every range** (for example repeat or transfer students listed as "+ REPEAT" in the sheet): the app does not guess; it flags the student for the admin to assign a group by hand, and until then shows only the whole-section classes with a notice.
-- **Overlapping or missing ranges**: the admin screen rejects ranges that overlap inside a section or leave gaps without warning.
+- **Student does not know their group:** they leave it empty and the CR or DCR sets it when accepting. Until a group is set, the student sees only the whole-section (theory) classes with a notice.
+- **Wrong group:** the CR or DCR can change a student's group later, and the change is logged.
 - **Admin override**: the admin can set a group manually for one student, and that override is kept and logged.
-- **Group changes between semesters** are expected, since ranges differ by level and term.
+- **Group changes between semesters** are expected, since groups differ by level and term.
 5. A teacher sees a view assembled from every slot where they are the assigned teacher, across sections.
 
 Your brief mentions the routine being "given every six months." That maps to term-based routines: each term (roughly six months) the admin publishes a new routine, and the old one is archived, not deleted, so history stays. Whether a term is exactly six months, or set by an academic calendar, is an open question.
 
 ### Semesters and student updates
 
-Each six-month period is a named **semester**, for example Spring 2026 or Fall 2026. The admin creates the semester, publishes its routines, and marks it as the current one. A student's level, term and section are only valid for one semester, because students move up (for example from 2-I to 2-II) and may change section. The lab group is not chosen by the student; it is recalculated from their UV ID each semester.
+Each six-month period is a named **semester**, for example Spring 2026 or Fall 2026. The admin creates the semester, publishes its routines, and marks it as the current one. A student's level, term, section and sessional group are only valid for one semester, because students move up (for example from 2-I to 2-II) and may change section or group. At each rollover the student submits them again and the CR and DCR of the new section accept them.
 
 How the rollover works:
 
-1. When the admin makes a new semester current, every student's saved level, term and section are marked **unconfirmed** for it.
-2. The next time a student logs in, they are shown the semester update screen and cannot use "My routine", live status, room booking or the rest of the app until they confirm. It is pre-filled with the suggested next term (for example 2-I becomes 2-II) and last semester's section, and asks "Which level and term are you in now? Which section?". The lab group is then shown as read-only, calculated from their UV ID.
-3. The student confirms or changes the values and saves. Their profile is stamped with the semester it was confirmed for (for example "Fall 2026").
+1. When the admin makes a new semester current, every student's saved level, term, section and sessional group are marked **unconfirmed** for it.
+2. The next time a student logs in, they are shown the semester update screen and cannot use "My routine", live status, room booking or the rest of the app until they confirm. It is the join form, pre-filled with last semester's values and the suggested next term (for example 2-I becomes 2-II). The student fills in or changes level, term, section and sessional group, and the request goes to the CR and DCR of the section they chose, who accept it again.
+3. When the CR or DCR accepts the request, the student's profile is stamped with the semester it was confirmed for (for example "Fall 2026").
 4. From then on, everything the student sees is based on those four values for the current semester: their routine, the live in-class or free status and countdown, the section's CR and DCR, and the free-room view.
 5. Last semester's values and routine stay in the student's history and are never overwritten.
 
@@ -363,19 +450,20 @@ The routine is also the source of truth for free rooms (next section): a room is
 
 ### My routine (student view)
 
-- **Automatic:** the student never chooses a routine. Level, term and section come from their profile, the lab group is worked out from their UV ID, and the app shows the matching published routine.
-- **Today first:** the page opens on today's classes, then offers the full week (Sunday to Thursday). Each class shows time, subject, teacher and room.
+- **Automatic:** the student never chooses a routine. The routine follows the level, term, section and sessional group the CR or DCR accepted, and the app shows the matching published routine.
+- **Today first:** the page opens on today's classes, then offers the full week (Sunday to Thursday). Each class shows time, subject, the teacher's full name and room.
 - **Full week on the dashboard (F7a):** the student's dashboard has a weekly routine, so they do not need to open another page to plan their week.
   - It is a grid with the days (Sunday to Thursday) as rows or columns and the time slots (8:30–9:25 up to 4:35–5:30) on the other axis, matching the layout of the department's Excel sheet.
-  - Each filled cell shows the course code, the teacher for the student's own group, and the room. Empty cells are free periods.
+  - Each filled cell shows the course code, the full name of the teacher for the student's own group (the short code if the cell is too small, with the full name shown on tap), and the room. Empty cells are free periods.
   - A lab that runs for several periods is shown as one block across those periods, and classes with their own time (for example 12:00–3:00) are placed at that time.
   - Today's column or row is highlighted, and the class happening right now is marked, with the live status and countdown (F12/F13) shown above the grid.
   - It shows only the student's own section and group, so classes of other groups are never listed.
   - On a phone, the grid switches to a day-by-day list with swipe or tabs between days, because a nine-period grid does not fit a narrow screen.
   - The week shown is always the current semester's published routine, and it updates when the admin imports a changed sheet.
 - **Group-aware:** a lab tagged for one group (for example G1) is shown only to that group. Classes for the whole section are shown to everyone in it.
+- **Teacher names:** wherever a class is shown to a student, the teacher is shown by **full name** (for example "Arifur Rahaman"), not only the short code from the sheet. The app finds the name by looking up the short code, together with the department, in the teacher list of the import template. A class with two teachers shows both names. If the teacher is `TBA`, it shows "Teacher to be announced". Where there is very little space, such as a cell in the week grid, the short code may be shown and the full name appears when the student taps the cell.
 - **Always current:** when the admin publishes a changed routine, the student sees the new one on their next visit with no action on their part. Archived routines from earlier terms are not shown here.
-- **Missing profile data:** if a student has not set their level, term or section, the page asks them to complete their profile. If their group could not be worked out from their UV ID, the page shows the whole-section classes with a notice that the admin must assign a group, instead of showing a wrong routine.
+- **Missing data:** if the student's join request is not accepted yet, the page shows the waiting screen. If no sessional group has been set yet, the page shows the whole-section classes with a notice that the CR or DCR must set a group, instead of showing a wrong routine.
 
 ## Live class status
 
@@ -383,10 +471,10 @@ The routine already says who has which class when, so the app can also answer "w
 
 How status is decided (F12):
 
-1. Take the student's level, term and section from their profile and their lab group from their UV ID.
+1. Take the student's level, term, section and sessional group, as accepted by the CR or DCR.
 2. Take the current day and time in the institution's timezone.
 3. Look in the student's published routine for a slot on that day whose start–end time contains the current time.
-   - A match means **In class**. Show the subject, teacher, room and end time.
+   - A match means **In class**. Show the subject, the teacher's full name, room and end time.
    - No match means **Free**. Show when the next class starts.
 4. A class applies to a student if it is for their whole section, or for their lab group. Lab slots tagged with a group (for example G1 or G2) apply only to that group; the same section can be in a lab and free at the same time.
 5. On non-teaching days (the routine runs Sunday to Thursday) the status shows "No classes today" rather than "Free", and the countdown points to the next teaching day's first class.
@@ -394,14 +482,14 @@ How status is decided (F12):
 Countdown (F13):
 
 - **In class:** "Class ends in 25 min".
-- **Free:** "Next class CSE-421 in 1 h 10 min, Room 311". If there are no more classes today, it counts down to the first class of the next teaching day.
+- **Free:** "Next class CSE-421 with Arifur Rahaman in 1 h 10 min, Room 311". If there are no more classes today, it counts down to the first class of the next teaching day.
 - The status and countdown refresh on their own every minute while the page is open. No manual reload is needed.
 
 "Free now" list for teachers (F14):
 
 - A teacher opens a list of students who are free at this moment, with the time each one's next class starts, so the teacher can see who is available, for example for a makeup class or a meeting.
 - The list can be filtered by level, term, section and group, and switched to show who is in class.
-- Because status comes from the section and group routine, every student in the same section and group shows the same status. An individual student's status is only as accurate as the section saved in their profile and the ID ranges the admin keeps.
+- Because status comes from the section and group routine, every student in the same section and group shows the same status. An individual student's status is only as accurate as the section and group the CR or DCR accepted.
 - Teachers see only what the routine implies (in class or free), never a student's location, messages or attendance.
 
 ## Non-functional requirements
@@ -422,19 +510,21 @@ These need your decision before build:
 2. **What does "12 hours ahead" block exactly?** Assumption: the request must be submitted at least 12 hours before the slot's start time, otherwise it is rejected. Confirm.
 3. **Does a room booking need approval?** Assumption: if the room is free and the 12-hour rule is met, the booking is auto-confirmed (no admin step). Or should admin/CR approve it?
 4. **Is a term exactly six months?** Or driven by an academic calendar with set start/end dates?
-4a. **Semester rollover.** Should the app move students up one term automatically for them to confirm (for example 2-I to 2-II), or should the student pick everything from scratch? Current assumption: it pre-fills the next term and the student confirms. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
+4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
 5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Still to confirm: the caps (one CR, up to two DCRs).
 6. **Password policy** — minimum length, complexity, lockout threshold.
 7. **Media limits** — max file size and allowed types in messages.
-8. **Institution scope** — one institution per deployment, or should it support multiple?
-9. **Group ID ranges.** Decided: the lab group is worked out from the UV ID, not chosen by the student. The ID ranges come only from the Excel sheet that the main admin imports each semester (see Routine file import). Still to confirm: how repeat students and IDs outside every range should get a group, and whether the sheet layout will stay the same every semester (the importer depends on it).
+8. **Institution scope.** Department is a criterion (department, level, term, section, group), so one deployment serves several departments. Still to confirm: one institution per deployment or several, and one main admin for all departments or an admin per department.
+9. **Sessional groups.** Decided: the CR or DCR decides each student's sessional group when accepting the request, and the system does not use UV ID ranges. Still to confirm: how repeat students who attend several sections get their groups.
 10. **Holidays and cancelled classes.** Should the admin be able to mark a date as a holiday or cancel a single class, so status shows "No class today" instead of "In class"? The first version assumes the routine always runs.
 11. **Timezone.** Assumption: all status is computed in one institution timezone, not the viewer's device clock.
 12. **Teacher visibility of status.** Should a student be able to hide their in-class/free status from the teacher "free now" list, or is it always visible to teachers?
-13. **Routine file quality.** The current spreadsheet has inconsistent batch labels (for example `3-1-A` vs `3-I-A`, and `4-I` stored as a date), a duplicated `CSE-301 (G1)` slot in the Tuesday 3-II-A row, and one short code (`AR`) used by two teachers. These should be cleaned up before import.
+13. **Routine file quality.** The current spreadsheet has inconsistent batch labels (for example `3-1-A` vs `3-I-A`, and `4-I` stored as a date), a duplicated `CSE-301 (G1)` slot in the Tuesday 3-II-A row, and one short code (`AR`) used by both a CSE and a CE teacher with no department written on the class. The import template solves these (levels and terms are separate text columns, teachers are written as department:code), but the old sheet has to be copied into it first.
 14. **Teacher approval details.** Decided: only the admin approves teachers. Still to confirm: should the admin check teachers against a list of allowed email domains or the routine's teacher list, and may a teacher use the app (for example to see routines) while pending? Current assumption: no access until approved.
 15. **Automatic emails to students.** Which messages should be sent to a student's email automatically (for example routine published or changed, CR/DCR approval result, room booking result, new semester update reminder, unconfirmed-profile warning)? Also: should students be able to turn some of them off? Current assumption: every student must have a verified email, and the list above is sent by default.
 16. **CR/DCR dashboard.** Decided: the CR/DCR approve every student's ID claim, and they can only request removal of a student, never delete. Still to confirm: how many removal and flag requests a CR can send per day, whether a student should be told when a removal is requested about them, and whether announcements need admin or teacher review first.
 17. **Student dashboard extras.** Should the dashboard also show the academic calendar (exams and holidays, for example from `academic callender.pdf`) and class-cancelled or room-changed alerts? Both depend on the holiday and cancellation handling in open question 10, so they are left out of the first version.
 18. **Teacher dashboard.** Decided: teachers see the roster and "free now" list of sections they teach, may request free rooms under the 12-hour rule, and may announce to those sections. Still to confirm: whether the "free now" list may be widened to all sections (for example to plan a makeup class; the current rule keeps it to sections they teach), whether students can mute teacher announcements, and whether a room booked by a teacher should override a student's request for the same slot (current assumption: first valid request wins).
-19. **Student ID claim.** Decided: students sign up with email + password and then claim their UV ID; the CR or DCR of the section approves the claim without a student list; the admin chooses CR/DCR by hand. Still to confirm: how many days before an unanswered claim moves to the admin, how many wrong claims block a student, and whether a rejected student may try again with the same ID.
+20. **Import template.** Decided: the first version imports a clean template, not the department's current sheet. Still to confirm: the exact columns, who copies the department's sheet into the template each semester (teacher or admin), and whether a one-time helper to convert the old sheet is worth building later.
+21. **Admin.** Still to confirm: one main admin for all departments or an admin per department; the second login step for the admin (code by SMS, email or an app); who the second admin is; whether the admin can read private chats (current assumption: no); whether the admin needs reports or exports (for example how many students are active per section) in the first version; and whether the admin gets an email when a new teacher registers or a claim has been waiting too long.
+19. **Student ID claim.** Decided: students sign up with email + password and then submit a join form (UV ID, department, level, term, section, sessional group); the request goes to that section's CR and DCR, who accept, reject or correct the group without a student list or any ID-range check; the admin chooses CR/DCR by hand. Still to confirm: how many days before an unanswered claim moves to the admin, how many wrong claims block a student, and whether a rejected student may try again with the same ID.
