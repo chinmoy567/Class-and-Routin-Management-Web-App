@@ -29,7 +29,7 @@ There are three account types. CR and DCR are not separate account types — the
 | Admin | Own user ID + password (seeded, not self-registered) | Approve/reject teacher registrations, choose and remove each section's CR and DCR, approve ID claims that no CR/DCR can handle, publish and edit routines, manage classrooms, see everyone | Be self-created from the sign-up page |
 | Teacher (after admin approval) | Email + password | Edit own profile, message & create groups, view own teaching routine, see which rooms are free, request a free room (12-hour rule), see the roster and "free now" list of sections they teach, send announcements to those sections | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
 | Student | Email + password (the UV ID is claimed after sign-up) | Edit own profile, claim their UV ID, and once the CR or DCR approves the claim: message & create groups, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, use the app before the ID claim is approved |
-| CR (student chosen by the admin) | Same as student | Everything a student can, plus **request a free classroom**, use the **CR/DCR dashboard** for their own section, and approve or reject UV ID claims from students of that section | Approve CR/DCR or teachers, approve their own claim, publish or edit routines, delete or deactivate accounts, see other sections' students |
+| CR (student chosen by the admin) | Same as student | Everything a student can, plus **request a free classroom**, use the **CR/DCR dashboard** for their own section, and approve or reject UV ID claims from students of that section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
 | DCR (student chosen by the admin) | Same as student | Same as CR | Same as CR |
 
 Notes:
@@ -70,7 +70,7 @@ Required student email:
 
 A student's email only proves they own an inbox. The UV ID proves who they are at the university. Because UV IDs are sequential and easy to guess, a student does not become a student by typing an ID; the CR or DCR of their section has to approve it. The CR and DCR know their classmates, so they do not need a student list.
 
-1. After verifying their email, the student fills in the **join form** in their profile: name, UV ID, department, level, term, section, and sessional group (if they know it). The student chooses these themselves.
+1. After verifying their email, the student fills in the **join form** in their profile: name, UV ID, department, level, term, section, and sessional group (if they know it). The student chooses these themselves, but only from sections that already have a CR assigned by the admin.
 2. The only automatic check is that the UV ID is not already used by another account; if it is, the request is blocked and the admin is told. The system does not check the ID against any ID range or student list.
 3. The request goes to the CR and DCRs of the department, level, term and section the student chose, as a **pending join request**. Until it is accepted the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats.
 4. The CR or DCR sees the student's name, email, photo, UV ID, and the department, level, term, section and group they asked for. They decide whether the student belongs in that section, and can accept, reject (a reason is required for a rejection), or accept with a corrected sessional group. Whoever acts first decides, and the student is told by email.
@@ -79,8 +79,8 @@ A student's email only proves they own an inbox. The UV ID proves who they are a
 
 Rules:
 
-- A CR or DCR cannot approve their own claim or another CR/DCR's claim. Those go to the admin.
-- A section with no CR or DCR yet is handled by the admin until one is chosen.
+- A CR or DCR does not submit a join request for the section they lead: the admin's assignment is their approval (they must still have signed up and verified their email).
+- A section with no CR or DCR is closed: it does not appear on the join form, and students cannot send a request to it until the admin has chosen its CR (and DCRs).
 - If nobody acts on a claim within a set time, it moves to the admin (the time is an open question).
 - A repeat or irregular student applies to the section they mostly attend. Special cases, such as a student who sits in classes of two sections, are handled by the admin.
 - If someone else claimed a student's ID, the real student reports it. The admin checks in person, can revoke the wrong claim, and the action is logged.
@@ -138,7 +138,7 @@ The admin runs the system. This section collects the admin's duties, which are d
 Cards showing what needs attention, newest first:
 
 - **Teacher registrations waiting** for approval (F4a), with approve and reject.
-- **ID claims that need the admin:** claims from a CR or DCR, claims in a section that has no CR yet, and claims no CR or DCR acted on in time.
+- **ID claims that need the admin:** claims no CR or DCR acted on in time.
 - **Reports from CR and DCR:** flags and removal requests.
 - **Routine problems:** the errors and warnings from the last import that are still open.
 - **Current semester:** its name and status, and the button to start a new semester.
@@ -280,8 +280,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 - **Request a free room** for the section under the 12-hour rule (F9), and **cancel** the section's own booking.
 - **Send an announcement** to the whole section or to one lab group (F9b). Announcements are also emailed to those students (F11) and are logged with the sender.
-- **Accept or reject join requests** from students of their section, and set each student's sessional group (see Student ID claim). The CR and DCR use what they know about their classmates; no student list or ID range is checked. They cannot approve their own claim.
-- **Flag a problem to the admin**, for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
+- **Accept or reject join requests** from students of their section, and set each student's sessional group (see Student ID claim). The CR and DCR use what they know about their classmates; no student list or ID range is checked.- **Flag a problem to the admin**, for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
 - **Request removal of a student** (F9c). The request says who and why. It does not delete anything.
 
 **What a CR or DCR cannot do**
@@ -320,7 +319,7 @@ Rules:
 
 The admin chooses each section's CR and DCRs by hand. Students do not apply, because the admin knows who should lead each section.
 
-1. The admin opens the section (for example 3-II-A, Fall 2026) and picks a student whose ID claim is already approved.
+1. The admin opens the section (for example 3-II-A, Fall 2026) and picks a student who has signed up and verified their email. No approved ID claim is needed first: the admin knows who should lead the section, and the admin's choice is the approval.
 2. The admin sets the role: CR or DCR.
 3. The system blocks a second CR, or a third DCR, in the same section and tells the admin why.
 4. The student sees the role on their profile and gets the CR/DCR dashboard. The assignment is logged with who and when.
@@ -329,7 +328,7 @@ Rules:
 
 - A role belongs to one section and one semester. It ends at rollover and the admin chooses again for the new semester.
 - The admin can remove a role at any time.
-- For a brand new section with no CR yet, the admin approves the first ID claims and then names the CR and DCRs.
+- A section opens for join requests only after the admin has named its CR. The admin names the CR and DCRs first, then students apply and the CR/DCR approve them.
 
 ## Classroom booking rules
 
@@ -434,7 +433,7 @@ Each six-month period is a named **semester**, for example Spring 2026 or Fall 2
 
 How the rollover works:
 
-1. When the admin makes a new semester current, every student's saved level, term, section and sessional group are marked **unconfirmed** for it.
+1. When the admin makes a new semester current, every CR and DCR role ends and every student's saved level, term, section and sessional group are marked **unconfirmed** for it. The admin then chooses the new CR and DCRs for each section; a section stays closed to join requests until its CR is chosen.
 2. The next time a student logs in, they are shown the semester update screen and cannot use "My routine", live status, room booking or the rest of the app until they confirm. It is the join form, pre-filled with last semester's values and the suggested next term (for example 2-I becomes 2-II). The student fills in or changes level, term, section and sessional group, and the request goes to the CR and DCR of the section they chose, who accept it again.
 3. When the CR or DCR accepts the request, the student's profile is stamped with the semester it was confirmed for (for example "Fall 2026").
 4. From then on, everything the student sees is based on those four values for the current semester: their routine, the live in-class or free status and countdown, the section's CR and DCR, and the free-room view.
