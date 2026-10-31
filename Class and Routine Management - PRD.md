@@ -84,7 +84,7 @@ A student's email only proves they own an inbox. The UV ID proves who they are a
 Rules:
 
 - A CR or DCR does not submit a join request for the section they lead: the admin's assignment is their approval (they must still have signed up and verified their email).
-- A section with no CR or DCR is closed: it does not appear on the join form, and students cannot send a request to it until the admin has chosen its CR (and DCRs).
+- A section with no CR is closed: it does not appear on the join form, and students cannot send a request to it until the admin has chosen its CR. DCRs are optional and can be added later.
 - If nobody acts on a claim within a set time, it moves to the department admin of that department (the time is an open question).
 - A student who failed a term cannot move up. Each semester they submit the join form again for the same level and term, and choose the section and group they will attend. The CR and DCR know who the repeat students are, so they accept them like any other student; no extra check is needed.
 - If someone else claimed a student's ID, the real student reports it. The admin checks in person, can revoke the wrong claim, and the action is logged.
@@ -202,7 +202,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 **3. Notices**
 
-- **Announcements** from the CR/DCR or admin for the student's section or lab group (F9b), newest first.
+- **Announcements** from the CR, DCR, a teacher who teaches the section, or the admin, for the student's section or lab group (F7d, F9b), newest first.
 - **Notifications** for routine changes, approval results and booking results (F11), with an unread count.
 - **Unread messages** count for direct chats and groups (F2, F3), linking to the chat.
 
@@ -212,7 +212,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 **5. My section**
 
-- **CR and DCRs** of the student's section, with a button to message them. The button is shown only to students whose join request is accepted for the current semester; an unconfirmed student has no chat access (see Chat) and sees no button.
+- **CR and DCRs** of the student's section, with a button to message them. The button is shown to every student with an active account, including unconfirmed students, so a new-semester student can message the CR to ask for acceptance.
 - **Courses this semester** with the full name of the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
 - **ID claim status** while the claim is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
 
@@ -288,7 +288,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 **Monitor (read-only views)**
 
-- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are never shown to anyone but their owner.
+- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are never shown here (see Privacy for the one exception on join requests).
 - **Unconfirmed students:** students who have not done the semester update, with a button to send them a reminder (limited to one reminder per student per day).
 - **Section routine:** the published routine for the section, today's classes first, and which classes are happening now.
 - **Live status:** who in the section is in class or free right now, with the countdown (F12/F13).
@@ -321,13 +321,13 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 Chat is deliberately small: one-to-one messages between any two people, one group per section per semester, and sharing of study files. It is not meant to replace WhatsApp as a general messenger, so it has no user-created groups, calls, stories or message search in the first version.
 
-**Who can use chat.** Only active accounts: approved teachers, admins, and students whose join request is accepted for the current semester. A pending teacher, a student waiting for approval and an unconfirmed student (new semester, not yet accepted) cannot open chat, and the dashboard hides "message the CR" from them.
+**Who can use chat.** Any person with an active account can message any other active person; being a CR, DCR, teacher or admin makes no difference. This includes students who are unconfirmed (new semester, not yet accepted), so they can message their CR. Only a teacher whose account is still pending approval cannot open chat.
 
 ### One-to-one chat (F2)
 
 - Any active user can chat with any other active user, in any section or department.
 - **Finding people:** a user searches by name. The result shows name, photo, department and role (student, teacher, CR or DCR). It does not show level, term, section, group, phone or email. A user can also start a chat from a person's profile, the section roster, or the CR/DCR card on the dashboard.
-- **What others see on a profile:** name, photo, department and role. Phone and email are never shown to anyone but their owner (see Privacy).
+- **What others see on a profile:** name, photo, department and role. Phone and email are never shown on a profile (see Privacy for the two exceptions on join and registration requests).
 - A message is plain text up to 4,000 characters with a timestamp. In a one-to-one chat it shows sent, delivered and seen.
 - A sender can delete their own message for everyone; it is replaced by "message deleted".
 - One-to-one chats continue across semesters. They do not reset at rollover.
@@ -407,17 +407,21 @@ Rules:
 
 A room is **requested**, not booked. A request becomes a booking only when the department admin of the room's own department approves it.
 
+**Booked rooms.** As soon as a request is approved, the room shows as **Booked** for that date and time to everyone who can see the free-room view (F8): students, CR, DCR, teachers and admins. The request button is removed for that slot, and the server rejects any new request for it, even from a stale screen. Other users see only "Booked", not which section or teacher holds it. The room becomes free again only if the requester cancels (or the admin cancels the booking), and the free-room view updates at once.
+
+**What an approved booking does.** The booking is tied to its target section (or group) and appears as a dated one-off class in that section's routine, My routine, and live status, so students no longer see "Free" during it. It also appears in the booking teacher's own routine and status. The affected students (and the teacher, if the CR booked) get a notification when it is approved or cancelled. It shows only on its date and never changes the weekly routine.
+
 **Who can request:** CR, DCR and approved teachers. Ordinary students cannot. Each of them sees the free rooms on their own dashboard (F8) and sends the request from there.
 
-**What a request is:** one room for one dated slot. The routine repeats weekly, but a request is for a specific date, for example "Room 311, Tuesday 11 November, 11:15–12:15". It may cover several periods in a row on the same day, up to 3 hours in total. The requester must write a short note saying why.
+**What a request is:** one room for one dated slot. The routine repeats weekly, but a request is for a specific date, for example "Room 311, Tuesday 11 November, 11:15–12:15". It may cover several periods in a row on the same day, up to 3 hours in total. The requester must write a short note saying why and must name the **target section** (and the sessional group, if only one group attends). A CR or DCR can only target their own section; a teacher picks from the sections they teach. A request without a target is blocked.
 
 **Checks when a request is sent** (all must pass, otherwise it is blocked and the requester is told why):
 
-1. **Free slot:** no published routine class and no approved request uses that room on that date and time. Other pending requests do not block it.
+1. **Free slot:** no published routine class and no approved request uses that room on that date and time. Other pending requests do not block it. Once a request is approved the room is **booked** and no one can request it again for that slot (see Booked rooms).
 2. **12-hour rule:** the request is sent at least 12 hours before the slot starts. Example: a room used from 10:00 to 11:00 and free from 11:15 to 12:15 can be requested for 11:15–12:15 until 11:15 pm the evening before.
 3. **Window:** the slot is in the current week or the next week. Nothing further ahead.
 
-**Several requests:** a requester may send many requests, for different rooms or slots, so that losing one room still leaves a chance at another. When one of a requester's requests is approved, their other requests for the same date and time are cancelled automatically so nobody holds two rooms at once.
+**Several requests:** a requester may send up to 3 open requests for the same date and time, and more for other dates, for different rooms or slots, so that losing one room still leaves a chance at another. When one of a requester's requests is approved, their other requests for the same date and time are cancelled automatically so nobody holds two rooms at once.
 
 **Who decides:**
 
@@ -524,7 +528,7 @@ Edge cases the system must handle:
 - **Group changes between semesters** are expected, since groups differ by level and term.
 5. A teacher sees a view assembled from every slot where they are the assigned teacher, across sections.
 
-Your brief mentions the routine being "given every six months." That maps to term-based routines: each term (roughly six months) the admin publishes a new routine, and the old one is archived, not deleted, so history stays. Whether a term is exactly six months, or set by an academic calendar, is an open question.
+Your brief mentions the routine being "given every six months." That maps to term-based routines: each term (roughly six months) the admin publishes a new routine, and the old one is archived, not deleted, so history stays. A term is about six months, and the super admin sets the start and end dates of each semester.
 
 ### Semesters and student updates
 
@@ -532,10 +536,10 @@ Each six-month period is a named **semester**, for example Spring 2026 or Fall 2
 
 How the rollover works:
 
-1. When a super admin makes a new semester current, every CR and DCR role ends and every student's saved level, term, section and sessional group are marked **unconfirmed** for it. Each department admin then chooses the new CR and DCRs for each section; a section stays closed to join requests until its CR is chosen.
+1. When a super admin makes a new semester current, every CR and DCR role ends and every student's saved level, term, section and sessional group are marked **unconfirmed** for it. Each department admin then chooses the new CR and DCRs for each section. For every section the admin sees who was CR and DCR last semester and can re-appoint them with one action or pick different people; a section stays closed to join requests until its CR is chosen.
 2. The next time a student logs in, they are shown the semester update screen and cannot use "My routine", live status, room booking or the rest of the app until they confirm. It is the join form, pre-filled with last semester's values and the suggested next term (for example 2-I becomes 2-II). The student fills in or changes level, term, section and sessional group, and the request goes to the CR and DCR of the section they chose, who accept it again.
 3. When the CR or DCR accepts the request, the student's profile is stamped with the semester it was confirmed for (for example "Fall 2026").
-4. From then on, everything the student sees is based on those four values for the current semester: their routine, the live in-class or free status and countdown, the section's CR and DCR, and the free-room view.
+4. From then on, everything the student sees is based on those five values (department, level, term, section and sessional group) for the current semester: their routine, the live in-class or free status and countdown, the section's CR and DCR, and the free-room view.
 5. Last semester's values and routine stay in the student's history and are never overwritten.
 
 Rules:
@@ -595,7 +599,7 @@ Countdown (F13):
 ## Non-functional requirements
 
 - **Security.** Passwords hashed with a modern algorithm (bcrypt/argon2). All traffic over HTTPS. Role checks enforced on the server, not just hidden in the UI — a student cannot reach admin actions by guessing a URL.
-- **Privacy.** A user's phone number and email are visible only to that user on their own profile. No other user can see them, including students, CR, DCR, teachers and admins; there is no setting to share them. Admins see only whether an email is verified or bouncing, never the address. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
+- **Privacy.** A user's phone number and email are visible only to that user on their own profile. No other user can see them, including students, CR, DCR, teachers and admins; there is no setting to share them. There are only two exceptions, both limited to the person deciding a request: the CR or DCR sees a student's email on that student's join request, and the admin sees a teacher's email on that teacher's registration request. Everywhere else (rosters, profiles, chat, admin lists) admins see only whether an email is verified or bouncing, never the address. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
 - **Stored data.** Passwords are hashed (bcrypt or argon2) and cannot be read back. Email and phone cannot be hashed for storage, because the system must read them back to send mail and to show them to the owner; they are stored encrypted, with the key kept outside the database. A separate hashed copy of the email is used to check that an address is not already taken and to find the account at sign-in.
 - **Authorization.** Every routine-edit, approval and booking action is checked against the caller's role and scope (a CR can request rooms and approve their own section's ID claims; only a department admin, for their own department, or a super admin chooses CR/DCR). Every admin action is also checked against the admin's department.
 - **Performance.** Routine and free-room views should load in under ~2 seconds for a section. Messaging should feel real-time (delivery within ~1–2 seconds). The live status and countdown are computed from the already-loaded routine, so the minute refresh needs no extra server call; the teacher "free now" list loads in under ~2 seconds for all sections.
@@ -611,7 +615,7 @@ These need your decision before build:
 2. **What does "12 hours ahead" block exactly?** Decided: the request must be sent at least 12 hours before the slot's start time, and the slot must be in the current or next week.
 3. **Does a room request need approval?** Decided: yes. The department admin of the room's own department decides; a super admin decides for rooms shared by several departments. A request nobody decides before the slot starts is rejected automatically. Resolved: a requester may have at most 3 open requests for the same date and time.
 4. **Is a term exactly six months?** Resolved: a term is about six months, and the super admin sets the start and end dates of each semester.
-4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Resolved: the deadline for confirming is 14 days from the day the semester becomes current; after that the student appears in the admin's unconfirmed list. (CR and DCR roles reset every semester and the admin chooses them again.)
+4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Resolved: the deadline for confirming is 14 days from the day the semester becomes current; after that the student appears in the admin's unconfirmed list. (CR and DCR roles reset every semester. The admin sees the previous CR and DCRs and either re-appoints them or chooses new ones.)
 5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Resolved: the caps are one CR and up to two DCRs per section.
 6. **Password policy.** Resolved: at least 8 characters with a letter and a number; the account locks for 15 minutes after 5 wrong tries.
 7. **Media limits.** Resolved: files up to 5 MB; PDF, Word, PowerPoint, Excel, text and images only (see Chat).
