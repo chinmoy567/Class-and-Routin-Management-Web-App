@@ -58,7 +58,7 @@ At the start of every new semester, a returning student must submit a new join f
 
 Password rules and recovery:
 
-- Passwords are stored hashed (never plain text). Minimum length and complexity to be set in the open questions.
+- Passwords are stored hashed (never plain text). The minimum is 8 characters with at least one letter and one number. After 5 wrong tries the account locks for 15 minutes.
 - Teacher and student recovery are both by email link. Because a student's email is required, every student can recover their own password. Admin reset remains only as a fallback for a student whose email address no longer works.
 
 Required university email (students and teachers):
@@ -288,7 +288,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 **Monitor (read-only views)**
 
-- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are shown only if the student's privacy setting allows it.
+- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are never shown to anyone but their owner.
 - **Unconfirmed students:** students who have not done the semester update, with a button to send them a reminder (limited to one reminder per student per day).
 - **Section routine:** the published routine for the section, today's classes first, and which classes are happening now.
 - **Live status:** who in the section is in class or free right now, with the countdown (F12/F13).
@@ -327,7 +327,7 @@ Chat is deliberately small: one-to-one messages between any two people, one grou
 
 - Any active user can chat with any other active user, in any section or department.
 - **Finding people:** a user searches by name. The result shows name, photo, department and role (student, teacher, CR or DCR). It does not show level, term, section, group, phone or email. A user can also start a chat from a person's profile, the section roster, or the CR/DCR card on the dashboard.
-- **What others see on a profile:** name, photo, department and role. Phone and email stay hidden unless the owner allows them (see Privacy).
+- **What others see on a profile:** name, photo, department and role. Phone and email are never shown to anyone but their owner (see Privacy).
 - A message is plain text up to 4,000 characters with a timestamp. In a one-to-one chat it shows sent, delivered and seen.
 - A sender can delete their own message for everyone; it is replaced by "message deleted".
 - One-to-one chats continue across semesters. They do not reset at rollover.
@@ -434,7 +434,7 @@ A room is **requested**, not booked. A request becomes a booking only when the d
 
 **When the routine changes:** if a routine edit or re-import would put a class in a room and slot with an approved request, the admin gets a warning naming the affected requester (see Routine edit page).
 
-Still open: how many open requests one requester may have for the same slot (see Open questions).
+A requester may have at most 3 open requests for the same date and time.
 
 ## Routine management
 
@@ -595,30 +595,31 @@ Countdown (F13):
 ## Non-functional requirements
 
 - **Security.** Passwords hashed with a modern algorithm (bcrypt/argon2). All traffic over HTTPS. Role checks enforced on the server, not just hidden in the UI — a student cannot reach admin actions by guessing a URL.
-- **Privacy.** Phone numbers and email are visible per the profile owner's choice; default to visible only to the institution, not public. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
+- **Privacy.** A user's phone number and email are visible only to that user on their own profile. No other user can see them, including students, CR, DCR, teachers and admins; there is no setting to share them. Admins see only whether an email is verified or bouncing, never the address. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
+- **Stored data.** Passwords are hashed (bcrypt or argon2) and cannot be read back. Email and phone cannot be hashed for storage, because the system must read them back to send mail and to show them to the owner; they are stored encrypted, with the key kept outside the database. A separate hashed copy of the email is used to check that an address is not already taken and to find the account at sign-in.
 - **Authorization.** Every routine-edit, approval and booking action is checked against the caller's role and scope (a CR can request rooms and approve their own section's ID claims; only a department admin, for their own department, or a super admin chooses CR/DCR). Every admin action is also checked against the admin's department.
 - **Performance.** Routine and free-room views should load in under ~2 seconds for a section. Messaging should feel real-time (delivery within ~1–2 seconds). The live status and countdown are computed from the already-loaded routine, so the minute refresh needs no extra server call; the teacher "free now" list loads in under ~2 seconds for all sections.
 - **Platform.** Responsive web app, works on phone and desktop browsers. No native app required for the first release.
-- **Availability & data.** Daily backups; archived routines and chat history retained. Account lockout after repeated failed logins.
+- **Availability & data.** Daily backups; archived routines retained and chat history kept as set in Open questions 23. Account lockout for 15 minutes after 5 failed logins.
 - **Auditability.** Admin approvals, rejections, CR/DCR assignments, ID claim approvals and revocations, routine publishes, creation or removal of admin accounts, chat suspensions, and every admin view of reported chat messages are logged with who and when.
 
 ## Open questions
 
 These need your decision before build:
 
-1. **Who can request a room?** Decided: CR, DCR and approved teachers. Ordinary students cannot.
+1. **Who can request a room?** Resolved: CR, DCR and approved teachers can request; ordinary students cannot. The department admin of the room's own department approves or rejects (a super admin for shared rooms).
 2. **What does "12 hours ahead" block exactly?** Decided: the request must be sent at least 12 hours before the slot's start time, and the slot must be in the current or next week.
-3. **Does a room request need approval?** Decided: yes. The department admin of the room's own department decides; a super admin decides for rooms shared by several departments. A request nobody decides before the slot starts is rejected automatically. Still to confirm: a limit on how many open requests one requester may have for the same slot.
-4. **Is a term exactly six months?** Or driven by an academic calendar with set start/end dates?
+3. **Does a room request need approval?** Decided: yes. The department admin of the room's own department decides; a super admin decides for rooms shared by several departments. A request nobody decides before the slot starts is rejected automatically. Resolved: a requester may have at most 3 open requests for the same date and time.
+4. **Is a term exactly six months?** Resolved: a term is about six months, and the super admin sets the start and end dates of each semester.
 4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
-5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Still to confirm: the caps (one CR, up to two DCRs).
-6. **Password policy** — minimum length, complexity, lockout threshold.
-7. **Media limits** — max file size and allowed types in messages (F10).
-8. **Institution scope.** Department is a criterion (department, level, term, section, group), so one deployment serves several departments. Decided: admin control is split into super admins (university-wide, at least two) and department admins (one department each). Still to confirm: one institution per deployment or several.
+5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Resolved: the caps are one CR and up to two DCRs per section.
+6. **Password policy.** Resolved: at least 8 characters with a letter and a number; the account locks for 15 minutes after 5 wrong tries.
+7. **Media limits.** Resolved: files up to 5 MB; PDF, Word, PowerPoint, Excel, text and images only (see Chat).
+8. **Institution scope.** Department is a criterion (department, level, term, section, group), so one deployment serves several departments. Decided: admin control is split into super admins (university-wide, at least two) and department admins (one department each). Resolved: the system is built for one university only; every department of that university uses the same deployment.
 9. **Sessional groups.** Decided: the CR or DCR decides each student's sessional group when accepting the request, and the system does not use UV ID ranges. Repeat students (students who failed the term) submit the join form for the same level and term, and the CR or DCR sets their group like anyone else's. Decided: no electives exist and no special verification is needed for repeat students.
 10. **Holidays and cancelled classes.** Should the admin be able to mark a date as a holiday or cancel a single class, so status shows "No class today" instead of "In class"? The first version assumes the routine always runs.
-11. **Timezone.** Assumption: all status is computed in one institution timezone, not the viewer's device clock.
-12. **Teacher visibility of status.** Should a student be able to hide their in-class/free status from the teacher "free now" list, or is it always visible to teachers?
+11. **Timezone.** Resolved: all status is computed in one institution timezone (Bangladesh time), not the viewer's device clock.
+12. **Teacher visibility of status.** Resolved: teachers can always see whether a student is in class or free; students cannot hide it.
 13. **Routine file quality.** The current spreadsheet has inconsistent batch labels (for example `3-1-A` vs `3-I-A`, and `4-I` stored as a date), a duplicated `CSE-301 (G1)` slot in the Tuesday 3-II-A row, and one short code (`AR`) used by both a CSE and a CE teacher with no department written on the class. The import template solves these (levels and terms are separate text columns, teachers are written as department:code), but the old sheet has to be copied into it first.
 14. **Teacher approval details.** Decided: only the department admin of the teacher's department, or a super admin, approves teachers. Also decided: teachers must sign up with a university email. Still to confirm: which domain or domains count as the university's (students and teachers may use different ones), should the admin also check teachers against the routine's teacher list, and may a teacher use the app (for example to see routines) while pending? Current assumption: no access until approved.
 15. **Automatic emails to students.** Which messages should be sent to a student's email automatically (for example routine published or changed, CR/DCR approval result, room booking result, new semester update reminder, unconfirmed-profile warning)? Also: should students be able to turn some of them off? Current assumption: every student must have a verified email, and the list above is sent by default.
@@ -627,6 +628,6 @@ These need your decision before build:
 18. **Teacher dashboard.** Decided: teachers see the roster and "free now" list of sections they teach, may request free rooms under the 12-hour rule, and may announce to those sections. Still to confirm: whether the "free now" list may be widened to all sections (for example to plan a makeup class; the current rule keeps it to sections they teach), whether students can mute teacher announcements, and, now that the department admin decides room requests and picks one winner per room and slot, whether a teacher's request should rank above a CR's or DCR's (current assumption: no automatic ranking, the admin chooses).
 19. **Student ID claim.** Decided: students sign up with email + password and then submit a join form (UV ID, department, level, term, section, sessional group); the request goes to that section's CR and DCR, who accept, reject or correct the group without a student list or any ID-range check; the admin chooses CR/DCR by hand. Still to confirm: how many days before an unanswered claim moves to the admin, how many wrong claims block a student, and whether a rejected student may try again with the same ID.
 20. **Import template.** Decided: the first version imports a clean template, not the department's current sheet. Still to confirm: the exact columns, who copies the department's sheet into the template each semester (teacher or admin), and whether a one-time helper to convert the old sheet is worth building later.
-21. **Admin.** Decided: super admins plus per-department admins (see Admin dashboard and controls). Still to confirm: the second login step for admins (code by SMS, email or an app); who the second super admin is and who appoints each department's first admin; whether the admin can read private chats (current assumption: no); whether the admin needs reports or exports (for example how many students are active per section) in the first version; and whether the admin gets an email when a new teacher registers or a claim has been waiting too long.
-23. **Chat.** The Chat section proposes these values; confirm or change them: message length of 4,000 characters; the 5 MB file limit and the allowed file types; how long messages and files are kept (suggestion: the semester plus 12 months); no end-to-end encryption; whether any student may search all users by name (current assumption: yes, showing name, photo, department and role only).
+21. **Admin.** Decided: super admins plus per-department admins (see Admin dashboard and controls). Decided: the admin cannot read private chats (only a reported message, see Chat). Still to confirm: the second login step for admins (code by SMS, email or an app); who the second super admin is and who appoints each department's first admin; whether the admin needs reports or exports (for example how many students are active per section) in the first version; and whether the admin gets an email when a new teacher registers or a claim has been waiting too long.
 22. **Department admin scope.** A department admin owns one department, but some cases cross departments: Law or Civil students taught by CSE teachers, and a teacher who works in two departments. Current assumption: the department a teacher registers under approves them, and the department of the batch owns that batch's routine rows. Confirm, or decide that a super admin handles all cross-department cases.
+23. **Chat.** Resolved: one-to-one chat with any user, found by name search (name, photo, department and role only); one group per section per semester, created automatically when the CR is named, with no teachers; files up to 5 MB; no end-to-end encryption; phone and email visible only to their owner. Still to confirm: how long messages and files are kept (suggestion: the semester plus 12 months) and the maximum message length (suggestion: 4,000 characters).
