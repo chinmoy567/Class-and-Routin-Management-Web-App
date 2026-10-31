@@ -542,7 +542,7 @@ Rules:
 
 - A student who failed the term repeats the same level and term, so the suggested next term on the pre-filled form is changed back by the student. Their section and group may differ from last time, and the CR or DCR sets the group when accepting.
 - A student who is on a break and has not confirmed sees only the update screen and their profile; the app does not guess their section.
-- Students who have not confirmed by a deadline set by the admin appear in an "unconfirmed students" list for the admin, so they can be followed up.
+- Students who have not confirmed within 14 days of the semester becoming current appear in an "unconfirmed students" list for the admin, so they can be followed up. The deadline does not lock anyone out; an unconfirmed student stays on the update screen until accepted.
 - A student's CR or DCR role belongs to a section and semester. It ends at rollover and the admin chooses the CR and DCR again for the new semester.
 - The student's profile always shows the semester it was last confirmed for, so a wrong or stale section is easy to spot.
 
@@ -611,7 +611,7 @@ These need your decision before build:
 2. **What does "12 hours ahead" block exactly?** Decided: the request must be sent at least 12 hours before the slot's start time, and the slot must be in the current or next week.
 3. **Does a room request need approval?** Decided: yes. The department admin of the room's own department decides; a super admin decides for rooms shared by several departments. A request nobody decides before the slot starts is rejected automatically. Resolved: a requester may have at most 3 open requests for the same date and time.
 4. **Is a term exactly six months?** Resolved: a term is about six months, and the super admin sets the start and end dates of each semester.
-4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
+4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Resolved: the deadline for confirming is 14 days from the day the semester becomes current; after that the student appears in the admin's unconfirmed list. (CR and DCR roles reset every semester and the admin chooses them again.)
 5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Resolved: the caps are one CR and up to two DCRs per section.
 6. **Password policy.** Resolved: at least 8 characters with a letter and a number; the account locks for 15 minutes after 5 wrong tries.
 7. **Media limits.** Resolved: files up to 5 MB; PDF, Word, PowerPoint, Excel, text and images only (see Chat).
