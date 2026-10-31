@@ -2,7 +2,7 @@
 
 Oct 10, 2026 · @chinmoy
 
-A web platform where teachers and students sign in, keep rich profiles, message and form groups like WhatsApp, and read their level–term–section class routines; a super admin and per-department admins run the system, and each department admin approves teachers, chooses each section's CR and DCR, and publishes routines for their own department; the CR and DCR approve their section's students; and CRs, DCRs and teachers can request a free classroom at least 12 hours ahead, which the room's own department admin approves or rejects.
+A web platform where teachers and students sign in, keep rich profiles, chat one-to-one and in a section group, share study files, and read their level–term–section class routines; a super admin and per-department admins run the system, and each department admin approves teachers, chooses each section's CR and DCR, and publishes routines for their own department; the CR and DCR approve their section's students; and CRs, DCRs and teachers can request a free classroom at least 12 hours ahead, which the room's own department admin approves or rejects.
 
 ## Overview & goals
 
@@ -11,7 +11,7 @@ The product is one web app serving a single institution's teachers and students.
 What it commits to:
 
 1. Give every teacher and student a single sign-in and an editable profile (level, term, section, phone, photo, CR/DCR status).
-2. Let students and teachers message one-to-one and in groups, like WhatsApp.
+2. Let students and teachers chat one-to-one with anyone, join their section's group chat, and share study files (see Chat). It is deliberately small and does not try to replace WhatsApp.
 3. Let each department's admin approve teachers, choose each section's CR and DCR, and publish routines that each student sees filtered to their own department, level, term, section and sessional group.
 4. Show which classroom is free at which time, and let a CR, DCR or teacher request a free room for this week or next week, at least 12 hours ahead, for the room's own department admin to approve.
 5. Show each student, live, whether they are in class or free right now according to their routine, with a countdown to the next change, and give teachers a "free now" list of students.
@@ -30,8 +30,8 @@ There are three account types: admin, teacher and student. Admin has two levels,
 | --- | --- | --- | --- |
 | Super admin (at least two accounts) | Own user ID + password + second step (first one seeded; others created by a super admin) | University-wide work: create and remove departments, create and remove department admins and other super admins, set the allowed email domains, create semesters and run the rollover, fix cross-department problems, read the full audit log, recover a department that has no admin. Can also do anything a department admin can, in any department | Be self-created from the sign-up page; remove the last super admin; read users' private messages |
 | Department admin (one or more per department) | Own user ID + password + second step (created by a super admin) | For their own department only: approve/reject teacher registrations, choose and remove each section's CR and DCR, approve ID claims that no CR/DCR can handle, handle CR/DCR flags and removal requests, deactivate students and teachers, reset student passwords, import and edit routines, manage classrooms, link teacher short codes, read their department's audit log | Act on another department; create or remove admins; create departments or semesters; be self-created from the sign-up page |
-| Teacher (after admin approval) | University email + password | Edit own profile, message & create groups, view own teaching routine, see which rooms are free, request a free room (12-hour rule; the room's department admin decides), see the roster and "free now" list of sections they teach, send announcements to those sections | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
-| Student | University email + password (the UV ID is claimed after sign-up) | Edit own profile, claim their UV ID, and once the CR or DCR approves the claim: message & create groups, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, use the app before the ID claim is approved |
+| Teacher (after admin approval) | University email + password | Edit own profile, chat one-to-one, share files, view own teaching routine, see which rooms are free, request a free room (12-hour rule; the room's department admin decides), see the roster and "free now" list of sections they teach, send announcements to those sections | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
+| Student | University email + password (the UV ID is claimed after sign-up) | Edit own profile, claim their UV ID, and once the CR or DCR approves the claim: chat one-to-one, use the section group, share files, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, use the app before the ID claim is approved |
 | CR (student chosen by the department admin) | Same as student | Everything a student can, plus **request a free classroom** (the room's department admin decides), use the **CR/DCR dashboard** for their own section, and approve or reject UV ID claims from students of that section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
 | DCR (student chosen by the department admin) | Same as student | Same as CR | Same as CR |
 
@@ -76,7 +76,7 @@ A student's email only proves they own an inbox. The UV ID proves who they are a
 
 1. After verifying their email, the student fills in the **join form** in their profile: name, UV ID, department, level, term, section, and sessional group (if they know it). The student chooses these themselves, but only from sections that already have a CR assigned by the admin.
 2. The only automatic check is that the UV ID is not already used by another account; if it is, the request is blocked and the admin is told. The system does not check the ID against any ID range or student list.
-3. The request goes to the CR and DCRs of the department, level, term and section the student chose, as a **pending join request**. Until it is accepted the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats.
+3. The request goes to the CR and DCRs of the department, level, term and section the student chose, as a **pending join request**. Until it is accepted the student sees a "waiting for approval" screen. They can edit their profile but cannot see the routine, rooms or chats, and cannot message anyone, including the CR and DCR who will decide the request.
 4. The CR or DCR sees the student's name, email, photo, UV ID, and the department, level, term, section and group they asked for. They decide whether the student belongs in that section, and can accept, reject (a reason is required for a rejection), or accept with a corrected sessional group. Whoever acts first decides, and the student is told by email.
 5. On acceptance the account becomes active and the student enters that section; the routine appears automatically. The sessional group affects only sessional (lab) classes; theory classes depend on level, term and section only.
 6. If the student chose the wrong section, the CR or DCR rejects the request with a reason and the student applies again to the right section.
@@ -100,8 +100,9 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F1 | Profile editor | Edit phone and profile picture; submit the join form (name, UV ID, department, level, term, section, sessional group) for the CR/DCR to accept; **required, verified university email** (add and change); view CR/DCR status | Teacher, Student | P0 |
 | F1a | Semester update | At the start of each semester (for example Spring 2026, then Fall 2026) the student must submit a new join form with their department, level, term, section and sessional group, and the CR/DCR of that section accept it, before using the app | Student | P0 |
 | F1b | Sessional group assignment | The CR or DCR sets or corrects each student's sessional (lab) group (G1, G2, G3, …) when accepting the join request; the group affects only sessional classes, never theory classes | CR, DCR | P0 |
-| F2 | Direct messaging | One-to-one chat with read receipts and timestamps, like WhatsApp | Teacher, Student | P0 |
-| F3 | Group chat | Create a group, add members, send messages; creator is group admin | Teacher, Student | P0 |
+| F2 | Direct messaging | One-to-one chat between any two active users, found by name search or from a profile; timestamps and sent/delivered/seen status (see Chat) | Teacher, Student | P0 |
+| F2b | Chat safety | Block a user, report a message or user, delete own messages, chat suspension by the department admin (see Chat) | Teacher, Student, Admin | P0 |
+| F3 | Section group | One group per section per semester, created automatically when the CR is named; accepted students are added automatically; teachers are not members; closed at rollover (see Chat) | Student, CR, DCR | P0 |
 | F4 | CR/DCR assignment | The department admin chooses each section's CR and DCRs by hand (one CR, up to two DCRs); students do not apply | Department admin | P0 |
 | F4a | Teacher registration approval | A new teacher account is held as pending until the department admin approves or rejects it | Teacher, Department admin | P0 |
 | F4b | Student ID claim approval | A student submits a join form (UV ID, department, level, term, section, sessional group) after signing up; the request goes to that section's CR and DCR, who accept, reject, or correct the group | Student, CR, DCR | P0 |
@@ -119,7 +120,7 @@ Each feature below is a requirement. Priority: P0 = first release, P1 = soon aft
 | F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, room requests) and act (request and cancel rooms, announce, approve student ID claims, flag problems) | CR, DCR | P0 |
 | F9b | Section announcements | CR/DCR sends a message to the whole section or to one lab group | CR, DCR | P1 |
 | F9c | Student removal request | CR/DCR asks the department admin to deactivate a student; only the admin acts on it | CR, DCR, Department admin | P1 |
-| F10 | Media in messages | Send images/files in chats | Teacher, Student | P1 |
+| F10 | File sharing | Send PDF, Word, PowerPoint, Excel, text and image files (up to 5 MB) in one-to-one chats and section groups | Teacher, Student | P0 |
 | F11 | Notifications | Alert on new message, approval result, booking result, routine change | Everyone | P1 |
 | F12 | Live class status | Shows whether a student is **in class** or **free** right now, computed from their published routine; refreshes automatically every minute | Student (own), Teacher (any student) | P0 |
 | F13 | Next-class countdown | While in class, counts down to the end of the class; while free, counts down to the start of the next class | Student, Teacher | P0 |
@@ -211,7 +212,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 **5. My section**
 
-- **CR and DCRs** of the student's section, with a button to message them.
+- **CR and DCRs** of the student's section, with a button to message them. The button is shown only to students whose join request is accepted for the current semester; an unconfirmed student has no chat access (see Chat) and sees no button.
 - **Courses this semester** with the full name of the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
 - **ID claim status** while the claim is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
 
@@ -224,7 +225,7 @@ The dashboard is the first page a student sees after login. Everything on it is 
 
 Rules:
 
-- Cards only show data the student is allowed to see. A student never sees another section's routine, bookings or students.
+- Cards only show data the student is allowed to see. A student never sees another section's routine, bookings or student list; chat search shows only name, photo, department and role.
 - The dashboard works on a phone first: cards stack in one column, and the week grid becomes a day-by-day list (see F7a).
 - A card with nothing to show is hidden or shows a short empty message, never a blank box.
 - Priority order on a small screen: status and countdown, today's classes, notices, rooms, section, profile reminders.
@@ -315,6 +316,57 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 - Both CR and DCR can act. If two of them act on the same request, the first action wins and the other sees that it is already done.
 - Every action on the dashboard is logged with who and when, and the admin can see the log.
 - If a CR or DCR loses the role (end of semester, removed by the admin), the dashboard disappears at once and anything they started stays with the admin.
+
+## Chat
+
+Chat is deliberately small: one-to-one messages between any two people, one group per section per semester, and sharing of study files. It is not meant to replace WhatsApp as a general messenger, so it has no user-created groups, calls, stories or message search in the first version.
+
+**Who can use chat.** Only active accounts: approved teachers, admins, and students whose join request is accepted for the current semester. A pending teacher, a student waiting for approval and an unconfirmed student (new semester, not yet accepted) cannot open chat, and the dashboard hides "message the CR" from them.
+
+### One-to-one chat (F2)
+
+- Any active user can chat with any other active user, in any section or department.
+- **Finding people:** a user searches by name. The result shows name, photo, department and role (student, teacher, CR or DCR). It does not show level, term, section, group, phone or email. A user can also start a chat from a person's profile, the section roster, or the CR/DCR card on the dashboard.
+- **What others see on a profile:** name, photo, department and role. Phone and email stay hidden unless the owner allows them (see Privacy).
+- A message is plain text up to 4,000 characters with a timestamp. In a one-to-one chat it shows sent, delivered and seen.
+- A sender can delete their own message for everyone; it is replaced by "message deleted".
+- One-to-one chats continue across semesters. They do not reset at rollover.
+
+### Section group (F3)
+
+- Every section has one group per semester, named like "CSE 2-II-A · Fall 2026".
+- **Created automatically** when the department admin names the section's CR. The CR does not have to create it, so no semester starts without one.
+- **Members:** the CR and DCRs (as group owners) and the section's accepted students, who are added automatically when the CR or DCR accepts their join request. Teachers are not members of any group.
+- Only members can read or send. Students from other sections cannot join.
+- The CR and DCR can delete any message and remove a member from the group. They cannot delete accounts.
+- **At rollover** the group is closed: nobody can send, but the messages stay readable as history. A new group is created for the new semester as soon as the new CR is named, and students enter it when they are accepted into the section again. Students who move to a new section leave the old group and join the new one.
+- Announcements (F7d, F9b) remain a separate one-way feature. They are not replaced by group posts.
+
+### Sharing files (F10)
+
+- Users can send a file in a one-to-one chat or in a section group, for example study material.
+- Allowed types: PDF, Word (doc, docx), PowerPoint (ppt, pptx), Excel (xls, xlsx), plain text and images. Other types are rejected.
+- Maximum size of one file: 5 MB. Files are scanned for malware before they are available.
+- A file is visible only to the members of that conversation or group, never through a public link.
+- In a closed group, files stay downloadable as history.
+
+### Safety (F2b)
+
+Because anyone can message anyone, there are three light tools:
+
+- **Block:** a user can block someone, who then cannot send them a message. A user cannot block an admin, and blocking does not stop announcements or notices.
+- **Report:** a user can report a message or person with a reason. It goes to the department admin of the reported person (a super admin for admins). The admin sees only the reported message and a few messages around it, not the rest of the conversation.
+- **Chat suspension:** a department admin can suspend a user from sending messages for a set time, with a reason. The user is told and the action is audited. Everything else in the app keeps working.
+
+### Notifications
+
+A new message adds an unread count on the dashboard and in the chat list, and a browser notification if the user allowed it. Chat messages are not emailed.
+
+### Privacy and retention
+
+- Messages travel over HTTPS and are encrypted on the server. They are not end-to-end encrypted in the first version, because reporting needs the server to produce a reported message.
+- The admin cannot read private conversations. The only exception is the reported-message view above, and each such view is audited.
+- Messages and files are kept for the period set in Open questions 23; deleted messages are removed from view.
 
 ## Teacher approval
 
@@ -548,7 +600,7 @@ Countdown (F13):
 - **Performance.** Routine and free-room views should load in under ~2 seconds for a section. Messaging should feel real-time (delivery within ~1–2 seconds). The live status and countdown are computed from the already-loaded routine, so the minute refresh needs no extra server call; the teacher "free now" list loads in under ~2 seconds for all sections.
 - **Platform.** Responsive web app, works on phone and desktop browsers. No native app required for the first release.
 - **Availability & data.** Daily backups; archived routines and chat history retained. Account lockout after repeated failed logins.
-- **Auditability.** Admin approvals, rejections, CR/DCR assignments, ID claim approvals and revocations, routine publishes, and creation or removal of admin accounts are logged with who and when.
+- **Auditability.** Admin approvals, rejections, CR/DCR assignments, ID claim approvals and revocations, routine publishes, creation or removal of admin accounts, chat suspensions, and every admin view of reported chat messages are logged with who and when.
 
 ## Open questions
 
@@ -561,7 +613,7 @@ These need your decision before build:
 4a. **Semester rollover.** Decided: each semester the student submits a new join form (level, term, section, sessional group) and the CR and DCR of that section accept it again. Also: what is the deadline for confirming? (CR and DCR roles reset every semester and the admin chooses them again.)
 5. **One CR + two DCRs per section.** Decided: the admin chooses them by hand and students do not apply. Still to confirm: the caps (one CR, up to two DCRs).
 6. **Password policy** — minimum length, complexity, lockout threshold.
-7. **Media limits** — max file size and allowed types in messages.
+7. **Media limits** — max file size and allowed types in messages (F10).
 8. **Institution scope.** Department is a criterion (department, level, term, section, group), so one deployment serves several departments. Decided: admin control is split into super admins (university-wide, at least two) and department admins (one department each). Still to confirm: one institution per deployment or several.
 9. **Sessional groups.** Decided: the CR or DCR decides each student's sessional group when accepting the request, and the system does not use UV ID ranges. Repeat students (students who failed the term) submit the join form for the same level and term, and the CR or DCR sets their group like anyone else's. Decided: no electives exist and no special verification is needed for repeat students.
 10. **Holidays and cancelled classes.** Should the admin be able to mark a date as a holiday or cancel a single class, so status shows "No class today" instead of "In class"? The first version assumes the routine always runs.
@@ -576,4 +628,5 @@ These need your decision before build:
 19. **Student ID claim.** Decided: students sign up with email + password and then submit a join form (UV ID, department, level, term, section, sessional group); the request goes to that section's CR and DCR, who accept, reject or correct the group without a student list or any ID-range check; the admin chooses CR/DCR by hand. Still to confirm: how many days before an unanswered claim moves to the admin, how many wrong claims block a student, and whether a rejected student may try again with the same ID.
 20. **Import template.** Decided: the first version imports a clean template, not the department's current sheet. Still to confirm: the exact columns, who copies the department's sheet into the template each semester (teacher or admin), and whether a one-time helper to convert the old sheet is worth building later.
 21. **Admin.** Decided: super admins plus per-department admins (see Admin dashboard and controls). Still to confirm: the second login step for admins (code by SMS, email or an app); who the second super admin is and who appoints each department's first admin; whether the admin can read private chats (current assumption: no); whether the admin needs reports or exports (for example how many students are active per section) in the first version; and whether the admin gets an email when a new teacher registers or a claim has been waiting too long.
+23. **Chat.** The Chat section proposes these values; confirm or change them: message length of 4,000 characters; the 5 MB file limit and the allowed file types; how long messages and files are kept (suggestion: the semester plus 12 months); no end-to-end encryption; whether any student may search all users by name (current assumption: yes, showing name, photo, department and role only).
 22. **Department admin scope.** A department admin owns one department, but some cases cross departments: Law or Civil students taught by CSE teachers, and a teacher who works in two departments. Current assumption: the department a teacher registers under approves them, and the department of the batch owns that batch's routine rows. Confirm, or decide that a super admin handles all cross-department cases.
