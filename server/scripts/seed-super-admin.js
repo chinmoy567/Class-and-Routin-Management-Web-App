@@ -14,7 +14,7 @@ if (!values.email || !values.name) {
 }
 
 const config = getConfig();
-await connectDb(config.MONGO_URL);
+await connectDb(config.MONGO_URL, { dnsServers: config.DNS_SERVERS });
 await syncAllIndexes();
 try {
   const { resetLink } = await seedSuperAdmin({

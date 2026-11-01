@@ -21,7 +21,7 @@ async function main() {
   }
 
   try {
-    await connectDb(config.MONGO_URL);
+    await connectDb(config.MONGO_URL, { dnsServers: config.DNS_SERVERS });
   } catch (err) {
     console.error(err.message);
     process.exit(1);

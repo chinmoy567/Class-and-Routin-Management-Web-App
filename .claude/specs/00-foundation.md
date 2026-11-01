@@ -1,6 +1,6 @@
 # 00: Foundation
 
-R1 · Status: Draft · Depends on: none · PRD: Non-functional requirements, Technical approach · Diagrams: 04-architecture, 23-deployment
+R1 · Status: Done · Depends on: none · PRD: Non-functional requirements, Technical approach · Diagrams: 04-architecture, 23-deployment
 
 ## Goal
 
@@ -133,21 +133,21 @@ Feature specs add their own codes (for example `REQUEST_LIMIT`) and list them in
 
 ## Tasks
 
-- [ ] Root `package.json` with workspaces, ESLint, Prettier, `.editorconfig`, `.gitignore`, `.env.example`
-- [ ] `shared/`: `errors.js`, `enums.js` (states, roles, kinds, event names), schema folder
-- [ ] Server: config loader (FND-04), pino logger, Express app, error middleware, `validate()`
-- [ ] Server: DB connect + replica-set check, `withTransaction`, `syncIndexes` on startup
-- [ ] Server: `lib/time.js` with an injectable clock, plus the lint rule against direct `Date` use
-- [ ] Server: `lib/crypto.js`
-- [ ] Server: policy engine `can` / `assertCan` / helpers
-- [ ] Server: `audit` module (model with append-only guards, `record`, `list`)
-- [ ] Server: Agenda setup, job registry, retry policy
-- [ ] Server: mail queue, transport, template renderer, dev outbox
-- [ ] Server: Socket.IO with session auth, `emitAfterCommit`
-- [ ] Server: helmet, CSRF, base rate limit, `/api/health`
-- [ ] Server: seed script for the first super admin
-- [ ] Server: test harness (replica set, factories, `loginAs`, fixed clock)
-- [ ] Client: Vite + Tailwind + shadcn init, router, query client, `api.js`, `socket.js`, `time.js`, i18n, `AppShell`, PWA
-- [ ] Client: Vitest setup, one Playwright smoke test
-- [ ] CI workflow
-- [ ] Fill in the **Commands** section of `.claude/CLAUDE.md`
+- [x] Root `package.json` with workspaces, ESLint, Prettier, `.editorconfig`, `.gitignore`, `.env.example`
+- [x] `shared/`: `errors.js`, `enums.js` (states, roles, kinds, event names), schema folder
+- [x] Server: config loader (FND-04), pino logger, Express app, error middleware, `validate()`
+- [x] Server: DB connect + replica-set check, `withTransaction`, `syncIndexes` on startup
+- [x] Server: `lib/time.js` with an injectable clock, plus the lint rule against direct `Date` use
+- [x] Server: `lib/crypto.js`
+- [x] Server: policy engine `can` / `assertCan` / helpers
+- [x] Server: `audit` module (model with append-only guards, `record`, `list`)
+- [x] Server: Agenda setup, job registry, retry policy
+- [x] Server: mail queue, transport, template renderer, dev outbox
+- [x] Server: Socket.IO with session auth, `emitAfterCommit`
+- [x] Server: helmet, CSRF, base rate limit, `/api/health`
+- [x] Server: seed script for the first super admin
+- [x] Server: test harness (replica set, factories, `loginAs`, fixed clock)
+- [x] Client: Vite + Tailwind + shadcn init, router, query client, `api.js`, `socket.js`, `time.js`, i18n, `AppShell`, PWA
+- [x] Client: Vitest setup, one Playwright smoke test
+- [x] CI workflow
+- [x] Fill in the **Commands** section of `.claude/CLAUDE.md`

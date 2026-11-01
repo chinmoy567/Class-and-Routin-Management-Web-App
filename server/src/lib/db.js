@@ -1,9 +1,15 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 
 const txStore = new AsyncLocalStorage();
 
-export async function connectDb(url) {
+export async function connectDb(url, { dnsServers = '' } = {}) {
+  const servers = dnsServers
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (servers.length) dns.setServers(servers);
   await mongoose.connect(url);
   await assertReplicaSet();
   return mongoose.connection;

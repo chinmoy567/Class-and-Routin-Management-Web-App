@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { workbox } from './pwa.config.js';
 import path from 'node:path';
 
 export default defineConfig({
@@ -22,15 +23,7 @@ export default defineConfig({
           { src: '/icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        navigateFallback: '/index.html',
-        // FND-33: API responses and the socket are never cached or served from the shell
-        navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//],
-        runtimeCaching: [
-          { urlPattern: /^\/api\//, handler: 'NetworkOnly' },
-          { urlPattern: /^\/socket\.io\//, handler: 'NetworkOnly' },
-        ],
-      },
+      workbox,
     }),
   ],
   esbuild: { jsx: 'automatic' },

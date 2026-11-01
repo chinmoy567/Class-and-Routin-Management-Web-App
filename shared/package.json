@@ -9,7 +9,7 @@
     "./enums": "./enums.js"
   },
   "scripts": {
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "build": "echo shared has no build step"
   },
   "dependencies": {

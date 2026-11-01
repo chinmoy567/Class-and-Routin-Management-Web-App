@@ -68,3 +68,14 @@ Any feature endpoint/screen beyond health and csrf; sign-in/sessions options (sp
 
 ## Verification
 `npm install`; `npm run lint`, `npm test`, `npm run build` from root; run server with local replica set to hit `/api/health`; seed script twice; Playwright smoke only on request.
+
+## Departures from the plan (recorded during implementation)
+- Agenda is pinned to `5.0.0`: v6 needs a separate `@agendajs/mongo-backend` package that is not in `tech-stack.md`.
+- `makeDepartment` returns an unsaved `{ _id, code }`. Department, semester and section collections arrive in specs 03, 04 and 09, which add the real factories.
+- Zod 4 is used on server, client and shared (the version npm installed), so config uses `{ error: ... }` not `required_error`.
+- Dependencies implied by the spec but not named in `tech-stack.md`: helmet, pino-http, date-fns, ESLint plugins, `@radix-ui/react-slot`, `clsx`, `tailwind-merge`, `class-variance-authority`, `lucide-react` (shadcn/ui's own dependencies), `@tailwindcss/vite`, jsdom and Testing Library.
+- shadcn/ui is initialised by hand (`components.json`, `lib/utils.js`, `button.jsx`) instead of the interactive CLI.
+- The Playwright smoke test is written but was not run (needs a browser download).
+- Added the `write-tests` skill (`.claude/skills/write-tests/SKILL.md`) at the user's request.
+- Added an optional `DNS_SERVERS` setting (config, `connectDb`, `.env.example`) because some networks refuse the SRV lookups that `mongodb+srv://` needs; set it to `8.8.8.8,1.1.1.1` in that case.
+- Closing pass: Playwright smoke and extra phone tests now run and pass; PWA no-API-cache is tested through `client/pwa.config.js`; `shared/` has tests; the server was started against MongoDB Atlas and the client proxy was checked; the seed CLI was run twice against a throwaway in-memory replica set.
