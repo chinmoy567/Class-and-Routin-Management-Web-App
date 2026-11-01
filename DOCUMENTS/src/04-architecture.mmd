@@ -1,0 +1,47 @@
+%% Container / component architecture (C4 level 2) — MERN stack, JavaScript only
+flowchart TB
+  subgraph Client["Browser: React SPA / PWA (Vite, Tailwind, shadcn/ui)"]
+    UI["UI: dashboards, routine grid,<br/>chat, free rooms, admin console"]
+    Clock["Live status engine<br/>(computes from loaded routine,<br/>refresh every minute, BD time)"]
+  end
+
+  subgraph Server["Node.js + Express API (HTTPS, REST)"]
+    GW["Middleware<br/>auth, sessions, rate limits,<br/>role + department scope checks"]
+    Auth["Auth module<br/>sign-up, verify, lockout,<br/>reset, admin OTP"]
+    Users["Users & profiles<br/>join requests, ID claims, roles"]
+    Rout["Routine module<br/>Excel import, validate, edit, publish, archive"]
+    Room["Rooms & booking<br/>free-room query, 12 h rule, decisions"]
+    Cal["Calendar<br/>semesters, holidays, cancellations,<br/>special periods"]
+    Chat["Chat module<br/>DM, section groups, files, safety"]
+    Notif["Notifications & email<br/>(Nodemailer)"]
+    Audit["Audit log (append-only)"]
+    Jobs["Agenda worker<br/>expire requests, escalate claims,<br/>14-day unconfirmed, retention purge"]
+    RT["Realtime gateway<br/>(Socket.IO)"]
+  end
+
+  subgraph Data["Data layer: MongoDB replica set (Mongoose)"]
+    DB[("App collections<br/>users, routine, rooms, chat, audit")]
+    Sess[("Sessions + rate limits<br/>(connect-mongo)")]
+    JobQ[("Agenda job queue")]
+    Files[("GridFS<br/>chat files, routine uploads")]
+  end
+
+  KMS["Key store<br/>(email/phone encryption key,<br/>kept outside the database)"]
+  SMTP["SMTP provider<br/>(SES / Postmark / Brevo)"]
+  AV["ClamAV malware scanner"]
+
+  UI <--> GW
+  UI <--> RT
+  Clock --- UI
+  GW --> Auth & Users & Rout & Room & Cal & Chat
+  GW --> Sess
+  Auth & Users & Rout & Room & Cal & Chat --> Audit
+  Users & Rout & Room & Chat & Cal --> Notif
+  Chat <--> RT
+  Notif --> SMTP
+  Chat --> AV
+  Chat & Rout --> Files
+  Auth & Users & Rout & Room & Cal & Chat & Audit --> DB
+  Jobs <--> JobQ
+  Users -. encrypt/decrypt .-> KMS
+  Jobs --> Room & Users & Chat & Notif

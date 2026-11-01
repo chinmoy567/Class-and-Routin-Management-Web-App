@@ -1,4 +1,4 @@
-%% Entity-relationship diagram (logical data model)
+%% Entity-relationship diagram (logical data model, MongoDB collections)
 erDiagram
   DEPARTMENT ||--o{ USER : "has members"
   DEPARTMENT ||--o{ SECTION : contains
@@ -29,6 +29,8 @@ erDiagram
   ROOM ||--o{ ROOM_REQUEST : requested
   USER ||--o{ ROOM_REQUEST : "sent by"
   SECTION ||--o{ ROOM_REQUEST : "target section"
+  ROOM ||--o{ ROOM_SLOT_LOCK : "locked blocks"
+  ROOM_REQUEST ||--o{ ROOM_SLOT_LOCK : "holds (when approved)"
   SEMESTER ||--o{ CALENDAR_EVENT : "holiday exam ramadan"
   CONVERSATION ||--o{ CONVERSATION_MEMBER : has
   USER ||--o{ CONVERSATION_MEMBER : joins
@@ -46,15 +48,15 @@ erDiagram
   USER ||--o{ AUDIT_LOG : actor
 
   DEPARTMENT {
-    uuid id PK
+    objectId id PK
     string code "CSE EEE CE LAW"
     string name
     bool active
   }
   USER {
-    uuid id PK
+    objectId id PK
     enum type "super_admin dept_admin teacher student"
-    uuid department_id FK
+    objectId department_id FK
     string full_name
     string uv_id UK "students only"
     bytes email_enc "encrypted"
@@ -68,97 +70,97 @@ erDiagram
     datetime locked_until
   }
   ADMIN_SCOPE {
-    uuid user_id FK
-    uuid department_id FK "null means super admin"
+    objectId user_id FK
+    objectId department_id FK "null means super admin"
   }
   TEACHER_CODE {
-    uuid id PK
-    uuid department_id FK
+    objectId id PK
+    objectId department_id FK
     string short_code "MYA AR"
     string full_name
-    uuid user_id FK "unique when active"
+    objectId user_id FK "unique when active"
   }
   SEMESTER {
-    uuid id PK
+    objectId id PK
     string name "Fall 2026"
     date start_date
     date end_date
     bool is_current
   }
   SECTION {
-    uuid id PK
-    uuid semester_id FK
-    uuid department_id FK
+    objectId id PK
+    objectId semester_id FK
+    objectId department_id FK
     int level "1 to 4"
     enum term "I or II"
     string letter "A B C"
   }
   SESSIONAL_GROUP {
-    uuid id PK
-    uuid section_id FK
+    objectId id PK
+    objectId section_id FK
     string code "G1 G2 G3"
   }
   SECTION_ROLE {
-    uuid section_id FK
-    uuid user_id FK
+    objectId section_id FK
+    objectId user_id FK
     enum role "CR or DCR"
     datetime assigned_at
     datetime ended_at
   }
   ENROLMENT {
-    uuid user_id FK
-    uuid section_id FK
-    uuid group_id FK
+    objectId user_id FK
+    objectId section_id FK
+    objectId group_id FK
     datetime confirmed_at
     bool group_admin_override
   }
   JOIN_REQUEST {
-    uuid id PK
-    uuid student_id FK
-    uuid section_id FK
+    objectId id PK
+    objectId student_id FK
+    objectId section_id FK
     string uv_id
     string suggested_group
     enum status "pending accepted rejected escalated revoked"
     string reason
-    uuid decided_by FK
+    objectId decided_by FK
     datetime created_at
   }
   COURSE {
-    uuid id PK
+    objectId id PK
     string code "CSE-301"
     string name
     bool sessional
   }
   ROOM {
-    uuid id PK
+    objectId id PK
     string number "311"
     enum type "classroom or lab"
   }
   ROOM_OWNERSHIP {
-    uuid room_id FK
-    uuid department_id FK
+    objectId room_id FK
+    objectId department_id FK
   }
   ROUTINE_IMPORT {
-    uuid id PK
-    uuid semester_id FK
-    uuid department_id FK
-    uuid uploaded_by FK
+    objectId id PK
+    objectId semester_id FK
+    objectId department_id FK
+    objectId uploaded_by FK
     enum status "preview published superseded"
     datetime published_at
   }
   IMPORT_ISSUE {
-    uuid id PK
-    uuid import_id FK
+    objectId id PK
+    objectId import_id FK
     enum severity "error or warning"
     string kind
     bool accepted
   }
   ROUTINE_SLOT {
-    uuid id PK
-    uuid section_id FK
-    uuid group_id FK "null means whole section"
-    uuid course_id FK
-    uuid room_id FK
+    objectId id PK
+    objectId section_id FK
+    objectId group_id FK "null means whole section"
+    objectId course_id FK
+    objectId room_id FK
     enum day "Sun to Thu"
     time start_time
     time end_time
@@ -166,50 +168,57 @@ erDiagram
     bool edited_by_hand
   }
   SLOT_TEACHER {
-    uuid slot_id FK
-    uuid teacher_code_id FK "null means TBA"
+    objectId slot_id FK
+    objectId teacher_code_id FK "null means TBA"
   }
   CLASS_CANCELLATION {
-    uuid slot_id FK
+    objectId slot_id FK
     date on_date
-    uuid by_admin FK
+    objectId by_admin FK
   }
   CALENDAR_EVENT {
-    uuid id PK
+    objectId id PK
     enum kind "holiday exam ramadan"
     date from_date
     date to_date
     json ramadan_time_map
   }
+  ROOM_SLOT_LOCK {
+    objectId id PK
+    objectId room_id FK "unique with on_date + block_start"
+    date on_date
+    time block_start "fixed block, e.g. 10 min"
+    objectId room_request_id FK
+  }
   ROOM_REQUEST {
-    uuid id PK
-    uuid room_id FK
-    uuid requester_id FK
-    uuid target_section_id FK
-    uuid target_group_id FK
+    objectId id PK
+    objectId room_id FK
+    objectId requester_id FK
+    objectId target_section_id FK
+    objectId target_group_id FK
     date on_date
     time start_time
     time end_time "max 3 h"
     string note
     enum status "pending approved rejected cancelled expired"
-    uuid decided_by FK
+    objectId decided_by FK
     string no_show_note
   }
   CONVERSATION {
-    uuid id PK
+    objectId id PK
     enum kind "direct or section_group"
-    uuid section_id FK
+    objectId section_id FK
     bool closed
   }
   CONVERSATION_MEMBER {
-    uuid conversation_id FK
-    uuid user_id FK
+    objectId conversation_id FK
+    objectId user_id FK
     bool owner
   }
   MESSAGE {
-    uuid id PK
-    uuid conversation_id FK
-    uuid sender_id FK
+    objectId id PK
+    objectId conversation_id FK
+    objectId sender_id FK
     text body_enc "max 4000 chars"
     datetime sent_at
     datetime delivered_at
@@ -218,51 +227,51 @@ erDiagram
     date purge_after
   }
   ATTACHMENT {
-    uuid id PK
-    uuid message_id FK
+    objectId id PK
+    objectId message_id FK
     string mime
     int size_bytes "max 5 MB"
     enum scan "pending clean infected"
   }
   REPORT {
-    uuid id PK
-    uuid message_id FK
-    uuid reporter_id FK
+    objectId id PK
+    objectId message_id FK
+    objectId reporter_id FK
     string reason
   }
   BLOCK {
-    uuid blocker_id FK
-    uuid blocked_id FK
+    objectId blocker_id FK
+    objectId blocked_id FK
   }
   CHAT_SUSPENSION {
-    uuid user_id FK
+    objectId user_id FK
     datetime until
     string reason
   }
   ANNOUNCEMENT {
-    uuid id PK
-    uuid sender_id FK
-    uuid section_id FK
-    uuid group_id FK
+    objectId id PK
+    objectId sender_id FK
+    objectId section_id FK
+    objectId group_id FK
     text body
   }
   NOTIFICATION {
-    uuid id PK
-    uuid user_id FK
+    objectId id PK
+    objectId user_id FK
     string kind
     bool read
   }
   FLAG {
-    uuid id PK
-    uuid raised_by FK
-    uuid section_id FK
+    objectId id PK
+    objectId raised_by FK
+    objectId section_id FK
     enum kind "problem or removal_request"
     enum status "open fixed rejected"
   }
   AUDIT_LOG {
     bigint id PK
-    uuid actor_id FK
-    uuid department_id FK
+    objectId actor_id FK
+    objectId department_id FK
     string action
     json old_value
     json new_value

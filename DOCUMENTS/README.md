@@ -19,8 +19,8 @@ npx -p @mermaid-js/mermaid-cli mmdc -i src/05-er-diagram.mmd -o svg/05-er-diagra
 | 01 | [Use case](svg/01-use-case.svg) | Use case | Actors (super admin, dept admin, teacher, student, CR/DCR, scheduler) and the features each one uses |
 | 02 | [Role hierarchy](svg/02-role-hierarchy.svg) | Hierarchy | Who creates, approves or assigns whom |
 | 03 | [System context](svg/03-system-context.svg) | C4 level 1 | The platform, its users, and outside services (email, malware scanner, push, Excel template) |
-| 04 | [Architecture](svg/04-architecture.svg) | C4 level 2 | Client, server modules, data stores |
-| 05 | [ER diagram](svg/05-er-diagram.svg) | Entity-relationship | Logical data model: tables, keys, relationships |
+| 04 | [Architecture](svg/04-architecture.svg) | C4 level 2 | React client, Express modules, MongoDB data stores |
+| 05 | [ER diagram](svg/05-er-diagram.svg) | Entity-relationship | Logical data model: MongoDB collections, keys, relationships |
 | 06 | [Class diagram](svg/06-class-diagram.svg) | UML class | Domain classes, role inheritance, main operations |
 | 07 | [DFD level 0](svg/07-dfd-level0.svg) | Data flow | The system as one process |
 | 08 | [DFD level 1](svg/08-dfd-level1.svg) | Data flow | 8 processes and 7 data stores |
@@ -38,11 +38,11 @@ npx -p @mermaid-js/mermaid-cli mmdc -i src/05-er-diagram.mmd -o svg/05-er-diagra
 | 20 | [Join request states](svg/20-state-join-request.svg) | State | Pending, accepted, rejected, escalated, revoked |
 | 21 | [Room request states](svg/21-state-room-request.svg) | State | Pending, approved, rejected, cancelled, expired, no-show |
 | 22 | [Semester / section / chat / routine](svg/22-state-semester-section.svg) | State | Lifecycles tied to the semester |
-| 23 | [Deployment](svg/23-deployment.svg) | Deployment | Suggested hosting setup |
+| 23 | [Deployment](svg/23-deployment.svg) | Deployment | One server with Docker Compose: Caddy, Express API, Agenda worker, MongoDB replica set |
 | 24 | [Sitemap](svg/24-sitemap.svg) | Navigation | Pages each role reaches after sign-in |
 | 25 | [Routine resolution](svg/25-routine-resolution.svg) | Flow | How a student's own routine is picked: level, term, section, then group |
 | 26 | [CR / DCR assignment](svg/26-activity-cr-dcr-assignment.svg) | Activity | Re-appoint or pick leaders, one-CR / two-DCR limit, section opening, role removal |
 | 27 | [Chat moderation](svg/27-activity-chat-moderation.svg) | Activity | Block, report routing, limited report view, chat suspension |
 | 28 | [Free-room check](svg/28-activity-free-room-check.svg) | Activity | How the free-room view decides Free, In use or Booked for a date and slot |
 
-Notes: diagrams 04, 05 and 23 describe a **proposed** technical design (for example PostgreSQL, Redis, WebSocket). The PRD does not fix a tech stack, so change them once the stack is chosen.
+Notes: diagrams 04, 05, 15, 16 and 23 follow the decided stack in `tech-stack.md`: MERN in JavaScript only (React + Tailwind + shadcn/ui, Node.js + Express, MongoDB replica set). Double-booking is blocked by the `ROOM_SLOT_LOCK` collection (unique room + date + time block).

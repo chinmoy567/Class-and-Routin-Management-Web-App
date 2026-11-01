@@ -19,7 +19,7 @@ sequenceDiagram
   API-)CR: Dashboard notification (pending request)
   CR->>UI: Open request (name, email, photo, UV ID, group)
   UI->>API: POST /join-requests/{id}/accept {group: G2}
-  API->>DB: Lock row, status still pending?
+  API->>DB: findOneAndUpdate where status = pending (transaction)
   alt Already decided by another CR/DCR
     API-->>UI: 409 "Already handled"
   else First action wins

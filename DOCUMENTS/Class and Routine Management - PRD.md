@@ -811,20 +811,20 @@ Countdown (F13):
 This is the recommended approach for a team of 2–3 developers, one institution and a few thousand users. Changing it is fine, but the **data rules** below must hold whatever stack is used.
 
 - **Shape:** one application (a modular monolith), split into modules: identity and auth, organisation (department, semester, section), routine and import, calendar, rooms and booking, chat, notifications, audit. No microservices.
-- **Stack:** TypeScript end to end. A Next.js (React) front end, with a NestJS or Fastify back end. Django with Django REST Framework is an equal choice if the team knows Python better.
-- **Database:** PostgreSQL 16. Its range types and exclusion constraints make double-booking impossible at the database level.
-- **Supporting services:**
-  - Redis for sessions, rate limits, cache and push events.
-  - A job queue: BullMQ, or Celery with Django.
-  - S3-compatible private file storage: MinIO on a university server, or Cloudflare R2.
+- **Stack (decided): MERN.** JavaScript only (no TypeScript), front end and back end. A React (Vite) front end with Tailwind CSS and shadcn/ui, and a Node.js (Express) back end. The full list of tools is in `document/tech-stack.md`.
+- **Database:** MongoDB 7 or later with Mongoose, run as a **replica set** so that multi-document transactions are available. Double-booking is prevented at the database level by a unique index on room time blocks (see Concurrency rules).
+- **Supporting services** (the back end needs only Node.js and MongoDB):
+  - Sessions and rate limits stored in MongoDB.
+  - A job queue stored in MongoDB: Agenda.
+  - Private file storage in MongoDB GridFS.
   - ClamAV for malware scanning.
-  - A transactional email provider: Amazon SES, Postmark or Brevo.
-  - WebSocket for chat and "something changed" push events only. Everything else is plain REST.
-- **Hosting:** one server (a VPS or a university virtual machine) running Docker Compose, with database backups kept off the server. Expected cost is roughly USD 20–60 a month.
+  - A transactional email provider through Nodemailer: Amazon SES, Postmark or Brevo.
+  - WebSocket (Socket.IO) for chat and "something changed" push events only. Everything else is plain REST.
+- **Hosting:** one server (a VPS or a university virtual machine) running Docker Compose, or MongoDB Atlas for the database, with database backups kept off the server. Expected cost is roughly USD 20–60 a month.
 
-**Core data model**
+**Core data model** (MongoDB collections; `?` means optional)
 
-| Table | Key fields and constraints |
+| Collection | Key fields and constraints |
 | --- | --- |
 | `user` | id, kind (student, teacher, staff), state, `email_enc`, `email_hmac` (unique), `phone_enc`, `password_hash` |
 | `user_role` | user_id, role (super_admin, dept_admin, teacher, cr, dcr), department_id?, section_id?, semester_id? |
@@ -842,15 +842,18 @@ This is the recommended approach for a team of 2–3 developers, one institution
 | `routine_slot_teacher` | slot_id, teacher_id |
 | `calendar_event` | scope_department_id? (empty = university), from_date, to_date, kind, cutoff_time?, label |
 | `class_cancellation` | slot_id, date, reason. Unique (slot_id, date) |
-| `room_request` | requester_section_id or requester_teacher_id, sent_by_user_id, target_section_id, target_group_id?, named_teacher_id?, room_id, `period` (tstzrange), status, decided_by, version. **`EXCLUDE USING gist (room_id WITH =, period WITH &&) WHERE status = 'approved'`** |
+| `room_request` | requester_section_id or requester_teacher_id, sent_by_user_id, target_section_id, target_group_id?, named_teacher_id?, room_id, period_start, period_end, status, decided_by, version |
+| `room_slot_lock` | room_id, date, block_start, room_request_id. **Unique (room_id, date, block_start)**: one document for each fixed time block (for example 10 minutes) that an approved booking covers, so two approved bookings can never overlap |
 | `conversation`, `conversation_member`, `message`, `file`, `report`, `block`, `chat_suspension` | Chat (R3) |
-| `audit_log` | actor, action, scope_department_id, target, old_value, new_value, at. **Append-only**: the application's database user has no UPDATE or DELETE right on it |
+| `audit_log` | actor, action, scope_department_id, target, old_value, new_value, at. **Append-only**: the application's database user has only insert and find rights on it, with no update or delete |
+
+"Unique … where" and "at most one" rules above are MongoDB **partial unique indexes** (`partialFilterExpression`).
 
 **Concurrency rules**
 
-- Every "first action wins" decision (join request, ID claim, room request) is a conditional update, such as `UPDATE … SET status = 'accepted' WHERE id = ? AND status = 'pending'`. If no row changes, the user sees "already decided".
-- The 3-request limit is counted after locking the requester (`SELECT … FOR UPDATE`) in the same transaction as the insert.
-- Approving a booking happens in one transaction: approve, cancel the requester's overlapping requests, and reject other requests overlapping the same room and time. The exclusion constraint is the last line of defence.
+- Every "first action wins" decision (join request, ID claim, room request) is a conditional update, such as `findOneAndUpdate({ _id, status: 'pending' }, { $set: { status: 'accepted' } })`. If no document matches, the user sees "already decided".
+- The 3-request limit is counted in the same transaction as the insert, after first writing to the requester's document (for example, increasing a counter on it), so two requests sent at once cannot both pass the check.
+- Approving a booking happens in one transaction: approve, insert its `room_slot_lock` documents, cancel the requester's overlapping requests, and reject other requests overlapping the same room and time. The unique index on `room_slot_lock` is the last line of defence: if any block is already taken, the transaction fails.
 
 **Key API surface** (REST; exact shapes are decided in the API spec)
 

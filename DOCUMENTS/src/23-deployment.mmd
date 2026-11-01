@@ -1,0 +1,41 @@
+%% Deployment diagram — one server running Docker Compose (MERN, JavaScript only)
+flowchart TB
+  subgraph Users["Client devices"]
+    Ph["📱 Phone browser"]
+    Pc["💻 Desktop browser"]
+  end
+
+  subgraph Host["One VPS / university VM (Docker Compose)"]
+    subgraph Edge["Edge"]
+      LB["Caddy reverse proxy<br/>TLS termination, HTTPS only,<br/>serves the built React SPA"]
+    end
+
+    subgraph App["Application containers (Node.js)"]
+      API["Express API + Socket.IO"]
+      WK["Agenda worker<br/>expiry, escalation,<br/>reminders, retention purge"]
+      AV["ClamAV scanner"]
+    end
+
+    subgraph DataT["Data (private network)"]
+      MP[("MongoDB primary<br/>collections, sessions,<br/>Agenda jobs, GridFS files")]
+      MS[("MongoDB secondary<br/>(replica set)")]
+      SEC["Secrets / .env<br/>encryption key outside DB"]
+    end
+  end
+
+  subgraph Ext["External services"]
+    SMTP["SMTP sender<br/>(system address)"]
+    BK[("Off-server backups<br/>mongodump, daily")]
+  end
+
+  Ph & Pc --> LB
+  LB --> API
+  API & WK --> MP
+  MP -. replication .-> MS
+  API --> AV
+  API & WK --> SMTP
+  API -. read key .-> SEC
+  MP -. backup .-> BK
+
+  Atlas["Alternative: MongoDB Atlas<br/>instead of self-hosted MongoDB"]
+  Atlas -.- MP

@@ -25,10 +25,11 @@ sequenceDiagram
   Ad->>UI: Dashboard: requests grouped by room & slot
   UI->>API: POST /room-requests/{id}/approve
   API->>DB: Before cutoff (slot − 2 h)? still pending? room still free?
-  API->>DB: status = approved (booking)
+  API->>DB: Start transaction: status = approved (booking)
+  API->>DB: Insert room_slot_lock docs (unique room + date + block)
   API->>DB: Reject other requests for room & slot
   API->>DB: Cancel requester's overlapping requests
-  API->>DB: Audit log
+  API->>DB: Audit log, commit (fails if any block already locked)
   API-)N: Winner approved, losers "room went to another section", target students notified
   API-->>UI: 200 — room shows Booked
   Note over Job,DB: At slot − 2 h
