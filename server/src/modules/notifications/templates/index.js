@@ -34,6 +34,10 @@ const templates = {
   password_changed: simple('password_changed'),
   failed_logins: simple('failed_logins'),
   second_step_code: simple('second_step_code'),
+  admin_role_changed: simple('admin_role_changed'),
+  admin_password_reset: simple('admin_password_reset'),
+  admin_second_step_reset: simple('admin_second_step_reset'),
+  no_active_admin: simple('no_active_admin'),
 };
 
 export function renderTemplate(name, data = {}) {

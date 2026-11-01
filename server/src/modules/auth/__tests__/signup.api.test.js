@@ -13,12 +13,13 @@ import {
   stopTestMail,
   tokenFrom,
 } from '../../../../test/harness.js';
-import { makeId } from '../../../../test/factories.js';
+import { createDepartment, makeId } from '../../../../test/factories.js';
 import { OneTimeToken, User } from '../auth.model.js';
-import { addAllowedDomain, setDepartmentLookup } from '../../organisation/index.js';
+import { addAllowedDomain } from '../../organisation/index.js';
 import { decrypt } from '../../../lib/crypto.js';
 
 let app;
+let dept;
 beforeAll(async () => {
   await connectTestDb();
   await startTestMail();
@@ -33,11 +34,9 @@ beforeEach(async () => {
   clearOutbox();
   fixClock('2030-03-04T05:00:00Z');
   await addAllowedDomain('baiust.ac.bd');
+  dept = await createDepartment();
 });
-afterEach(() => {
-  resetClock();
-  setDepartmentLookup(async () => true);
-});
+afterEach(() => resetClock());
 
 const student = (over = {}) => ({
   kind: 'student',
@@ -51,7 +50,7 @@ const teacher = (over = {}) => ({
   full_name: 'Dr Salma',
   email: 'salma@baiust.ac.bd',
   password: 'secret-pass-1',
-  department_id: String(makeId()),
+  department_id: dept.id,
   short_code: 'sk',
   ...over,
 });
@@ -129,10 +128,14 @@ describe('sign-up', () => {
   });
 
   it('AUTH-04 a teacher department must be an active department', async () => {
-    setDepartmentLookup(async () => false);
-    const res = await signUp(teacher());
-    expect(res.status).toBe(400);
-    expect(res.body.error.fields.department_id).toBeTruthy();
+    for (const department_id of [
+      String(makeId()),
+      (await createDepartment({ retired: true })).id,
+    ]) {
+      const res = await signUp(teacher({ department_id }));
+      expect(res.status).toBe(400);
+      expect(res.body.error.fields.department_id).toBeTruthy();
+    }
     expect(await User.countDocuments()).toBe(0);
   });
 

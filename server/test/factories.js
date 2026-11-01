@@ -4,6 +4,7 @@ import { User, UserRole } from '../src/modules/auth/auth.model.js';
 import { loadRequestUser } from '../src/modules/auth/auth.service.js';
 import { hashPassword } from '../src/modules/auth/password.js';
 import { encrypt, emailHmac } from '../src/lib/crypto.js';
+import { Department } from '../src/modules/organisation/organisation.model.js';
 import { generateSecret } from '../src/lib/totp.js';
 
 const rand = () => crypto.randomBytes(4).toString('hex');
@@ -13,14 +14,27 @@ export const makeId = () => new mongoose.Types.ObjectId();
 export const TEST_PASSWORD = 'correct-horse-1';
 
 /**
- * Departments, semesters and sections have no collections yet (specs 03, 04, 09 add them and
- * their real factories). Until then a department is just an id and a code, not saved.
+ * A department that is only an id and a code, not saved (for policy tests that need no database).
+ * Use `createDepartment` when the department must exist.
  */
 export const makeDepartment = (overrides = {}) => ({
   _id: makeId(),
   code: `D${rand()}`.toUpperCase(),
   ...overrides,
 });
+
+/** A saved department (spec 03). */
+export async function createDepartment({ code, name, retired = false } = {}) {
+  const letters = rand()
+    .replace(/[0-9]/g, (d) => 'ghijklmnop'[d])
+    .toUpperCase();
+  const d = await Department.create({
+    code: code ?? `T${letters}`.slice(0, 10),
+    name: name ?? 'Test Department',
+    retired,
+  });
+  return { _id: d._id, id: String(d._id), code: d.code, name: d.name };
+}
 
 /**
  * Create a user with roles. Returns the request-user shape plus `email` for tests.

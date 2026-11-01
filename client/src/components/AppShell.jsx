@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router';
-import { Home, User, UserRound } from 'lucide-react';
+import { Building2, Home, ShieldCheck, User, UserRound } from 'lucide-react';
+import { useMe } from '@/features/auth/hooks.js';
 import { EmailActionBanner } from '@/features/profile/components/EmailActionBanner.jsx';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -11,8 +12,16 @@ const NAV_ITEMS = [
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];
 
+const SUPER_ADMIN_ITEMS = [
+  { to: '/admin/departments', labelKey: 'nav.adminDepartments', icon: Building2 },
+  { to: '/admin/admins', labelKey: 'nav.adminAdmins', icon: ShieldCheck },
+];
+
 /** Mobile first: a bottom tab bar on phones, a side rail from `md` up. */
 export function AppShell() {
+  const { data: me } = useMe();
+  const isSuper = (me?.roles ?? []).some((r) => r.role === 'super_admin');
+  const items = isSuper ? [...NAV_ITEMS, ...SUPER_ADMIN_ITEMS] : NAV_ITEMS;
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <a
@@ -31,7 +40,7 @@ export function AppShell() {
         className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background md:static md:w-56 md:flex-col md:border-r md:border-t-0 md:p-3"
       >
         <p className="hidden px-3 py-2 text-lg font-semibold md:block">{t('app.name')}</p>
-        {NAV_ITEMS.map(({ to, labelKey, icon: Icon, end }) => (
+        {items.map(({ to, labelKey, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

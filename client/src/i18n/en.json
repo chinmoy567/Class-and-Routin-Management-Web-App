@@ -9,7 +9,9 @@
     "main": "Main navigation",
     "skipToContent": "Skip to content",
     "account": "Account",
-    "profile": "Profile"
+    "profile": "Profile",
+    "adminDepartments": "Departments",
+    "adminAdmins": "Admins"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -122,7 +124,11 @@
     "CODE_INVALID": "That code is not valid or has expired.",
     "LAST_DOMAIN": "At least one email domain must remain.",
     "FILE_TYPE_NOT_ALLOWED": "Use a JPEG, PNG or WebP image.",
-    "FILE_TOO_LARGE": "The photo must be 2 MB or smaller."
+    "FILE_TOO_LARGE": "The photo must be 2 MB or smaller.",
+    "LAST_SUPER_ADMIN": "The last super admin cannot be removed.",
+    "CODE_LOCKED": "The code can no longer change because the department is in use.",
+    "DEPARTMENT_IN_USE": "A section of the current or draft semester still uses this department.",
+    "USER_NOT_ELIGIBLE": "Only an active account with a verified email can become an admin."
   },
   "auth": {
     "fields": {
@@ -265,6 +271,56 @@
       "waitingBody": "Your request is waiting for approval. We will email you when it is decided.",
       "updateTitle": "Update your semester details",
       "updateBody": "A new semester has started. The semester update form is coming soon."
+    }
+  },
+  "admin": {
+    "departments": {
+      "title": "Departments",
+      "code": "Code",
+      "name": "Name",
+      "status": "Status",
+      "active": "Active",
+      "retired": "Retired",
+      "add": "Add department",
+      "create": "Create",
+      "save": "Save",
+      "cancel": "Cancel",
+      "rename": "Edit",
+      "retire": "Retire",
+      "retireConfirm": "Retire {code}? It disappears from sign-up and the join form, but its history stays.",
+      "codeHint": "2 to 10 capital letters, for example CSE.",
+      "empty": "No departments yet.",
+      "fieldError": {
+        "code": "Use 2 to 10 capital letters.",
+        "name": "Enter a name."
+      }
+    },
+    "admins": {
+      "title": "Admins",
+      "warning": "Fewer than two super admins exist. Add another so the university is never locked out.",
+      "none": "No admins yet.",
+      "role": {
+        "super_admin": "Super admin",
+        "dept_admin": "Department admin"
+      },
+      "universityWide": "All departments",
+      "grantTitle": "Add an admin",
+      "search": "Find an account by name",
+      "searchHint": "Type at least 2 letters. Only active accounts with a verified email are listed.",
+      "noResults": "No matching accounts.",
+      "chooseRole": "Role",
+      "chooseDepartment": "Department",
+      "choosePlaceholder": "Choose a department",
+      "grant": "Make admin",
+      "remove": "Remove role",
+      "removeConfirm": "Remove this role from {name}? They are signed out at once.",
+      "resetPassword": "Reset password",
+      "resetSecondStep": "Reset second step",
+      "resetPasswordDone": "A reset link was sent to {name}.",
+      "resetSecondStepDone": "{name} will set up the second step again at the next sign-in.",
+      "granted": "{name} is now an admin.",
+      "removed": "The role was removed.",
+      "you": "(you)"
     }
   }
 }

@@ -52,10 +52,29 @@ const userRoleSchema = new Schema(
     department_id: { type: Schema.Types.ObjectId },
     section_id: { type: Schema.Types.ObjectId },
     semester_id: { type: Schema.Types.ObjectId },
+    // Spec 03: a role ends instead of being deleted, so history and audit stay.
+    granted_by: { type: Schema.Types.ObjectId },
+    granted_at: { type: Date },
+    ended_at: { type: Date, default: null },
+    ended_by: { type: Schema.Types.ObjectId },
   },
   { collection: 'user_role' },
 );
-userRoleSchema.index({ user_id: 1 });
+userRoleSchema.index({ user_id: 1, ended_at: 1 });
+userRoleSchema.index({ role: 1, department_id: 1, ended_at: 1 });
+// No duplicate active grant of the same role in the same department.
+userRoleSchema.index(
+  { user_id: 1, role: 1, department_id: 1 },
+  { unique: true, partialFilterExpression: { ended_at: { $type: 'null' } } },
+);
+
+// One document. Every admin-role grant or removal writes it first inside its transaction, so two
+// changes at once conflict and run one after the other (mongo-patterns section 6). That keeps
+// "at least one active super admin remains" true even when two removals arrive together.
+const userRoleGuardSchema = new Schema(
+  { _id: { type: String }, version: { type: Number, default: 0 } },
+  { collection: 'user_role_guard', versionKey: false },
+);
 
 // Links and codes that work once. TTL removal is lazy, so expires_at is always checked in queries.
 const oneTimeTokenSchema = new Schema(
@@ -104,6 +123,8 @@ captchaChallengeSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema);
 export const UserRole = mongoose.models.UserRole ?? mongoose.model('UserRole', userRoleSchema);
+export const UserRoleGuard =
+  mongoose.models.UserRoleGuard ?? mongoose.model('UserRoleGuard', userRoleGuardSchema);
 export const OneTimeToken =
   mongoose.models.OneTimeToken ?? mongoose.model('OneTimeToken', oneTimeTokenSchema);
 export const LoginThrottle =

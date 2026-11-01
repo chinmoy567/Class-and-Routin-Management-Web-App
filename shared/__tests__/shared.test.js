@@ -99,3 +99,34 @@ describe('profile schemas', () => {
     expect(updateProfileBody.safeParse({ phone: null, full_name: 'X Y' }).success).toBe(false);
   });
 });
+
+import { createDepartmentBody, grantAdminBody, updateDepartmentBody } from '../schemas/index.js';
+
+describe('departments and admin schemas (spec 03)', () => {
+  const id = 'a'.repeat(24);
+  it('DEP-01 the code is 2 to 10 upper-case letters', () => {
+    expect(createDepartmentBody.safeParse({ code: 'CSE', name: 'Computer Science' }).success).toBe(
+      true,
+    );
+    for (const code of ['C', 'cse', 'CS1', 'ABCDEFGHIJK']) {
+      expect(createDepartmentBody.safeParse({ code, name: 'Computer Science' }).success).toBe(
+        false,
+      );
+    }
+  });
+  it('DEP-02 an update needs at least one field', () => {
+    expect(updateDepartmentBody.safeParse({}).success).toBe(false);
+    expect(updateDepartmentBody.safeParse({ name: 'New name' }).success).toBe(true);
+  });
+  it('DEP-05 DEP-06 dept_admin needs a department, super_admin must not have one', () => {
+    expect(grantAdminBody.safeParse({ user_id: id, role: 'dept_admin' }).success).toBe(false);
+    expect(
+      grantAdminBody.safeParse({ user_id: id, role: 'dept_admin', department_id: id }).success,
+    ).toBe(true);
+    expect(grantAdminBody.safeParse({ user_id: id, role: 'super_admin' }).success).toBe(true);
+    expect(
+      grantAdminBody.safeParse({ user_id: id, role: 'super_admin', department_id: id }).success,
+    ).toBe(false);
+    expect(grantAdminBody.safeParse({ user_id: id, role: 'cr' }).success).toBe(false);
+  });
+});

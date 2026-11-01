@@ -18,6 +18,9 @@ import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
 import { HoldingPage } from '@/routes/HoldingPage.jsx';
 import { ProfilePage } from '@/routes/ProfilePage.jsx';
 import { PublicProfilePage } from '@/routes/PublicProfilePage.jsx';
+import { RequireSuperAdmin } from '@/components/RequireSuperAdmin.jsx';
+import { DepartmentsPage } from '@/routes/admin/DepartmentsPage.jsx';
+import { AdminsPage } from '@/routes/admin/AdminsPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
 export const queryClient = new QueryClient({
@@ -55,6 +58,10 @@ export function AppRoutes() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/users/:id" element={<PublicProfilePage />} />
           <Route path="/account/password" element={<ChangePasswordPage />} />
+          <Route element={<RequireSuperAdmin />}>
+            <Route path="/admin/departments" element={<DepartmentsPage />} />
+            <Route path="/admin/admins" element={<AdminsPage />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>

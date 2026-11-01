@@ -13,7 +13,7 @@ import {
   stopTestMail,
   tokenFrom,
 } from '../../../../test/harness.js';
-import { makeId } from '../../../../test/factories.js';
+import { createDepartment } from '../../../../test/factories.js';
 import { User } from '../auth.model.js';
 import { addAllowedDomain } from '../../organisation/index.js';
 
@@ -66,7 +66,7 @@ describe('email verification', () => {
     const { token } = await signUpAndGetToken({
       kind: 'teacher',
       email: 'salma@baiust.ac.bd',
-      department_id: String(makeId()),
+      department_id: (await createDepartment()).id,
       short_code: 'SK',
     });
     const res = await post('/api/auth/verify', { token });

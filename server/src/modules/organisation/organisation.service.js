@@ -19,13 +19,6 @@ export async function isDomainAllowed(domain) {
   return Boolean(await AllowedDomain.exists({ domain: domain.toLowerCase() }));
 }
 
-// Department lookup. Spec 03 owns departments; until then every id counts as active.
-let departmentLookup = async () => true;
-export const setDepartmentLookup = (fn) => {
-  departmentLookup = fn;
-};
-export const isActiveDepartment = (id) => departmentLookup(id);
-
 export async function listDomains(actor) {
   assertCan(actor, 'email_domain.manage');
   const domains = await AllowedDomain.find().sort({ domain: 1 }).lean();

@@ -114,7 +114,7 @@ export async function getPublicProfile(viewer, userId) {
   // Hidden accounts look like they don't exist, except to the admins of that department.
   const admin = can(viewer, 'profile.rename', { department_id });
   if (!VISIBLE_STATES.includes(user.state) && !admin) throw notFound();
-  const roles = await UserRole.find({ user_id: user._id }).lean();
+  const roles = await UserRole.find({ user_id: user._id, ended_at: null }).lean();
   return {
     id: String(user._id),
     full_name: user.full_name,

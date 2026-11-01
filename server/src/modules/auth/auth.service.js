@@ -34,7 +34,7 @@ const link = (path, token) => `${getConfig().APP_URL}${path}?token=${token}`;
 export async function loadRequestUser(userId) {
   const user = await User.findById(userId).lean();
   if (!user) return null;
-  const roles = await UserRole.find({ user_id: user._id }).lean();
+  const roles = await UserRole.find({ user_id: user._id, ended_at: null }).lean();
   return {
     _id: user._id,
     kind: user.kind,
@@ -352,7 +352,7 @@ export async function getMe(actor, session) {
 /** FND-36: create the first super admin. Refuses if one already exists. */
 export async function seedSuperAdmin({ email, name, appUrl }) {
   return withTransaction(async (session) => {
-    if (await UserRole.exists({ role: 'super_admin' }).session(session)) {
+    if (await UserRole.exists({ role: 'super_admin', ended_at: null }).session(session)) {
       throw new AppError(409, 'CONFLICT', 'A super admin already exists.');
     }
     const token = randomToken();
@@ -376,7 +376,9 @@ export async function seedSuperAdmin({ email, name, appUrl }) {
       rawToken: token,
       session,
     });
-    await UserRole.create([{ user_id: user._id, role: 'super_admin' }], { session });
+    await UserRole.create([{ user_id: user._id, role: 'super_admin', granted_at: clock.now() }], {
+      session,
+    });
     await addAllowedDomain(ALLOWED_EMAIL_DOMAIN, { session });
     await record({
       actor: { _id: user._id, roles: [{ role: 'super_admin' }] },

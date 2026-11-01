@@ -14,12 +14,17 @@ import {
   meProfileRouter,
   usersRouter,
   adminUsersRouter,
+  adminRolesRouter,
   loadUser,
   requireAuth,
   enforceSessionLifetime,
   secondStepGate,
 } from './modules/auth/index.js';
-import { organisationRouter } from './modules/organisation/index.js';
+import {
+  departmentsAdminRouter,
+  departmentsPublicRouter,
+  organisationRouter,
+} from './modules/organisation/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
 // queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
@@ -98,8 +103,11 @@ export function createApp(
   app.use('/api/me', meRouter);
   app.use('/api/me', meProfileRouter);
   app.use('/api/users', usersRouter);
+  app.use('/api/departments', departmentsPublicRouter);
   app.use('/api/admin', requireAuth, organisationRouter);
   app.use('/api/admin', requireAuth, adminUsersRouter);
+  app.use('/api/admin', requireAuth, departmentsAdminRouter);
+  app.use('/api/admin', requireAuth, adminRolesRouter);
   if (mountApi) mountApi(app);
 
   app.use(notFoundHandler);

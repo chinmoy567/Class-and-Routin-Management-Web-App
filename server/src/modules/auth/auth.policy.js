@@ -1,4 +1,4 @@
-import { isAdminOf, stateIn } from '../../policy/index.js';
+import { hasRole, isAdminOf, stateIn } from '../../policy/index.js';
 
 export const SIGNABLE = [
   'email_unverified',
@@ -30,4 +30,8 @@ export const authPolicy = {
     stateIn(user, CHAT_STATES) || isAdminOf(user, target?.department_id),
   // PRF-02: only an admin of the user's department (a super admin for anyone)
   'profile.rename': (user, target) => isAdminOf(user, target?.department_id),
+  // Spec 03 permissions table: grant and remove admin roles, reset an admin's password or
+  // second step, search for a new admin. Super admin only. "Not on yourself" is checked in the
+  // service, against the target.
+  'admin_role.manage': (user) => stateIn(user, 'active') && hasRole(user, 'super_admin'),
 };

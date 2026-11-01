@@ -19,6 +19,10 @@ export const ERROR_CODES = Object.freeze({
   LAST_DOMAIN: { code: 'LAST_DOMAIN', status: 409 },
   FILE_TYPE_NOT_ALLOWED: { code: 'FILE_TYPE_NOT_ALLOWED', status: 415 },
   FILE_TOO_LARGE: { code: 'FILE_TOO_LARGE', status: 413 },
+  LAST_SUPER_ADMIN: { code: 'LAST_SUPER_ADMIN', status: 409 },
+  CODE_LOCKED: { code: 'CODE_LOCKED', status: 409 },
+  DEPARTMENT_IN_USE: { code: 'DEPARTMENT_IN_USE', status: 409 },
+  USER_NOT_ELIGIBLE: { code: 'USER_NOT_ELIGIBLE', status: 422 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -41,3 +45,7 @@ export const CODE_INVALID = 'CODE_INVALID';
 export const LAST_DOMAIN = 'LAST_DOMAIN';
 export const FILE_TYPE_NOT_ALLOWED = 'FILE_TYPE_NOT_ALLOWED';
 export const FILE_TOO_LARGE = 'FILE_TOO_LARGE';
+export const LAST_SUPER_ADMIN = 'LAST_SUPER_ADMIN';
+export const CODE_LOCKED = 'CODE_LOCKED';
+export const DEPARTMENT_IN_USE = 'DEPARTMENT_IN_USE';
+export const USER_NOT_ELIGIBLE = 'USER_NOT_ELIGIBLE';
