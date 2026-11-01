@@ -1,0 +1,39 @@
+{
+  "app": {
+    "name": "Class & Routine",
+    "tagline": "Your university routine, in one place."
+  },
+  "nav": {
+    "home": "Home",
+    "menu": "Menu",
+    "main": "Main navigation",
+    "skipToContent": "Skip to content"
+  },
+  "home": {
+    "title": "Welcome",
+    "intro": "The app is being set up. Features arrive step by step."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you are looking for does not exist.",
+    "back": "Back to home"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again"
+  },
+  "errors": {
+    "VALIDATION_ERROR": "Some details are not valid. Please check and try again.",
+    "UNAUTHENTICATED": "Please sign in to continue.",
+    "SECOND_STEP_REQUIRED": "Please finish the second sign-in step.",
+    "CSRF_FAILED": "Your session check failed. Please refresh the page and try again.",
+    "FORBIDDEN": "You are not allowed to do this.",
+    "STATE_NOT_ALLOWED": "Your account cannot use this yet.",
+    "NOT_FOUND": "We could not find that.",
+    "ALREADY_DECIDED": "This was already decided.",
+    "CONFLICT": "That conflicts with something that already exists.",
+    "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
+    "INTERNAL": "Something went wrong on our side. Please try again.",
+    "NETWORK": "Could not reach the server. Check your connection."
+  }
+}
