@@ -1,0 +1,14 @@
+%% Activity — is a room free on a date and slot? (free-room view F8)
+flowchart TD
+  A([Query: room, date, start, end]) --> B{Date this week or next week?}
+  B -- No --> X[Not offered]
+  B -- Yes --> C{Holiday or exam period?}
+  C -- Yes --> F[FREE — routine does not use rooms]
+  C -- No --> D{Published routine slot in this room<br/>on that weekday overlapping the time?}
+  D -- Yes --> E{That class cancelled<br/>for this date?}
+  E -- No --> U[IN USE by class]
+  E -- Yes --> G
+  D -- No --> G{Approved booking for this room<br/>overlapping the time?}
+  G -- Yes --> BK[BOOKED — others see only 'Booked']
+  G -- No --> F2[FREE — show Request button<br/>to CR, DCR, teachers if at least 12 h ahead]
+  N[Pending requests never block a slot] -.-> F2

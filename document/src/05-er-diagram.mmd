@@ -1,0 +1,270 @@
+%% Entity-relationship diagram (logical data model)
+erDiagram
+  DEPARTMENT ||--o{ USER : "has members"
+  DEPARTMENT ||--o{ SECTION : contains
+  DEPARTMENT ||--o{ TEACHER_CODE : defines
+  DEPARTMENT ||--o{ ROOM_OWNERSHIP : "owns or shares"
+  ROOM ||--o{ ROOM_OWNERSHIP : "owned by"
+  USER |o--o| TEACHER_CODE : "linked to"
+  USER ||--o{ ADMIN_SCOPE : "admin of"
+  DEPARTMENT ||--o{ ADMIN_SCOPE : "administered by"
+  SEMESTER ||--o{ SECTION : "offered in"
+  SECTION ||--o{ SESSIONAL_GROUP : "split into"
+  SECTION ||--o{ SECTION_ROLE : "has CR or DCR"
+  USER ||--o{ SECTION_ROLE : holds
+  SECTION ||--o{ ENROLMENT : "accepted students"
+  USER ||--o{ ENROLMENT : "enrolled per semester"
+  SESSIONAL_GROUP |o--o{ ENROLMENT : "lab group"
+  USER ||--o{ JOIN_REQUEST : submits
+  SECTION ||--o{ JOIN_REQUEST : targets
+  SEMESTER ||--o{ ROUTINE_IMPORT : imports
+  ROUTINE_IMPORT ||--o{ IMPORT_ISSUE : reports
+  SECTION ||--o{ ROUTINE_SLOT : "weekly classes"
+  SESSIONAL_GROUP |o--o{ ROUTINE_SLOT : "lab only"
+  COURSE ||--o{ ROUTINE_SLOT : "taught in"
+  ROOM ||--o{ ROUTINE_SLOT : "held in"
+  ROUTINE_SLOT ||--o{ SLOT_TEACHER : "taught by"
+  TEACHER_CODE ||--o{ SLOT_TEACHER : assigned
+  ROUTINE_SLOT ||--o{ CLASS_CANCELLATION : "cancelled on date"
+  ROOM ||--o{ ROOM_REQUEST : requested
+  USER ||--o{ ROOM_REQUEST : "sent by"
+  SECTION ||--o{ ROOM_REQUEST : "target section"
+  SEMESTER ||--o{ CALENDAR_EVENT : "holiday exam ramadan"
+  CONVERSATION ||--o{ CONVERSATION_MEMBER : has
+  USER ||--o{ CONVERSATION_MEMBER : joins
+  SECTION |o--o| CONVERSATION : "section group"
+  CONVERSATION ||--o{ MESSAGE : contains
+  USER ||--o{ MESSAGE : sends
+  MESSAGE ||--o| ATTACHMENT : carries
+  MESSAGE ||--o{ REPORT : reported
+  USER ||--o{ BLOCK : blocks
+  USER ||--o{ CHAT_SUSPENSION : suspended
+  USER ||--o{ ANNOUNCEMENT : sends
+  SECTION ||--o{ ANNOUNCEMENT : receives
+  USER ||--o{ NOTIFICATION : receives
+  USER ||--o{ FLAG : raises
+  USER ||--o{ AUDIT_LOG : actor
+
+  DEPARTMENT {
+    uuid id PK
+    string code "CSE EEE CE LAW"
+    string name
+    bool active
+  }
+  USER {
+    uuid id PK
+    enum type "super_admin dept_admin teacher student"
+    uuid department_id FK
+    string full_name
+    string uv_id UK "students only"
+    bytes email_enc "encrypted"
+    string email_hash UK
+    bool email_verified
+    bytes phone_enc "encrypted"
+    string photo_url
+    string password_hash "argon2 or bcrypt"
+    enum status "pending active suspended deactivated"
+    int failed_logins
+    datetime locked_until
+  }
+  ADMIN_SCOPE {
+    uuid user_id FK
+    uuid department_id FK "null means super admin"
+  }
+  TEACHER_CODE {
+    uuid id PK
+    uuid department_id FK
+    string short_code "MYA AR"
+    string full_name
+    uuid user_id FK "unique when active"
+  }
+  SEMESTER {
+    uuid id PK
+    string name "Fall 2026"
+    date start_date
+    date end_date
+    bool is_current
+  }
+  SECTION {
+    uuid id PK
+    uuid semester_id FK
+    uuid department_id FK
+    int level "1 to 4"
+    enum term "I or II"
+    string letter "A B C"
+  }
+  SESSIONAL_GROUP {
+    uuid id PK
+    uuid section_id FK
+    string code "G1 G2 G3"
+  }
+  SECTION_ROLE {
+    uuid section_id FK
+    uuid user_id FK
+    enum role "CR or DCR"
+    datetime assigned_at
+    datetime ended_at
+  }
+  ENROLMENT {
+    uuid user_id FK
+    uuid section_id FK
+    uuid group_id FK
+    datetime confirmed_at
+    bool group_admin_override
+  }
+  JOIN_REQUEST {
+    uuid id PK
+    uuid student_id FK
+    uuid section_id FK
+    string uv_id
+    string suggested_group
+    enum status "pending accepted rejected escalated revoked"
+    string reason
+    uuid decided_by FK
+    datetime created_at
+  }
+  COURSE {
+    uuid id PK
+    string code "CSE-301"
+    string name
+    bool sessional
+  }
+  ROOM {
+    uuid id PK
+    string number "311"
+    enum type "classroom or lab"
+  }
+  ROOM_OWNERSHIP {
+    uuid room_id FK
+    uuid department_id FK
+  }
+  ROUTINE_IMPORT {
+    uuid id PK
+    uuid semester_id FK
+    uuid department_id FK
+    uuid uploaded_by FK
+    enum status "preview published superseded"
+    datetime published_at
+  }
+  IMPORT_ISSUE {
+    uuid id PK
+    uuid import_id FK
+    enum severity "error or warning"
+    string kind
+    bool accepted
+  }
+  ROUTINE_SLOT {
+    uuid id PK
+    uuid section_id FK
+    uuid group_id FK "null means whole section"
+    uuid course_id FK
+    uuid room_id FK
+    enum day "Sun to Thu"
+    time start_time
+    time end_time
+    bool published
+    bool edited_by_hand
+  }
+  SLOT_TEACHER {
+    uuid slot_id FK
+    uuid teacher_code_id FK "null means TBA"
+  }
+  CLASS_CANCELLATION {
+    uuid slot_id FK
+    date on_date
+    uuid by_admin FK
+  }
+  CALENDAR_EVENT {
+    uuid id PK
+    enum kind "holiday exam ramadan"
+    date from_date
+    date to_date
+    json ramadan_time_map
+  }
+  ROOM_REQUEST {
+    uuid id PK
+    uuid room_id FK
+    uuid requester_id FK
+    uuid target_section_id FK
+    uuid target_group_id FK
+    date on_date
+    time start_time
+    time end_time "max 3 h"
+    string note
+    enum status "pending approved rejected cancelled expired"
+    uuid decided_by FK
+    string no_show_note
+  }
+  CONVERSATION {
+    uuid id PK
+    enum kind "direct or section_group"
+    uuid section_id FK
+    bool closed
+  }
+  CONVERSATION_MEMBER {
+    uuid conversation_id FK
+    uuid user_id FK
+    bool owner
+  }
+  MESSAGE {
+    uuid id PK
+    uuid conversation_id FK
+    uuid sender_id FK
+    text body_enc "max 4000 chars"
+    datetime sent_at
+    datetime delivered_at
+    datetime seen_at
+    bool deleted
+    date purge_after
+  }
+  ATTACHMENT {
+    uuid id PK
+    uuid message_id FK
+    string mime
+    int size_bytes "max 5 MB"
+    enum scan "pending clean infected"
+  }
+  REPORT {
+    uuid id PK
+    uuid message_id FK
+    uuid reporter_id FK
+    string reason
+  }
+  BLOCK {
+    uuid blocker_id FK
+    uuid blocked_id FK
+  }
+  CHAT_SUSPENSION {
+    uuid user_id FK
+    datetime until
+    string reason
+  }
+  ANNOUNCEMENT {
+    uuid id PK
+    uuid sender_id FK
+    uuid section_id FK
+    uuid group_id FK
+    text body
+  }
+  NOTIFICATION {
+    uuid id PK
+    uuid user_id FK
+    string kind
+    bool read
+  }
+  FLAG {
+    uuid id PK
+    uuid raised_by FK
+    uuid section_id FK
+    enum kind "problem or removal_request"
+    enum status "open fixed rejected"
+  }
+  AUDIT_LOG {
+    bigint id PK
+    uuid actor_id FK
+    uuid department_id FK
+    string action
+    json old_value
+    json new_value
+    datetime at "append only"
+  }

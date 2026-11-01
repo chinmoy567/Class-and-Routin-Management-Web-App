@@ -1,0 +1,33 @@
+%% State — user account lifecycle (student and teacher)
+stateDiagram-v2
+  [*] --> Unverified : sign up
+  Unverified --> Verified : click email link
+
+  state "Teacher path" as TP {
+    Pending --> Active_T : admin approves
+    Pending --> Rejected : admin rejects (reason)
+    Rejected --> Pending : re-apply
+  }
+  state "Student path" as SP {
+    NoClaim --> AwaitingCR : submit join form
+    AwaitingCR --> NoClaim : rejected (reason)
+    AwaitingCR --> Active_S : CR/DCR accepts
+    Active_S --> Unconfirmed : semester rollover
+    Unconfirmed --> AwaitingCR : submit new join form
+  }
+  Verified --> Pending : teacher
+  Verified --> NoClaim : student
+
+  Active_T --> Suspended : admin suspends
+  Active_S --> Suspended : admin suspends
+  Suspended --> Active_T : reinstated
+  Suspended --> Active_S : reinstated
+  Active_T --> Deactivated : admin removes
+  Active_S --> Deactivated : admin deactivates
+  Deactivated --> Active_S : undo (history kept)
+  Deactivated --> Active_T : undo (history kept)
+
+  note right of Verified
+    5 wrong passwords → locked 15 min
+    in any state (not a separate lifecycle)
+  end note

@@ -1,0 +1,45 @@
+%% Container / component architecture (C4 level 2)
+flowchart TB
+  subgraph Client["Browser (responsive SPA / PWA)"]
+    UI["UI: dashboards, routine grid,<br/>chat, free rooms, admin console"]
+    Clock["Live status engine<br/>(computes from loaded routine,<br/>refresh every minute, BD time)"]
+  end
+
+  subgraph Server["Application server (HTTPS API)"]
+    GW["API gateway<br/>auth, sessions, rate limits,<br/>role + department scope checks"]
+    Auth["Auth module<br/>sign-up, verify, lockout,<br/>reset, admin OTP"]
+    Users["Users & profiles<br/>join requests, ID claims, roles"]
+    Rout["Routine module<br/>import, validate, edit, publish, archive"]
+    Room["Rooms & booking<br/>free-room query, 12 h rule, decisions"]
+    Cal["Calendar<br/>semesters, holidays, cancellations,<br/>special periods"]
+    Chat["Chat module<br/>DM, section groups, files, safety"]
+    Notif["Notifications & email"]
+    Audit["Audit log (append-only)"]
+    Jobs["Scheduler / workers<br/>expire requests, escalate claims,<br/>14-day unconfirmed, retention purge"]
+    RT["Realtime gateway<br/>(WebSocket)"]
+  end
+
+  subgraph Data["Data layer"]
+    DB[("Relational DB<br/>PostgreSQL")]
+    Cache[("Cache / pub-sub<br/>Redis")]
+    Files[("Object storage<br/>chat files")]
+    KMS["Key store<br/>(email/phone encryption key)"]
+  end
+
+  SMTP["SMTP provider"]
+  AV["Malware scanner"]
+
+  UI <--> GW
+  UI <--> RT
+  Clock --- UI
+  GW --> Auth & Users & Rout & Room & Cal & Chat
+  Auth & Users & Rout & Room & Cal & Chat --> Audit
+  Users & Rout & Room & Chat & Cal --> Notif
+  Chat <--> RT
+  RT <--> Cache
+  Notif --> SMTP
+  Chat --> AV
+  Chat --> Files
+  Auth & Users & Rout & Room & Cal & Chat & Audit & Jobs --> DB
+  Users -. encrypt/decrypt .-> KMS
+  Jobs --> Room & Users & Chat & Notif

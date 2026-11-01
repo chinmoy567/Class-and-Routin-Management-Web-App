@@ -1,0 +1,35 @@
+%% Sitemap / navigation by role
+flowchart LR
+  Login["Sign in / Sign up<br/>Forgot password"] --> Gate{Account state}
+  Gate -- "teacher pending" --> Wait1["Waiting for admin approval"]
+  Gate -- "student no claim / unconfirmed" --> Join["Join form / semester update"] --> Wait2["Waiting for CR/DCR"]
+  Gate -- "student active" --> SD["Student dashboard"]
+  Gate -- "teacher active" --> TD["Teacher dashboard"]
+  Gate -- "admin + OTP" --> AD["Admin dashboard"]
+
+  SD --> S1["My routine (today / week)"]
+  SD --> S2["Free rooms (view only)"]
+  SD --> S3["Chat: DMs, section group"]
+  SD --> S4["Notifications & announcements"]
+  SD --> S5["Profile"]
+  SD -- "if CR/DCR" --> CD["CR/DCR dashboard"]
+  CD --> C1["Roster & unconfirmed"]
+  CD --> C2["Join requests"]
+  CD --> C3["Room requests"]
+  CD --> C4["Announce / flag / removal request"]
+
+  TD --> T1["Teaching routine"]
+  TD --> T2["Free rooms + request"]
+  TD --> T3["Rosters & free-now list"]
+  TD --> T4["Announcements"]
+  TD --> S3
+  TD --> S5
+
+  AD --> A1["Teacher approvals"]
+  AD --> A2["CR / DCR assignment"]
+  AD --> A3["Routine import / edit / publish"]
+  AD --> A4["Room requests & classrooms"]
+  AD --> A5["Students & reports"]
+  AD --> A6["Cancel class"]
+  AD --> A7["Audit log"]
+  AD -- "super admin" --> SA["Departments, admins, semesters,<br/>holidays, special periods, email domains"]

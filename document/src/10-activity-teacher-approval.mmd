@@ -1,0 +1,30 @@
+%% Activity — teacher registration and approval (swimlanes)
+flowchart LR
+  subgraph TE["Teacher"]
+    t1([Start]) --> t2[/Sign up: university email,<br/>password, dept, short code/]
+    t2 --> t3[Verify email]
+    t3 --> t4[Sign in → 'waiting for<br/>admin approval' screen]
+    t9[Receive result email]
+    t10[Complete profile] --> t11[Teacher dashboard:<br/>My routine, rooms, roster]
+    t11 --> t12([End])
+    t13[May re-apply] --> t2
+  end
+  subgraph SY["System"]
+    s1[Create account<br/>status = pending]
+    s2[Show on approval dashboard F5]
+    s5[Log approval / rejection]
+    s6{Dept + code already<br/>linked to active account?}
+    s7[Link account to short code]
+    s8[Show 'not linked' notice]
+  end
+  subgraph AD["Department admin"]
+    a1[Review name, email,<br/>dept, short code]
+    a2{Approve?}
+  end
+  t3 --> s1 --> s2 --> a1 --> a2
+  a2 -- "Reject + reason" --> s5 --> t9
+  a2 -- Approve --> s6
+  s6 -- No --> s7 --> s5
+  s6 -- Yes --> s8 --> s5
+  t9 -- approved --> t10
+  t9 -- rejected --> t13

@@ -1,0 +1,42 @@
+%% Deployment diagram (proposed)
+flowchart TB
+  subgraph Users["Client devices"]
+    Ph["📱 Phone browser"]
+    Pc["💻 Desktop browser"]
+  end
+
+  subgraph Edge["Edge"]
+    CDN["CDN / static assets<br/>(SPA bundle)"]
+    LB["Reverse proxy / load balancer<br/>TLS termination, HTTPS only"]
+  end
+
+  subgraph App["Application tier (containers)"]
+    API1["API instance 1"]
+    API2["API instance 2"]
+    WS["WebSocket / realtime"]
+    WK["Background worker<br/>cron: expiry, escalation,<br/>reminders, retention purge"]
+  end
+
+  subgraph DataT["Data tier (private network)"]
+    PG[("PostgreSQL<br/>primary")]
+    PGR[("PostgreSQL<br/>replica / daily backup")]
+    RD[("Redis<br/>sessions, pub-sub, rate limits")]
+    S3[("Object storage<br/>chat files, private")]
+    SEC["Secrets / key vault<br/>encryption key outside DB"]
+  end
+
+  subgraph Ext["External services"]
+    SMTP["SMTP sender<br/>(system address)"]
+    AV["ClamAV / scanner"]
+  end
+
+  Ph & Pc --> CDN
+  Ph & Pc --> LB
+  LB --> API1 & API2 & WS
+  API1 & API2 & WK --> PG
+  PG -. replication .-> PGR
+  API1 & API2 & WS & WK --> RD
+  API1 & API2 --> S3
+  API1 & API2 --> AV
+  API1 & API2 & WK --> SMTP
+  API1 & API2 -. read key .-> SEC

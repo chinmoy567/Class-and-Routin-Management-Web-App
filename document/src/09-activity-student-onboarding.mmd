@@ -1,0 +1,32 @@
+%% Activity — student sign-up and UV ID claim (join request)
+flowchart TD
+  A([Start]) --> B[Open sign-up page]
+  B --> C[/Enter university email + password/]
+  C --> D{Email on allowed domain?<br/>e.g. baiust.ac.bd}
+  D -- No --> D1[Reject: use university email] --> C
+  D -- Yes --> E{Password ≥ 8 chars,<br/>letter + number?}
+  E -- No --> E1[Show password rule] --> C
+  E -- Yes --> F{Email already used?}
+  F -- Yes --> F1[Reject: account exists] --> Z1([End])
+  F -- No --> G[Send verification link]
+  G --> H{Link clicked?}
+  H -- No --> H1[Cannot sign in yet] --> H
+  H -- Yes --> I[Sign in]
+  I --> J[/Fill join form: name, UV ID, dept,<br/>level, term, section, group?/]
+  J --> K{Section has a CR?}
+  K -- No --> K1[Section not listed — closed] --> J
+  K -- Yes --> L{UV ID already used<br/>by another account?}
+  L -- Yes --> L1[Blocked, admin told] --> Z1
+  L -- No --> M{5 rejections in<br/>last 24 h?}
+  M -- Yes --> M1[Blocked from claiming 24 h] --> Z1
+  M -- No --> N[Pending join request<br/>→ CR & DCRs of section]
+  N --> O[Student sees 'waiting for approval'<br/>can edit profile only]
+  O --> P{CR/DCR acts<br/>within 3 days?}
+  P -- No --> P1[Escalate to department admin] --> Q
+  P -- Yes --> Q{Decision}
+  Q -- "Reject (reason)" --> R[Email student: rejected] --> J
+  Q -- "Accept / accept with<br/>corrected group" --> S[Account active,<br/>enrolment stamped with semester]
+  S --> T[Add to section group chat]
+  T --> U[Email student: accepted]
+  U --> V[Dashboard with routine<br/>& live status]
+  V --> Z2([End])

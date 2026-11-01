@@ -1,0 +1,33 @@
+%% Sequence — sending a chat message with a file
+sequenceDiagram
+  autonumber
+  actor A as Sender
+  participant UI as Web app
+  participant API as Chat API
+  participant AV as Malware scanner
+  participant FS as Object storage
+  participant DB as Database
+  participant RT as Realtime (WebSocket)
+  actor B as Recipient
+
+  A->>UI: Attach file (PDF, ≤ 5 MB) + text
+  UI->>API: POST /conversations/{id}/messages
+  API->>DB: Sender active? not suspended? not blocked by recipient? member of group? group not closed?
+  alt Not allowed
+    API-->>UI: 403 with reason
+  else Allowed
+    API->>API: Check type whitelist and size
+    API->>FS: Store file (private)
+    API->>AV: Scan
+    AV-->>API: Clean
+    API->>DB: Insert message (encrypted body, purge_after = semester end + 12 months)
+    API-->>UI: Sent ✓
+    API->>RT: Publish to conversation channel
+    RT-->>B: New message
+    B-->>RT: Delivered
+    RT-->>UI: Delivered ✓✓
+    B->>API: Open conversation
+    API->>DB: seen_at = now
+    RT-->>UI: Seen
+  end
+  Note over A,B: Chat is never emailed, browser notification only if allowed

@@ -1,0 +1,20 @@
+%% Activity — live class status and countdown (runs every minute in the browser)
+flowchart TD
+  A([Tick every minute]) --> B[now = current time in Asia/Dhaka]
+  B --> C{Inside current<br/>semester dates?}
+  C -- No --> N1[No classes]
+  C -- Yes --> D{University holiday?}
+  D -- Yes --> N2[No classes today]
+  D -- No --> E{Exam period?}
+  E -- Yes --> N3[Exam period]
+  E -- No --> F{Friday or Saturday?}
+  F -- Yes --> N4[No classes today<br/>countdown to next teaching day]
+  F -- No --> G[Collect today's slots:<br/>whole-section + own lab group<br/>+ approved bookings for section]
+  G --> H[Apply Ramadan time map if active, P1]
+  H --> I[Remove slots cancelled for today]
+  I --> J{A slot contains now?}
+  J -- Yes --> K[IN CLASS: course, teacher full name,<br/>room; 'ends in X min']
+  J -- No --> L{Later slot today?}
+  L -- Yes --> M[FREE: 'Next class CSE-421 with …<br/>in 1 h 10 min, Room 311']
+  L -- No --> O[FREE: countdown to first class<br/>of next teaching day]
+  K & M & O & N1 & N2 & N3 & N4 --> P([Render status card])

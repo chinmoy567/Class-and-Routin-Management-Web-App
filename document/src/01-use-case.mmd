@@ -1,0 +1,49 @@
+%% Use case diagram — actors and the features they use
+flowchart LR
+  SA(["👤 Super admin"])
+  DA(["👤 Department admin"])
+  T(["👤 Teacher"])
+  S(["👤 Student"])
+  CR(["👤 CR / DCR"])
+  SYS(["⚙️ System (scheduler)"])
+
+  subgraph APP["Class & Routine Management"]
+    direction TB
+    UC1(("Sign up & verify email"))
+    UC2(("Edit profile"))
+    UC3(("Submit join form / claim UV ID"))
+    UC4(("View My routine & week grid"))
+    UC5(("Live status & countdown"))
+    UC6(("Free-room view"))
+    UC7(("Request a free room"))
+    UC8(("One-to-one chat & files"))
+    UC9(("Section group chat"))
+    UC10(("Block / report"))
+    UC11(("Accept / reject join requests"))
+    UC12(("Flag problem / removal request"))
+    UC13(("Section announcement"))
+    UC14(("Teacher announcement"))
+    UC15(("Free-now student list"))
+    UC16(("Approve teacher registration"))
+    UC17(("Assign CR / DCR"))
+    UC18(("Import, edit & publish routine"))
+    UC19(("Decide room requests"))
+    UC20(("Manage classrooms"))
+    UC21(("Cancel single class"))
+    UC22(("Suspend chat / deactivate user"))
+    UC23(("Read audit log"))
+    UC24(("Manage departments & admins"))
+    UC25(("Create semester & rollover"))
+    UC26(("Holidays & special periods"))
+    UC27(("Set allowed email domains"))
+    UC28(("Auto-expire requests, escalate claims, retention"))
+  end
+
+  S --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC8 & UC9 & UC10
+  CR -. "inherits student" .-> S
+  CR --- UC7 & UC11 & UC12 & UC13
+  T --- UC1 & UC2 & UC4 & UC5 & UC6 & UC7 & UC8 & UC10 & UC14 & UC15
+  DA --- UC16 & UC17 & UC18 & UC19 & UC20 & UC21 & UC22 & UC23 & UC11
+  SA -. "can act as any dept admin" .-> DA
+  SA --- UC24 & UC25 & UC26 & UC27 & UC23
+  SYS --- UC28

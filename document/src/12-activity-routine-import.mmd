@@ -1,0 +1,26 @@
+%% Activity — routine import, validation and publishing
+flowchart TD
+  A([New semester]) --> B[Teacher hands dept Excel sheet<br/>to department admin]
+  B --> C[Admin copies it into the clean template:<br/>Classes, Teachers, Rooms sheets]
+  C --> D[Upload template to semester]
+  D --> E[Parse rows]
+  E --> F{Errors?<br/>unknown teacher or room, missing field,<br/>bad day or time, end before start,<br/>day outside Sun to Thu}
+  F -- Yes --> G[Show error list, publish blocked]
+  G --> C
+  F -- No --> H{Warnings?<br/>teacher, room or section overlap, TBA,<br/>duplicate course+group per day,<br/>before 8:30 or after 17:30}
+  H -- Yes --> I[Admin reviews:<br/>confirm combined class or accept]
+  I --> J{All accepted?}
+  J -- No --> C
+  J -- Yes --> K
+  H -- No --> K[Preview routine per section]
+  K --> L{Re-import for same semester?}
+  L -- Yes --> M[Show diff incl. hand-edited slots,<br/>admin chooses what to keep]
+  M --> N
+  L -- No --> N{Clashes with approved<br/>room bookings?}
+  N -- Yes --> O[Warn admin naming requester:<br/>keep class or cancel booking]
+  O --> P
+  N -- No --> P[Confirm publish]
+  P --> Q[Publish: routine visible to<br/>students and teachers]
+  Q --> R[Archive previous routine]
+  R --> S[Notify affected users; audit log]
+  S --> T([End])

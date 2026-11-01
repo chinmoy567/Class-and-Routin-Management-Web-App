@@ -1,0 +1,29 @@
+%% Activity — room request and booking
+flowchart TD
+  A([CR, DCR or teacher]) --> B[Open free-room view<br/>pick date and slot]
+  B --> C[/Choose room, target section or group,<br/>write note, up to 3 h/]
+  C --> D{Room free?<br/>no routine class, no approved booking,<br/>not holiday-blocked}
+  D -- No --> X[Blocked: room booked]
+  D -- Yes --> E{At least 12 h before slot?}
+  E -- No --> X2[Blocked: too late]
+  E -- Yes --> F{This week or next week?}
+  F -- No --> X3[Blocked: outside window]
+  F -- Yes --> G{Fewer than 3 open requests<br/>for same date and time?}
+  G -- No --> X4[Blocked: limit reached]
+  G -- Yes --> H{Target is own section<br/>or taught section?}
+  H -- No --> X5[Blocked: invalid target]
+  H -- Yes --> I[Pending request]
+  I --> J{Admin of any owning dept<br/>decides before slot minus 2 h?}
+  J -- "no decision by cutoff" --> K[Auto-rejected: expired]
+  J -- Reject --> L[Rejected, requester told]
+  J -- Approve --> M[Booked — shown as Booked to everyone]
+  M --> N[Other requests for room and slot rejected<br/>'room went to another section']
+  M --> O[Requester's overlapping requests cancelled]
+  M --> P[Added to target section's routine<br/>and live status; notify students]
+  P --> Q{Cancelled later?}
+  Q -- "Yes, by requester or admin" --> R[Room free again;<br/>log if less than 6 h before]
+  Q -- No --> S{Room used?}
+  S -- No --> T[Admin adds no-show note]
+  S -- Yes --> U([Done])
+  T --> U
+  R --> U

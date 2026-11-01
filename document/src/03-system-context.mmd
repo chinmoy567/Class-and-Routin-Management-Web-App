@@ -1,0 +1,21 @@
+%% System context (C4 level 1)
+flowchart TB
+  stu["👤 Students / CR / DCR<br/>phone-first browser"]
+  tea["👤 Teachers"]
+  adm["👤 Department & super admins"]
+
+  sys["🖥️ Class & Routine Management<br/>Web platform: profiles, routines, live status,<br/>free rooms & booking, chat, approvals, audit"]
+
+  mail["✉️ Email service (SMTP)<br/>verification, resets, results,<br/>reminders, announcements, admin OTP"]
+  av["🛡️ Malware scanner<br/>uploaded files"]
+  push["🔔 Browser push notifications"]
+  xl["📄 Routine import template (.xlsx)<br/>prepared by dept admin each semester"]
+
+  stu -- HTTPS --> sys
+  tea -- HTTPS --> sys
+  adm -- "HTTPS + email OTP" --> sys
+  xl -- upload --> sys
+  sys -- sends --> mail
+  sys -- scans --> av
+  sys -- notifies --> push
+  mail -. inbox .-> stu & tea & adm

@@ -1,0 +1,16 @@
+%% Data flow diagram — Level 0 (context)
+flowchart LR
+  S["Student / CR / DCR"]
+  T["Teacher"]
+  A["Admin"]
+  E["Email service"]
+
+  P(("0<br/>Class & Routine<br/>Management System"))
+
+  S -- "sign-up, join form, room request,<br/>messages, files, flags" --> P
+  P -- "routine, live status, free rooms,<br/>request results, messages" --> S
+  T -- "sign-up, room request,<br/>announcements, messages" --> P
+  P -- "teaching routine, roster,<br/>free-now list, results" --> T
+  A -- "approvals, routine template,<br/>room decisions, calendar, roles" --> P
+  P -- "dashboards, import report,<br/>audit log, pending items" --> A
+  P -- "verification, reset, results,<br/>reminders, OTP" --> E

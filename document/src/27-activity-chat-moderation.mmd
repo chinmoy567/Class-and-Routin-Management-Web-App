@@ -1,0 +1,18 @@
+%% Activity — block, report and chat suspension
+flowchart TD
+  A([User sees an unwanted message]) --> B{Action}
+  B -- Block --> C{Target is an admin?}
+  C -- Yes --> C1[Not allowed: admins cannot be blocked]
+  C -- No --> C2[Blocked user can no longer message them<br/>announcements and notices still arrive]
+  B -- Report --> D[/Reason for report/]
+  D --> E{Reported person is an admin?}
+  E -- Yes --> F[Goes to super admin]
+  E -- No --> G[Goes to dept admin of reported person]
+  F & G --> H[Admin opens report:<br/>reported message + a few around it only]
+  H --> I[View written to audit log]
+  I --> J{Decision}
+  J -- No action --> K[Report closed]
+  J -- Suspend chat --> L[/Set duration and reason/]
+  L --> M[User cannot send messages until end time;<br/>rest of the app works; user told; audited]
+  J -- Deactivate account --> N[Confirm, account deactivated,<br/>history kept, audited]
+  O([Section group]) --> P[CR/DCR may delete any message<br/>or remove a member — cannot delete accounts]

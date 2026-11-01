@@ -1,0 +1,26 @@
+%% Activity — CR / DCR assignment by the department admin
+flowchart TD
+  A([Dept admin opens section<br/>e.g. CSE 3-II-A, Fall 2026]) --> B{Rollover just happened?}
+  B -- Yes --> C[See last semester's CR and DCRs]
+  C --> D{Re-appoint with one action?}
+  D -- Yes --> J
+  D -- No --> E
+  B -- No --> E[Search a student who has<br/>signed up and verified email]
+  E --> F[/Choose role: CR or DCR/]
+  F --> G{Role = CR and section<br/>already has a CR?}
+  G -- Yes --> G1[Blocked: one CR per section] --> F
+  G -- No --> H{Role = DCR and section<br/>already has 2 DCRs?}
+  H -- Yes --> H1[Blocked: max two DCRs] --> F
+  H -- No --> I[Confirm]
+  I --> J[Save role for section + semester<br/>audit log: who, when]
+  J --> K{First CR of section<br/>this semester?}
+  K -- Yes --> L[Section opens for join requests<br/>section group chat created]
+  K -- No --> M[Add as group owner]
+  L --> M
+  M --> N[Student sees role on profile<br/>and gets CR/DCR dashboard]
+  N --> O([End])
+  P([Admin removes role]) --> Q[Dashboard disappears at once<br/>open items go to admin; logged]
+  Q --> R{Removed the CR?}
+  R -- Yes --> S[Section closed to new join requests<br/>until a CR is named]
+  R -- No --> O
+  S --> O

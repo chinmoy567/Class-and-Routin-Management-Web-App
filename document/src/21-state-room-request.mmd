@@ -1,0 +1,18 @@
+%% State — room request
+stateDiagram-v2
+  [*] --> Pending : checks pass
+  Pending --> Approved : admin of an owning dept approves
+  Pending --> Rejected : admin rejects
+  Pending --> Rejected : another request for room+slot approved
+  Pending --> Cancelled : requester cancels
+  Pending --> Cancelled : own overlapping request approved
+  Pending --> Expired : undecided at slot − 2 h
+  Approved --> Cancelled : requester or admin cancels\n(< 6 h before → logged)
+  Approved --> Cancelled : admin keeps clashing routine class
+  Approved --> Used : slot passes
+  Used --> NoShowNoted : admin adds no-show note
+  Rejected --> [*]
+  Expired --> [*]
+  Cancelled --> [*]
+  Used --> [*]
+  NoShowNoted --> [*]

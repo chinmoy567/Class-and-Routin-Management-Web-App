@@ -1,0 +1,13 @@
+%% How a student's routine is resolved (level → term → section → group)
+flowchart TD
+  E["Accepted enrolment (current semester)<br/>dept CSE · level 2 · term II · section A · group G2"]
+  E --> Q["Query published routine slots<br/>WHERE section = CSE 2-II-A"]
+  Q --> W{"slot.group"}
+  W -- "empty (theory, whole section)" --> K["Keep"]
+  W -- "= G2" --> K
+  W -- "G1 / G3" --> D["Drop — other group's lab"]
+  K --> B["+ approved dated bookings targeting<br/>CSE 2-II-A or G2"]
+  B --> C["− classes cancelled on that date<br/>− holidays / exam period"]
+  C --> T["Resolve teacher codes → full names<br/>(dept + short code; TBA → 'Teacher to be announced')"]
+  T --> G["Render: week grid (Sun–Thu, 8:30–17:30)<br/>day list on phone, live status above"]
+  E -. "no group yet" .-> N["Theory classes only + notice:<br/>CR/DCR must set a group"]

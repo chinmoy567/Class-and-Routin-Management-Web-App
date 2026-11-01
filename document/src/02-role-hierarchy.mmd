@@ -1,0 +1,26 @@
+%% Role hierarchy and scope of authority
+flowchart TD
+  SA["Super admin<br/>(≥ 2 accounts, university-wide)"]
+  DA["Department admin<br/>(one department, ≥ 1 per dept)"]
+  T["Teacher<br/>(dept + short code, needs approval)"]
+  S["Student<br/>(active after join request accepted)"]
+  CR["CR — 1 per section per semester"]
+  DCR["DCR — up to 2 per section per semester"]
+
+  SA -- "creates / removes" --> SA
+  SA -- "creates / removes / resets" --> DA
+  DA -- "approves / suspends" --> T
+  DA -- "assigns / removes role" --> CR
+  DA -- "assigns / removes role" --> DCR
+  CR -- "is a" --> S
+  DCR -- "is a" --> S
+  CR -- "accepts join requests of section" --> S
+  DCR -- "accepts join requests of section" --> S
+  DA -- "deactivates, resets password,<br/>handles escalated claims" --> S
+
+  classDef admin fill:#fde2e2,stroke:#c0392b,color:#000
+  classDef staff fill:#e3f2fd,stroke:#1565c0,color:#000
+  classDef stu fill:#e8f5e9,stroke:#2e7d32,color:#000
+  class SA,DA admin
+  class T staff
+  class S,CR,DCR stu

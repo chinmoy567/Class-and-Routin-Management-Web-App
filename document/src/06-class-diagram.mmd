@@ -1,0 +1,138 @@
+%% Domain class diagram (service-level view)
+classDiagram
+  direction LR
+  class User {
+    +UUID id
+    +UserType type
+    +AccountStatus status
+    +String fullName
+    +signIn(email, password)
+    +resetPassword()
+    +editProfile()
+  }
+  class Student {
+    +String uvId
+    +submitJoinForm(section, group)
+    +viewMyRoutine()
+    +liveStatus() Status
+  }
+  class Teacher {
+    +TeacherCode code
+    +viewTeachingRoutine()
+    +requestRoom(room, slot, target)
+    +announce(section)
+    +freeNowList(filters)
+  }
+  class SectionLeader {
+    <<CR or DCR role>>
+    +Section section
+    +acceptJoin(req, group)
+    +rejectJoin(req, reason)
+    +requestRoom(room, slot)
+    +flag(kind, text)
+    +sendReminder(student)
+  }
+  class DepartmentAdmin {
+    +Department dept
+    +approveTeacher(t)
+    +assignRole(student, role)
+    +importRoutine(file) ImportPreview
+    +publishRoutine()
+    +editSlot(slot)
+    +decideRoomRequest(req, approve)
+    +cancelClass(slot, date)
+    +suspendChat(user, until)
+  }
+  class SuperAdmin {
+    +createDepartment()
+    +createAdmin(user, scope)
+    +createSemester()
+    +runRollover()
+    +setHoliday(date)
+    +setSpecialPeriod(kind, range)
+    +setEmailDomains(list)
+  }
+  User <|-- Student
+  User <|-- Teacher
+  User <|-- DepartmentAdmin
+  DepartmentAdmin <|-- SuperAdmin
+  Student <|-- SectionLeader
+
+  class Section {
+    +Department dept
+    +int level
+    +Term term
+    +String letter
+    +Semester semester
+    +isOpen() bool
+  }
+  class SessionalGroup {
+    +String code
+  }
+  class Semester {
+    +String name
+    +Date start
+    +Date end
+    +bool isCurrent
+  }
+  class RoutineSlot {
+    +Day day
+    +Time start
+    +Time end
+    +Course course
+    +Room room
+    +TeacherCode[] teachers
+    +SessionalGroup group
+  }
+  class RoomRequest {
+    +Room room
+    +Date date
+    +Time start
+    +Time end
+    +String note
+    +RequestStatus status
+    +check12h() bool
+    +checkWindow() bool
+  }
+  class JoinRequest {
+    +String uvId
+    +Section section
+    +SessionalGroup group
+    +JoinStatus status
+  }
+  class Conversation {
+    +Kind kind
+    +bool closed
+  }
+  class Message {
+    +String body
+    +DateTime sentAt
+    +Delivery status
+    +delete()
+  }
+  class Room {
+    +String number
+    +RoomType type
+    +Department[] owners
+    +isFree(date, slot) bool
+  }
+  class LiveStatusService {
+    +statusFor(student, now) Status
+    +countdown(student, now) Duration
+  }
+  class AuditLog {
+    +append(actor, action, old, new)
+  }
+
+  Semester "1" --> "*" Section
+  Section "1" --> "*" SessionalGroup
+  Section "1" --> "*" RoutineSlot
+  Section "1" --> "0..1" Conversation : group chat
+  RoutineSlot "*" --> "1" Room
+  Room "1" --> "*" RoomRequest
+  Student "1" --> "*" JoinRequest
+  JoinRequest "*" --> "1" Section
+  Conversation "1" --> "*" Message
+  LiveStatusService ..> RoutineSlot
+  LiveStatusService ..> RoomRequest : approved bookings
+  DepartmentAdmin ..> AuditLog

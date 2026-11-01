@@ -1,0 +1,26 @@
+%% State — semester, section and section group chat
+stateDiagram-v2
+  state Semester {
+    [*] --> Draft : super admin creates
+    Draft --> Current : made current (rollover)
+    Current --> Archived : next semester made current
+    Archived --> [*]
+  }
+  state Section {
+    [*] --> Closed : created for semester
+    Closed --> Open : dept admin names CR
+    Open --> Closed : CR removed
+    Open --> Ended : rollover
+  }
+  state GroupChat {
+    [*] --> Active : CR named
+    Active --> ReadOnly : rollover
+    ReadOnly --> Purged : 12 months after semester end
+  }
+  state Routine {
+    [*] --> Preview : template uploaded
+    Preview --> Preview : fix and re-upload
+    Preview --> Published : zero errors, admin confirms
+    Published --> Published : edit slot / re-import
+    Published --> ArchivedR : rollover
+  }

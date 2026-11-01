@@ -1,0 +1,22 @@
+%% Activity — semester rollover
+flowchart TD
+  A([Super admin]) --> B[Create semester e.g. Fall 2026<br/>set start and end dates]
+  B --> C[Make semester current — confirm]
+  C --> D[All CR and DCR roles end]
+  C --> E[All students marked unconfirmed]
+  C --> F[Old section groups closed, read-only]
+  C --> G[Old routines archived]
+  D --> H[Each dept admin: for every section<br/>re-appoint last CR/DCR or pick new]
+  H --> I[Section opens for join requests;<br/>new section group created]
+  H --> J[Dept admin imports and publishes new routine]
+  E --> K[Student logs in → semester update screen<br/>pre-filled with suggested next term]
+  K --> L[/Student confirms or edits level, term,<br/>section, group — repeaters keep term/]
+  L --> M{Section open?}
+  M -- No --> N[Wait until CR named] --> M
+  M -- Yes --> O[Join request → CR/DCR]
+  O --> P{Accepted?}
+  P -- No --> L
+  P -- Yes --> Q[Profile stamped 'Fall 2026 confirmed';<br/>joins new group]
+  E --> R{Unconfirmed after 14 days?}
+  R -- Yes --> S[Listed for admin follow-up<br/>no lockout change]
+  Q --> T([Normal use resumes])

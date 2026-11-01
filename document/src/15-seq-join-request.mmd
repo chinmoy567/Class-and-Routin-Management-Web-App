@@ -1,0 +1,36 @@
+%% Sequence — student join request accepted by CR
+sequenceDiagram
+  autonumber
+  actor St as Student
+  participant UI as Web app
+  participant API as API server
+  participant DB as Database
+  actor CR as CR / DCR
+  participant Mail as Email service
+
+  St->>UI: Fill join form (UV ID, section, group)
+  UI->>API: POST /join-requests
+  API->>DB: Section has CR? UV ID unused? rejections < 5 / 24 h?
+  DB-->>API: OK
+  API->>DB: Insert join_request (pending)
+  API->>DB: Audit log: claim submitted
+  API-->>UI: 201 pending
+  UI-->>St: "Waiting for approval"
+  API-)CR: Dashboard notification (pending request)
+  CR->>UI: Open request (name, email, photo, UV ID, group)
+  UI->>API: POST /join-requests/{id}/accept {group: G2}
+  API->>DB: Lock row, status still pending?
+  alt Already decided by another CR/DCR
+    API-->>UI: 409 "Already handled"
+  else First action wins
+    API->>DB: status = accepted, create enrolment (semester stamp)
+    API->>DB: Add student to section group conversation
+    API->>DB: Audit log: accepted by CR
+    API-)Mail: "Join request accepted"
+    Mail--)St: Email
+    API-->>UI: 200
+  end
+  St->>UI: Reload dashboard
+  UI->>API: GET /me/routine
+  API-->>UI: Section + G2 slots
+  UI-->>St: My routine + live status

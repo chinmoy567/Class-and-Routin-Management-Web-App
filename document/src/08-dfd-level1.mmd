@@ -1,0 +1,50 @@
+%% Data flow diagram — Level 1
+flowchart LR
+  S["Student / CR / DCR"]
+  T["Teacher"]
+  A["Admin"]
+  E["Email service"]
+
+  P1(("1.0<br/>Authenticate &<br/>manage accounts"))
+  P2(("2.0<br/>Onboard & enrol<br/>(join requests)"))
+  P3(("3.0<br/>Manage routine<br/>(import/edit/publish)"))
+  P4(("4.0<br/>Compute live status<br/>& countdown"))
+  P5(("5.0<br/>Free rooms &<br/>room requests"))
+  P6(("6.0<br/>Chat & files"))
+  P7(("7.0<br/>Notify & announce"))
+  P8(("8.0<br/>Calendar &<br/>semesters"))
+
+  D1[("D1 Users & roles")]
+  D2[("D2 Sections & enrolments")]
+  D3[("D3 Routine slots")]
+  D4[("D4 Rooms & requests")]
+  D5[("D5 Messages & files")]
+  D6[("D6 Calendar")]
+  D7[("D7 Audit log")]
+
+  S & T -- credentials --> P1
+  A -- "approve teacher, reset" --> P1
+  P1 <--> D1
+  S -- "join form" --> P2
+  S -- "accept/reject (CR/DCR)" --> P2
+  P2 <--> D2
+  P2 --> D1
+  A -- "assign CR/DCR" --> P2
+  A -- "template .xlsx, edits" --> P3
+  P3 <--> D3
+  P3 -- "import issues" --> A
+  D2 & D3 & D6 --> P4
+  D4 -- "approved bookings" --> P4
+  P4 -- "In class / Free" --> S & T
+  S & T -- "room request" --> P5
+  A -- decision --> P5
+  D3 & D6 --> P5
+  P5 <--> D4
+  S & T -- messages --> P6
+  P6 <--> D5
+  A -- "calendar, rollover" --> P8
+  P8 <--> D6
+  P8 --> D2
+  P2 & P3 & P5 & P8 --> P7
+  P7 --> E
+  P1 & P2 & P3 & P5 & P6 & P8 --> D7

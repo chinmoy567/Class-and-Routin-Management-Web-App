@@ -1,0 +1,41 @@
+%% Sequence — sign-in (users) and admin second step
+sequenceDiagram
+  autonumber
+  actor U as User / Admin
+  participant UI as Web app
+  participant API as Auth API
+  participant DB as Database
+  participant Mail as Email service
+
+  U->>UI: Email or user ID + password
+  UI->>API: POST /auth/login
+  API->>DB: Find by email_hash or admin user ID
+  alt Locked (5 failed tries)
+    API-->>UI: 423 Locked for 15 min
+  else
+    API->>API: Verify argon2/bcrypt hash
+    alt Wrong password
+      API->>DB: failed_logins += 1 (lock at 5)
+      API-->>UI: 401
+    else Correct
+      API->>DB: Reset failed_logins
+      alt Email not verified
+        API-->>UI: 403 Verify email first
+      else Admin account
+        API->>DB: Store one-time code (short expiry)
+        API-)Mail: Send OTP to admin email
+        API-->>UI: 202 Enter code
+        U->>UI: Enter OTP
+        UI->>API: POST /auth/otp
+        API->>DB: Validate code
+        API-->>UI: Session cookie (HttpOnly, Secure)
+      else Teacher pending
+        API-->>UI: Session → "Waiting for admin approval"
+      else Student without accepted join request
+        API-->>UI: Session → join form or waiting screen
+      else Active user
+        API-->>UI: Session → dashboard
+      end
+    end
+  end
+  Note over API,DB: Sessions expire on inactivity and on password change
