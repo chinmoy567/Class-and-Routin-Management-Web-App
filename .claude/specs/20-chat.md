@@ -17,6 +17,7 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 ### Who can chat
 - **CHT-01** A one-to-one message can be sent when **both** sides are allowed: `active`, `unconfirmed` or `graduated` students and `active` teachers (and staff admins who are `active`) can message each other. A `claim_pending` student can message only the CR and DCRs of the section their open join request is for, and only while it is open. `email_unverified`, pending teachers, `deactivated` and `suspended` accounts can't open chat (`403 STATE_NOT_ALLOWED`). A suspended-from-chat user can read but not send (spec 22).
 - **CHT-02** These rules are checked on every send, not only when a conversation is opened.
+- **CHT-02a** All chat checks go through the central `can(user, action, resource)` with the actions `chat.search`, `chat.open_direct`, `chat.send`, `chat.read`, `chat.delete_own`, `chat.moderate_group` and `chat.restore_member`, so search, open and send share one function. Error codes: `STATE_NOT_ALLOWED` when the caller's own account state can't use chat; `CHAT_NOT_ALLOWED` when the caller can chat but not with this person or conversation (the other side's state, or a `claim_pending` student messaging anyone but the section's CR/DCR).
 
 ### Finding people
 - **CHT-03** Search by name (at least 2 characters, case-insensitive prefix on any word, at most 20 results) shows name, photo, department and role labels (student, teacher, CR, DCR). Never level, term, section, group, phone or email. Results include only people the caller is allowed to message.
@@ -31,6 +32,8 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 - **CHT-08** A group is created automatically when the first CR of a section in the current semester takes effect (spec 09 hook, and spec 14 at rollover). It is named "CSE 2-II-A · Fall 2026".
 - **CHT-09** Members: the section's CR and DCRs (as owners) and its accepted students, added automatically on acceptance (spec 10 hook). Teachers are never members. Only members can read or send.
 - **CHT-10** Owners can delete any message in the group and remove a member. A removed member can't read or send, and is listed for the admin (spec 18 ADM-04). They can appeal, and the admin can restore them. Owners can't delete accounts.
+- **CHT-10a** A removed member can file one appeal per removal (`POST /api/chat/conversations/:id/appeal`, text up to 500 characters). It appears in the admin's appeals list (spec 18 ADM-04). A second appeal for the same removal returns `CONFLICT`. Restoring the member (admin) clears `removed_at`, writes an audit entry and notifies them.
+- **CHT-10b** Owners and the admin of the section's department can list a group's members (name, photo, role label, removed or not; never email or phone). Ordinary members see current members' names only.
 - **CHT-11** When a CR/DCR role ends, they stop being an owner. If they remain an accepted student of the section, they stay a member.
 - **CHT-12** At rollover the group is **closed**: nobody can send, and history stays readable to its members. A new group is created when the new semester's CR takes effect. A student who moves to another section joins that section's group when accepted. An `unconfirmed` student keeps read-only access to their old group.
 - **CHT-13** Group messages have timestamps but no per-member delivered/seen status. Only one-to-one messages show it.
@@ -44,6 +47,11 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 ### Storage
 - **CHT-18** Message text is encrypted at rest with `DATA_ENC_KEY` (spec 00 FND-14). It is not end-to-end encrypted.
 - **CHT-19** No admin endpoint returns private messages. The only exception is the reported-message view (spec 22).
+
+### Socket rooms
+- **CHT-20** A socket may join `conversation:<id>` only if the user is a current member of that conversation, checked on the server with the same `can()` call as reading. The server joins and leaves rooms itself; a client request to join any other room is ignored. When a member is removed or a conversation closes, their sockets leave the room at once. `user:<id>` is joined only for the socket's own user (spec 00 FND-25).
+- **CHT-21** Chat events carry ids only (spec 00 FND-26) and are sent with `emitAfterCommit`.
+- **CHT-22** Audit entries: `chat.member_removed`, `chat.member_restored`, `chat.message_deleted_by_owner`. Message text is never written to the audit log or to logs.
 
 ## Permissions
 
@@ -74,7 +82,10 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 | `POST /api/chat/conversations/:id/read` | members | none | 204 | none |
 | `POST /api/chat/messages/:id/delivered` | recipient | none | 204 | none |
 | `DELETE /api/chat/conversations/:id/members/:userId` | group owner | none | 204 | `FORBIDDEN` |
-| `POST /api/admin/chat/members/:memberId/restore` | admin of dept | none | 200 | none |
+| `GET /api/chat/conversations/:id/members` | owners, admin of dept; members (current names only) | none | member list | `NOT_FOUND` |
+| `POST /api/chat/conversations/:id/appeal` | removed member | text | 201 | `CONFLICT`, `NOT_FOUND` |
+| `GET /api/chat/unread` | chat-enabled | none | `{ total, per_conversation }` | `STATE_NOT_ALLOWED` |
+| `POST /api/admin/chat/members/:memberId/restore` | admin of dept | none | 200 | `NOT_FOUND`, `ALREADY_DECIDED` |
 
 Sending is rate limited to 30 messages per minute per user.
 
@@ -97,6 +108,11 @@ Chat list (unread badges), Conversation view (messages, status ticks, delete), P
 - CHT-12: after rollover, sending to the old group → `GROUP_CLOSED`, and reading still works.
 - CHT-07: a deleted message returns "message deleted" with no body to both sides.
 - CHT-19: no admin endpoint returns message bodies (route scan test).
+- CHT-20: a socket asking to join a conversation it isn't a member of receives no events; a removed member stops receiving events at once; a teacher can't join a section group room.
+- CHT-10: an owner of section A can't remove a member or delete a message in section B's group (`404`). A EEE admin can't restore a CSE member.
+- CHT-10a: an appeal is filed once; a second one → `CONFLICT`; a restore re-opens read and send.
+- Sending 31 messages in one minute → `RATE_LIMITED`. Two simultaneous 'start chat' calls for the same pair return one conversation (partial unique index).
+- Every role (student, `claim_pending` student, CR, teacher, department admin, super admin) tries to read another pair's conversation → `404`.
 
 ## Decisions and open questions
 
@@ -106,11 +122,15 @@ Chat list (unread badges), Conversation view (messages, status ticks, delete), P
 ## Tasks
 
 - [ ] Models + indexes
-- [ ] Chat permission function (CHT-01) shared by search, open and send
+- [ ] Chat actions in `can()` (CHT-01, CHT-02a), shared by search, open, send and read
 - [ ] People search
 - [ ] Direct conversations + messages + delete + status
 - [ ] Section group hooks (create, add, owner changes, close)
-- [ ] Member removal + admin restore
-- [ ] Socket rooms and events, unread counts
-- [ ] Chat screens + browser notifications
+- [ ] Member removal, member list, appeal, admin restore (CHT-10, 10a, 10b)
+- [ ] Socket room join/leave rules (CHT-20), events, unread endpoint
+- [ ] Client: chat list with unread badges, dashboard unread card
+- [ ] Client: conversation view (messages, status ticks, delete, older-message paging, closed-group banner)
+- [ ] Client: person search and 'start chat' entry points (profile, roster, CR/DCR card)
+- [ ] Client: group view (members list, remove member, appeal screen) and browser notification permission flow
+- [ ] Translation keys, screen-reader labels for message status, 360 px layout check
 - [ ] Tests incl. PRD criteria

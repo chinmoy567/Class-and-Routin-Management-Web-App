@@ -63,6 +63,10 @@ A department admin uploads the filled routine template for a semester, sees ever
 - **IMP-30** Every slot has `owner_department_id` = the importer's department. A section's routine is the union of all departments' published slots for it.
 - **IMP-31** The section's batch department doesn't have to be D: a CSE sheet can contain `LAW 1-II` rows. Those slots belong to CSE.
 
+### Finding imports
+- **IMP-32** An admin of D can list D's imports for a semester (newest first: status, uploader, time, counts of errors and warnings) and open the current `checked` import, so the import page survives a reload and an admin can return to an unfinished import. A super admin can pass any `department_id`. Another department's imports are never listed.
+- **IMP-33** The import state (`checked`, `failed`, `published`, `replaced`) follows `12-activity-routine-import`. `published` and `replaced` imports are read-only: confirm, keep-choices and publish on them return `ALREADY_DECIDED`.
+
 ## Permissions
 
 | Action | Admin of D | Super admin | Others |
@@ -75,8 +79,8 @@ A department admin uploads the filled routine template for a semester, sees ever
 - `section`: semester_id, department_id, level, term, letter, created_by_import_of? (department_id), closed_at?. Unique `{ semester_id, department_id, level, term, letter }`.
 - `section_group`: section_id, label. Unique `{ section_id, label }`.
 - `routine_import`: semester_id, department_id, file_id, status (`checked` | `failed` | `published` | `replaced`), rows[] (normalised row + sheet row number), teachers[], issues[] ({ row, severity, code, message, related_rows[], confirmed? }), diff?, keep_choices{}, uploaded_by, uploaded_at, published_by?, published_at?. Partial unique `{ semester_id, department_id }` where `status: 'checked'`.
-- `routine_slot`: semester_id, owner_department_id, section_id, group_id?, day_of_week (0 = Sunday … 4 = Thursday), start_min, end_min, course_code, course_name?, room_id, source (`import` | `manual`), edited_by_hand (bool), combined_key?, published (bool), import_id?. Indexes: `{ semester_id, section_id, published }`, `{ semester_id, room_id, day_of_week }`, `{ semester_id, owner_department_id }`.
-- `routine_slot_teacher`: slot_id, teacher_id. Unique `{ slot_id, teacher_id }`, index `{ teacher_id }`. A `TBA` slot has no teacher rows and `tba: true` on the slot.
+- `routine_slot`: semester_id, owner_department_id, section_id, group_id?, day_of_week (0 = Sunday … 4 = Thursday), start_min, end_min, course_code, course_name?, room_id, source (`import` | `manual`), tba (bool), edited_by_hand (bool, set by spec 08 EDT-06), combined_key?, published (bool), import_id?. Indexes: `{ semester_id, section_id, published }`, `{ semester_id, room_id, day_of_week }`, `{ semester_id, owner_department_id }`.
+- `routine_slot_teacher`: slot_id, teacher_id. Unique `{ slot_id, teacher_id }`, index `{ teacher_id }`. A `TBA` slot has no teacher rows and `tba: true` on the slot (the field is on `routine_slot`).
 
 ## API
 
@@ -84,9 +88,10 @@ A department admin uploads the filled routine template for a semester, sees ever
 |---|---|---|---|---|
 | `GET /api/admin/imports/template?department_id=` | admin | none | `.xlsx` | none |
 | `POST /api/semesters/:id/imports` | admin of dept | multipart file, department_id | 201 import summary | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `FILE_INFECTED`, `SEMESTER_ARCHIVED` |
+| `GET /api/semesters/:id/imports?department_id=` | admin of dept | none | list of imports, newest first, with the open `checked` import id | `NOT_FOUND` |
 | `GET /api/imports/:id/preview` | admin of dept | none | rows by section, issues, diff | `NOT_FOUND` |
-| `POST /api/imports/:id/issues/:issueId/confirm` | admin of dept | none | 200 (combined class) | `VALIDATION_ERROR` |
-| `PUT /api/imports/:id/keep-choices` | admin of dept | `{ slotId: 'keep' | 'replace' }` | 200 | none |
+| `POST /api/imports/:id/issues/:issueId/confirm` | admin of dept | none | 200 (combined class) | `VALIDATION_ERROR`, `ALREADY_DECIDED`, `NOT_FOUND` |
+| `PUT /api/imports/:id/keep-choices` | admin of dept | `{ slotId: 'keep' | 'replace' }` | 200 | `ALREADY_DECIDED`, `NOT_FOUND` |
 | `POST /api/imports/:id/publish` | admin of dept | warnings_reviewed: true | 200 counts | `IMPORT_HAS_ERRORS`, `ALREADY_DECIDED` (already published), `SEMESTER_ARCHIVED` |
 
 ## Jobs and events
@@ -95,7 +100,7 @@ A department admin uploads the filled routine template for a semester, sees ever
 
 ## Screens
 
-Routine import page: semester picker, template download, upload, issue list (filter errors and warnings, confirm combined classes), preview grid per section, diff view with keep/replace, publish with confirmation dialog.
+Routine import page (opens the department's open import if there is one, IMP-32): semester picker, template download, upload, issue list (filter errors and warnings, confirm combined classes), preview grid per section, diff view with keep/replace, publish with confirmation dialog.
 
 ## Acceptance tests
 
@@ -110,7 +115,10 @@ Routine import page: semester picker, template download, upload, issue list (fil
 - IMP-26: a CSE file with `LAW 1-II-A` rows creates section LAW 1-II-A if missing.
 - IMP-28: publishing in the current semester sends exactly one email to each affected student, however many of their slots changed.
 - A concurrent second publish of the same import → `ALREADY_DECIDED`.
-- An EEE admin opening a CSE import → `404`.
+- An EEE admin opening or listing a CSE import → `404`. A student, teacher or CR calling any import endpoint → `403`.
+- IMP-32: after an upload and a page reload, the list returns the open import. A second upload replaces it (the old one becomes `replaced`).
+- IMP-33: confirm, keep-choices or publish on a `published` import → `ALREADY_DECIDED`.
+- IMP-02: an infected file (ClamAV test signature) → `FILE_INFECTED` and no `routine_import` is created.
 
 ## Decisions and open questions
 
@@ -129,5 +137,10 @@ Routine import page: semester picker, template download, upload, issue list (fil
 - [ ] Combined-class confirmation
 - [ ] Diff builder + keep/replace choices
 - [ ] Publish transaction (sections, groups, teachers, slots), events, cache clear, batched emails, audit
-- [ ] Import page (upload, issues, preview grid, diff, publish)
+- [ ] Import list and open-import endpoint (IMP-32, IMP-33)
+- [ ] Client: upload form, template download, semester picker, resume of the open import
+- [ ] Client: issue list with error/warning filters and combined-class confirm
+- [ ] Client: preview grid per section (phone: day list; desktop: week grid)
+- [ ] Client: diff view with keep/replace, publish dialog with the warnings-reviewed checkbox
+- [ ] Translation keys for every issue code and message (`client/src/i18n/en.json`)
 - [ ] Tests, including a fixture built from the real CSE Spring 2026 sheet copied into the template
