@@ -1,6 +1,6 @@
 # 04: Semesters
 
-R1 · Status: Draft · Depends on: 03 · PRD: Glossary (Semester), Semesters and student updates (Semester states), Admin dashboard and controls (Semesters) · Diagrams: 22-state-semester-section
+R1 · Status: Done · Depends on: 03 · PRD: Glossary (Semester), Semesters and student updates (Semester states), Admin dashboard and controls (Semesters) · Diagrams: 22-state-semester-section
 
 ## Goal
 
@@ -68,9 +68,9 @@ Semesters list (create draft, edit, delete) in the admin area. The current semes
 
 ## Tasks
 
-- [ ] `semester` model + indexes
-- [ ] Service with `current()` / `draft()` and the state rules
-- [ ] Admin endpoints + audit
-- [ ] Bootstrap endpoint (allowed only when no semester has ever been current)
-- [ ] Screens
-- [ ] Tests
+- [x] `semester` model + indexes
+- [x] Service with `current()` / `draft()` and the state rules
+- [x] Admin endpoints + audit
+- [x] Bootstrap endpoint (allowed only when no semester has ever been current)
+- [x] Screens
+- [x] Tests

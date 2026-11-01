@@ -103,6 +103,8 @@ describe('errors and validation', () => {
         'NOT_FOUND',
         'RATE_LIMITED',
         'SECOND_STEP_REQUIRED',
+        'SEMESTER_ARCHIVED',
+        'SEMESTER_IN_USE',
         'STATE_NOT_ALLOWED',
         'TOKEN_INVALID',
         'UNAUTHENTICATED',

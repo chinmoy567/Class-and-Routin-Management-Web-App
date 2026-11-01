@@ -11,7 +11,8 @@
     "account": "Account",
     "profile": "Profile",
     "adminDepartments": "Departments",
-    "adminAdmins": "Admins"
+    "adminAdmins": "Admins",
+    "adminSemesters": "Semesters"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -128,7 +129,9 @@
     "LAST_SUPER_ADMIN": "The last super admin cannot be removed.",
     "CODE_LOCKED": "The code can no longer change because the department is in use.",
     "DEPARTMENT_IN_USE": "A section of the current or draft semester still uses this department.",
-    "USER_NOT_ELIGIBLE": "Only an active account with a verified email can become an admin."
+    "USER_NOT_ELIGIBLE": "Only an active account with a verified email can become an admin.",
+    "SEMESTER_ARCHIVED": "An archived semester cannot be changed.",
+    "SEMESTER_IN_USE": "Only an empty draft semester can be deleted."
   },
   "auth": {
     "fields": {
@@ -321,6 +324,40 @@
       "granted": "{name} is now an admin.",
       "removed": "The role was removed.",
       "you": "(you)"
+    },
+    "semesters": {
+      "title": "Semesters",
+      "add": "Create draft semester",
+      "name": "Name",
+      "nameHint": "For example Spring 2027.",
+      "start": "Start date",
+      "end": "End date",
+      "create": "Create",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete the draft {name}? This cannot be undone.",
+      "bootstrap": "Make current",
+      "bootstrapHint": "This is the first semester, so it can be made current directly. Later semesters use the rollover.",
+      "bootstrapConfirm": "Make {name} the current semester?",
+      "empty": "No semesters yet.",
+      "dates": "{start} to {end}",
+      "status": {
+        "draft": "Draft",
+        "current": "Current",
+        "archived": "Archived"
+      },
+      "fieldError": {
+        "name": "Enter a name.",
+        "start_date": "Enter a valid start date.",
+        "end_date": "The end date must be after the start date."
+      }
     }
+  },
+  "semester": {
+    "current": "{name}",
+    "none": "No current semester",
+    "label": "Current semester"
   }
 }

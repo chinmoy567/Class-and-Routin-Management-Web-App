@@ -130,3 +130,21 @@ describe('departments and admin schemas (spec 03)', () => {
     expect(grantAdminBody.safeParse({ user_id: id, role: 'cr' }).success).toBe(false);
   });
 });
+
+describe('semester schemas (spec 04)', () => {
+  const ok = { name: 'Spring 2027', start_date: '2027-04-04', end_date: '2027-09-30' };
+  it('SEM-01 accepts a name with a start and an end date', async () => {
+    const { createSemesterBody } = await import('../index.js');
+    expect(createSemesterBody.safeParse(ok).success).toBe(true);
+  });
+  it('SEM-03 rejects an end date that is not after the start date, or a fake date', async () => {
+    const { createSemesterBody, updateSemesterBody } = await import('../index.js');
+    expect(createSemesterBody.safeParse({ ...ok, end_date: '2027-04-04' }).success).toBe(false);
+    expect(createSemesterBody.safeParse({ ...ok, end_date: '2027-02-30' }).success).toBe(false);
+    expect(updateSemesterBody.safeParse({}).success).toBe(false);
+    expect(
+      updateSemesterBody.safeParse({ start_date: '2027-05-01', end_date: '2027-04-01' }).success,
+    ).toBe(false);
+    expect(updateSemesterBody.safeParse({ end_date: '2027-10-01' }).success).toBe(true);
+  });
+});

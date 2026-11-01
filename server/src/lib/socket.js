@@ -16,6 +16,7 @@ export function initSocket(httpServer, sessionMiddleware, { onConnect } = {}) {
   });
   io.on('connection', async (socket) => {
     socket.join(`user:${socket.data.userId}`);
+    socket.join('everyone'); // calendar.changed and other university-wide pushes
     if (onConnect) await onConnect(socket);
   });
   setEmitter((room, event, payload) => io.to(room).emit(event, payload));

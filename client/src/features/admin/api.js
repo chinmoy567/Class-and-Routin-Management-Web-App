@@ -14,3 +14,12 @@ export const resetAdminPassword = (userId) =>
   api(`/admin/admins/${userId}/reset-password`, { method: 'POST' });
 export const resetAdminSecondStep = (userId) =>
   api(`/admin/admins/${userId}/reset-second-step`, { method: 'POST' });
+
+export const fetchCurrentSemester = () => api('/semesters/current');
+export const fetchAdminSemesters = () => api('/admin/semesters');
+export const createSemester = (body) => api('/admin/semesters', { method: 'POST', body });
+export const updateSemester = ({ id, ...body }) =>
+  api(`/admin/semesters/${id}`, { method: 'PATCH', body });
+export const deleteSemester = (id) => api(`/admin/semesters/${id}`, { method: 'DELETE' });
+export const bootstrapSemester = (id) =>
+  api(`/admin/semesters/${id}/bootstrap-current`, { method: 'POST' });

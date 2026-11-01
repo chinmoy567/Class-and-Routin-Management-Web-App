@@ -7,5 +7,7 @@ export const qk = {
   departments: () => ['departments'],
   adminDepartments: () => ['admin', 'departments'],
   admins: () => ['admin', 'admins'],
+  currentSemester: () => ['semester', 'current'],
+  adminSemesters: () => ['admin', 'semesters'],
   userSearch: (q) => ['admin', 'user-search', q],
 };

@@ -34,6 +34,32 @@ departmentSchema.index({ retired: 1, code: 1 });
 export const Department =
   mongoose.models.Department ?? mongoose.model('Department', departmentSchema);
 
+// SEM-01, SEM-02. Dates are institution dates (YYYY-MM-DD). Two partial unique indexes: at most
+// one current and at most one draft. Their keys differ (1 and -1) so both can exist side by side.
+const semesterSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    status: { type: String, enum: ['draft', 'current', 'archived'], default: 'draft' },
+    start_date: { type: String, required: true },
+    end_date: { type: String, required: true },
+    made_current_at: { type: Date },
+    made_current_by: { type: Schema.Types.ObjectId },
+    archived_at: { type: Date },
+  },
+  { collection: 'semester', timestamps: { createdAt: 'created_at', updatedAt: false } },
+);
+semesterSchema.index({ name: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+semesterSchema.index(
+  { status: 1 },
+  { unique: true, name: 'one_current', partialFilterExpression: { status: 'current' } },
+);
+semesterSchema.index(
+  { status: -1 },
+  { unique: true, name: 'one_draft', partialFilterExpression: { status: 'draft' } },
+);
+
+export const Semester = mongoose.models.Semester ?? mongoose.model('Semester', semesterSchema);
+
 export const AllowedDomain =
   mongoose.models.AllowedDomain ?? mongoose.model('AllowedDomain', allowedDomainSchema);
 export const AllowedDomainGuard =

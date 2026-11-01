@@ -6,3 +6,4 @@ export const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-D
 export * from './auth.js';
 export * from './profile.js';
 export * from './departments.js';
+export * from './semesters.js';

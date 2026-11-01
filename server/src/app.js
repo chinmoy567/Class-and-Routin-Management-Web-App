@@ -24,6 +24,8 @@ import {
   departmentsAdminRouter,
   departmentsPublicRouter,
   organisationRouter,
+  semestersAdminRouter,
+  semestersRouter,
 } from './modules/organisation/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
@@ -107,6 +109,8 @@ export function createApp(
   app.use('/api/admin', requireAuth, organisationRouter);
   app.use('/api/admin', requireAuth, adminUsersRouter);
   app.use('/api/admin', requireAuth, departmentsAdminRouter);
+  app.use('/api/admin', requireAuth, semestersAdminRouter);
+  app.use('/api/semesters', requireAuth, semestersRouter);
   app.use('/api/admin', requireAuth, adminRolesRouter);
   if (mountApi) mountApi(app);
 

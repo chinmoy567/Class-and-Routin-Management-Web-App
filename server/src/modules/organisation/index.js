@@ -27,4 +27,11 @@ export {
   clearAdminAlert,
   departmentNames,
 } from './department.service.js';
-export { Department } from './organisation.model.js';
+export { semestersRouter, semestersAdminRouter } from './semester.routes.js';
+export {
+  currentSemester,
+  draftSemester,
+  registerSemesterUsage,
+  resetSemesterUsage,
+} from './semester.service.js';
+export { Department, Semester } from './organisation.model.js';

@@ -21,6 +21,7 @@ import { PublicProfilePage } from '@/routes/PublicProfilePage.jsx';
 import { RequireSuperAdmin } from '@/components/RequireSuperAdmin.jsx';
 import { DepartmentsPage } from '@/routes/admin/DepartmentsPage.jsx';
 import { AdminsPage } from '@/routes/admin/AdminsPage.jsx';
+import { SemestersPage } from '@/routes/admin/SemestersPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
 export const queryClient = new QueryClient({
@@ -61,6 +62,7 @@ export function AppRoutes() {
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />
             <Route path="/admin/admins" element={<AdminsPage />} />
+            <Route path="/admin/semesters" element={<SemestersPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

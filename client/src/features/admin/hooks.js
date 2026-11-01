@@ -35,3 +35,15 @@ export const useGrantAdminRole = () => useInvalidating(api.grantAdminRole, [qk.a
 export const useRemoveAdminRole = () => useInvalidating(api.removeAdminRole, [qk.admins()]);
 export const useResetAdminPassword = () => useMutation({ mutationFn: api.resetAdminPassword });
 export const useResetAdminSecondStep = () => useMutation({ mutationFn: api.resetAdminSecondStep });
+
+export const useCurrentSemester = () =>
+  useQuery({ queryKey: qk.currentSemester(), queryFn: api.fetchCurrentSemester, retry: false });
+
+export const useAdminSemesters = () =>
+  useQuery({ queryKey: qk.adminSemesters(), queryFn: api.fetchAdminSemesters, retry: false });
+
+const semesterKeys = [qk.adminSemesters(), qk.currentSemester()];
+export const useCreateSemester = () => useInvalidating(api.createSemester, semesterKeys);
+export const useUpdateSemester = () => useInvalidating(api.updateSemester, semesterKeys);
+export const useDeleteSemester = () => useInvalidating(api.deleteSemester, semesterKeys);
+export const useBootstrapSemester = () => useInvalidating(api.bootstrapSemester, semesterKeys);

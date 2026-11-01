@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router';
-import { Building2, Home, ShieldCheck, User, UserRound } from 'lucide-react';
+import { Building2, CalendarRange, Home, ShieldCheck, User, UserRound } from 'lucide-react';
+import { CurrentSemester } from '@/components/CurrentSemester.jsx';
 import { useIsSuperAdmin } from '@/features/auth/hooks.js';
 import { EmailActionBanner } from '@/features/profile/components/EmailActionBanner.jsx';
 import { t } from '@/lib/i18n';
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 
 const SUPER_ADMIN_ITEMS = [
   { to: '/admin/departments', labelKey: 'nav.adminDepartments', icon: Building2 },
+  { to: '/admin/semesters', labelKey: 'nav.adminSemesters', icon: CalendarRange },
   { to: '/admin/admins', labelKey: 'nav.adminAdmins', icon: ShieldCheck },
 ];
 
@@ -32,6 +34,7 @@ export function AppShell() {
 
       <header className="border-b px-4 py-3 md:hidden">
         <p className="text-base font-semibold">{t('app.name')}</p>
+        <CurrentSemester className="text-sm text-muted-foreground" />
       </header>
 
       <nav
@@ -39,6 +42,7 @@ export function AppShell() {
         className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background md:static md:w-56 md:flex-col md:border-r md:border-t-0 md:p-3"
       >
         <p className="hidden px-3 py-2 text-lg font-semibold md:block">{t('app.name')}</p>
+        <CurrentSemester className="hidden px-3 pb-2 text-sm text-muted-foreground md:block" />
         {items.map(({ to, labelKey, icon: Icon, end }) => (
           <NavLink
             key={to}
