@@ -2,5 +2,7 @@
 export const qk = {
   health: () => ['health'],
   me: () => ['me'],
+  profile: () => ['profile'],
+  user: (id) => ['user', id],
   departments: () => ['departments'],
 };

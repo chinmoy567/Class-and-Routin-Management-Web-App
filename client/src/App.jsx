@@ -16,6 +16,9 @@ import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage.jsx';
 import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
 import { HoldingPage } from '@/routes/HoldingPage.jsx';
+import { ProfilePage } from '@/routes/ProfilePage.jsx';
+import { PublicProfilePage } from '@/routes/PublicProfilePage.jsx';
+import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -32,6 +35,7 @@ export function AppRoutes() {
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/confirm-email" element={<ConfirmEmailPage />} />
 
         {/* signed in, held on one screen until the account state moves on (AUTH-29) */}
         <Route element={<AuthGate mode="step" />}>
@@ -48,6 +52,8 @@ export function AppRoutes() {
       <Route element={<AuthGate mode="app" />}>
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/users/:id" element={<PublicProfilePage />} />
           <Route path="/account/password" element={<ChangePasswordPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

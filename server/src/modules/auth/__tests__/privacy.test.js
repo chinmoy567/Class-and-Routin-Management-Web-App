@@ -31,4 +31,11 @@ describe('privacy in the auth module', () => {
     const controller = sources.find(([f]) => f === 'auth.controller.js')[1];
     expect(controller).not.toMatch(/email_enc|email_hmac|password_hash|phone_enc/);
   });
+
+  it('PRF-07 the profile controller and routes never touch the stored email or phone fields', () => {
+    for (const file of ['profile.controller.js', 'profile.routes.js']) {
+      const text = sources.find(([f]) => f === file)[1];
+      expect(text, file).not.toMatch(/email_enc|email_hmac|password_hash|phone_enc/);
+    }
+  });
 });

@@ -335,6 +335,8 @@ export async function getMe(actor, session) {
   return {
     user: toPublicUser(user),
     roles: actor.roles,
+    // PRF-06: the client shows a banner at every sign-in until the email is changed.
+    email_action_required: Boolean(user.email_bouncing),
     next: await nextScreen({
       user: actor,
       totpEnabled: Boolean(user.totp_enabled_at),

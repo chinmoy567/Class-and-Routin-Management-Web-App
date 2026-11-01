@@ -29,7 +29,8 @@ export function mockApi(routes) {
   const calls = [];
   vi.stubGlobal('fetch', async (url, init = {}) => {
     const method = init.method ?? 'GET';
-    const body = init.body ? JSON.parse(init.body) : undefined;
+    // a file body (the profile photo) is passed through as the Blob itself
+    const body = typeof init.body === 'string' ? JSON.parse(init.body) : init.body;
     calls.push({ method, url, body });
     if (url === '/api/auth/csrf') return ok({ token: 'csrf-token' });
     const route = routes[`${method} ${url}`];
@@ -52,7 +53,11 @@ export const meResponse = (next, over = {}) =>
       ...over,
     },
     roles: [],
+    email_action_required: false,
     next,
+    ...(over.email_action_required !== undefined && {
+      email_action_required: over.email_action_required,
+    }),
   });
 
 /** Render the real route tree at `path`, with a fresh query cache. */

@@ -22,6 +22,7 @@ const schema = z.object({
   MAIL_FROM: nonEmpty,
   APP_URL: z.string().url(),
   CLAMAV_HOST: nonEmpty,
+  CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
   // Optional: comma-separated DNS servers for mongodb+srv lookups when the OS resolver can't do SRV
   DNS_SERVERS: z.string().default(''),
   LOG_LEVEL: z.string().default('info'),

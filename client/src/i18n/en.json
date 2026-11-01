@@ -8,7 +8,81 @@
     "menu": "Menu",
     "main": "Main navigation",
     "skipToContent": "Skip to content",
-    "account": "Account"
+    "account": "Account",
+    "profile": "Profile"
+  },
+  "emailBanner": {
+    "title": "Your email address is not working",
+    "body": "We could not deliver mail to your address. Please give us a new university email.",
+    "action": "Change my email"
+  },
+  "profile": {
+    "details": "Your details",
+    "fullName": "Full name",
+    "nameHint": "Only a department admin can change your name.",
+    "emailLabel": "Email",
+    "rolesLabel": "Roles",
+    "noRoles": "No extra roles",
+    "notSet": "Not set",
+    "kind": {
+      "student": "Student",
+      "teacher": "Teacher",
+      "staff": "Staff"
+    },
+    "roles": {
+      "student": "Student",
+      "teacher": "Teacher",
+      "cr": "CR",
+      "dcr": "DCR",
+      "super_admin": "Super admin",
+      "dept_admin": "Department admin"
+    },
+    "student": {
+      "level": "Level",
+      "term": "Term",
+      "section": "Section",
+      "group": "Sessional group",
+      "confirmed": "Last confirmed",
+      "confirmedFor": "{semester} confirmed"
+    },
+    "teacher": {
+      "shortCode": "Short code",
+      "notLinked": "Not linked yet"
+    },
+    "photo": {
+      "title": "Photo",
+      "add": "Add a photo",
+      "change": "Change photo",
+      "remove": "Remove photo",
+      "hint": "JPEG, PNG or WebP, up to 2 MB.",
+      "pending": "Checking your photo. Your old photo stays until the check is done.",
+      "rejected": "That photo did not pass the safety check and was deleted. Please choose another.",
+      "badType": "Use a JPEG, PNG or WebP image.",
+      "tooLarge": "The photo must be 2 MB or smaller."
+    },
+    "phone": {
+      "title": "Phone",
+      "label": "Phone number",
+      "hint": "Optional. A Bangladeshi mobile number, for example 01712345678. Only you can see it.",
+      "save": "Save phone",
+      "saved": "Your phone number was saved."
+    },
+    "email": {
+      "title": "Change your email",
+      "current": "Your email is {email}.",
+      "newLabel": "New university email",
+      "hint": "We send a link to the new address. Your old address stays in use until you open it.",
+      "submit": "Send the link",
+      "sent": "We sent a link to the new address. It works once and lasts 24 hours."
+    },
+    "confirmEmail": {
+      "title": "Confirming your new email",
+      "working": "Checking your link…",
+      "done": "Your email was changed. Sign in with the new address from now on.",
+      "toProfile": "Go to my profile",
+      "invalidTitle": "This link is not valid",
+      "missing": "The link is missing its code. Open the link from your email again."
+    }
   },
   "home": {
     "title": "Welcome",
@@ -46,7 +120,9 @@
     "CAPTCHA_REQUIRED": "Please complete the check to continue.",
     "TOKEN_INVALID": "This link has expired or was already used.",
     "CODE_INVALID": "That code is not valid or has expired.",
-    "LAST_DOMAIN": "At least one email domain must remain."
+    "LAST_DOMAIN": "At least one email domain must remain.",
+    "FILE_TYPE_NOT_ALLOWED": "Use a JPEG, PNG or WebP image.",
+    "FILE_TOO_LARGE": "The photo must be 2 MB or smaller."
   },
   "auth": {
     "fields": {
@@ -73,6 +149,12 @@
       },
       "short_code": {
         "error": "Use 1 to 10 letters."
+      },
+      "phone": {
+        "error": "Enter a Bangladeshi mobile number, for example 01712345678."
+      },
+      "new_email": {
+        "error": "Enter a valid email address."
       },
       "code": {
         "error": "Enter the 6 digit code."

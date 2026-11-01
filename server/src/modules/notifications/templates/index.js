@@ -28,6 +28,8 @@ const templates = {
   test: simple('test'),
   verify_email: simple('verify_email'),
   already_registered: simple('already_registered'),
+  email_change_confirm: simple('email_change_confirm'),
+  email_changed_notice: simple('email_changed_notice'),
   reset_password: simple('reset_password'),
   password_changed: simple('password_changed'),
   failed_logins: simple('failed_logins'),

@@ -9,6 +9,7 @@ import { MongoRateLimitStore } from '../src/lib/rateLimitStore.js';
 import { startJobs, stopJobs, getAgenda } from '../src/lib/jobs.js';
 import { ensureSessionIndex } from '../src/modules/auth/index.js';
 import { solves } from '../src/modules/auth/captcha.service.js';
+import { scanPhoto, PHOTO_SCAN_JOB } from '../src/modules/auth/photo.service.js';
 import { sendEmailJob, getOutbox, clearOutbox } from '../src/modules/notifications/index.js';
 // Register every model so syncAllIndexes() builds their indexes.
 import '../src/modules/auth/auth.model.js';
@@ -43,6 +44,15 @@ export async function drainMail() {
   return [...getOutbox()];
 }
 export { clearOutbox };
+
+/** Run the queued `photo.scan` jobs on the spot, as drainMail does for mail. */
+export async function drainPhotoScans() {
+  const jobs = await getAgenda().jobs({ name: PHOTO_SCAN_JOB });
+  for (const job of jobs) {
+    await scanPhoto(job.attrs.data);
+    await job.remove();
+  }
+}
 
 /** The token in the first link of an email body, for tests that follow a link. */
 export const tokenFrom = (mail) =>

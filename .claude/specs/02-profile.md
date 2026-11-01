@@ -1,6 +1,6 @@
 # 02: Profile
 
-R1 · Status: Draft · Depends on: 01 · PRD: Core features (F1), Authentication & onboarding (Required university email), Non-functional requirements (Privacy), Chat (What others see on a profile) · Diagrams: 24-sitemap
+R1 · Status: Done · Depends on: 01 · PRD: Core features (F1), Authentication & onboarding (Required university email), Non-functional requirements (Privacy), Chat (What others see on a profile) · Diagrams: 24-sitemap
 
 ## Goal
 
@@ -43,7 +43,7 @@ Uses `user` (spec 01). Photos in GridFS bucket `photos` with metadata `{ owner_i
 |---|---|---|---|---|
 | `GET /api/me/profile` | owner | none | full own profile | none |
 | `PATCH /api/me/profile` | owner | phone (or null) | updated profile | `VALIDATION_ERROR` |
-| `PUT /api/me/photo` | owner | multipart `photo` | 202 `{ scan_status: 'pending' }` | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` |
+| `PUT /api/me/photo` | owner | the image bytes as the raw body (`Content-Type: image/*`) | 202 `{ scan_status: 'pending' }` | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` |
 | `DELETE /api/me/photo` | owner | none | 204 | none |
 | `POST /api/me/email` | owner | new_email | 202 | `EMAIL_DOMAIN_NOT_ALLOWED`, `CONFLICT` (taken), `RATE_LIMITED` |
 | `POST /api/me/email/confirm` | anyone with the link | token | 200 | `TOKEN_INVALID`, `CONFLICT` (taken since) |
@@ -73,14 +73,18 @@ My profile (view + edit phone, photo, email; shows roles, semester badge, group 
 - **Decision:** 2 MB photo limit and JPEG/PNG/WebP only. The PRD gives no limit for photos (only 5 MB for chat files). Photos are not resized, because no image library is in the stack.
 - **Decision:** users can't change their own name (PRF-02). The PRD lists only phone and photo as editable.
 - **Decision:** phone accepts Bangladeshi mobile numbers only.
+- **Decision:** the photo is sent as the raw request body, not multipart, because multipart parsing needs a library (busboy or multer) that `tech-stack.md` does not list. The server reads it with `express.raw`, capped at 2 MB, and checks the type from the first bytes.
+- **Decision:** ClamAV is reached with a small client on `node:net` (clamd `INSTREAM`), so no new library. `CLAMAV_PORT` (default 3310) is optional config.
+- **Decision:** until specs 03, 04, 06, 09 and 10 exist, the student department, level, term, section, group and confirmed semester, the teacher short-code link, and department and section names come back as `null` (or an id). `registerProfileExtras` lets those specs fill them in. Until spec 10, only a super admin can rename a student, because a student has no department yet.
+- **Decision:** `email_action_required` is a top-level field of `GET /api/auth/me`, next to `next`.
 
 ## Tasks
 
-- [ ] Profile read and update service, public-profile serializer (`toPublic`)
-- [ ] Phone normalisation + encryption
-- [ ] Photo upload: content sniffing, GridFS, `photo.scan` job, serving endpoint
-- [ ] Email change request + confirmation + old-address notice
-- [ ] Bouncing-email flag in `/me` and the banner
-- [ ] Admin rename endpoint + audit
-- [ ] Profile screens
-- [ ] Tests for every PRF requirement
+- [x] Profile read and update service, public-profile serializer (`toPublic`)
+- [x] Phone normalisation + encryption
+- [x] Photo upload: content sniffing, GridFS, `photo.scan` job, serving endpoint
+- [x] Email change request + confirmation + old-address notice
+- [x] Bouncing-email flag in `/me` and the banner
+- [x] Admin rename endpoint + audit
+- [x] Profile screens
+- [x] Tests for every PRF requirement

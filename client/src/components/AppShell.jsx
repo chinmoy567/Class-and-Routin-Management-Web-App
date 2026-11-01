@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from 'react-router';
-import { Home, User } from 'lucide-react';
+import { Home, User, UserRound } from 'lucide-react';
+import { EmailActionBanner } from '@/features/profile/components/EmailActionBanner.jsx';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 // Feature specs add their entries here. Each one needs a translation key and an icon.
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.home', icon: Home, end: true },
+  { to: '/profile', labelKey: 'nav.profile', icon: UserRound },
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];
 
@@ -47,9 +49,12 @@ export function AppShell() {
         ))}
       </nav>
 
-      <main id="main" className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
-        <Outlet />
-      </main>
+      <div className="flex-1">
+        <EmailActionBanner />
+        <main id="main" className="p-4 pb-24 md:p-8 md:pb-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

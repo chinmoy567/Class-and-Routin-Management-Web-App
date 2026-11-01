@@ -17,6 +17,8 @@ export const ERROR_CODES = Object.freeze({
   TOKEN_INVALID: { code: 'TOKEN_INVALID', status: 400 },
   CODE_INVALID: { code: 'CODE_INVALID', status: 400 },
   LAST_DOMAIN: { code: 'LAST_DOMAIN', status: 409 },
+  FILE_TYPE_NOT_ALLOWED: { code: 'FILE_TYPE_NOT_ALLOWED', status: 415 },
+  FILE_TOO_LARGE: { code: 'FILE_TOO_LARGE', status: 413 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -37,3 +39,5 @@ export const CAPTCHA_REQUIRED = 'CAPTCHA_REQUIRED';
 export const TOKEN_INVALID = 'TOKEN_INVALID';
 export const CODE_INVALID = 'CODE_INVALID';
 export const LAST_DOMAIN = 'LAST_DOMAIN';
+export const FILE_TYPE_NOT_ALLOWED = 'FILE_TYPE_NOT_ALLOWED';
+export const FILE_TOO_LARGE = 'FILE_TOO_LARGE';

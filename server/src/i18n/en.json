@@ -8,6 +8,14 @@
       "subject": "Confirm your email address",
       "body": "Hello {name},\n\nOpen this link to confirm your email address. It works once and lasts 24 hours:\n{link}\n\nIf you did not sign up, ignore this email."
     },
+    "email_change_confirm": {
+      "subject": "Confirm your new email address",
+      "body": "Hello {name},\n\nOpen this link to make this your new email address. It works once and lasts 24 hours:\n{link}\n\nUntil then your old address stays in use. If you did not ask for this, ignore this email."
+    },
+    "email_changed_notice": {
+      "subject": "Your email address was changed",
+      "body": "Hello {name},\n\nThe email address on your account was changed. From now on you sign in with the new address.\n\nIf this was not you, contact your department admin."
+    },
     "already_registered": {
       "subject": "You already have an account",
       "body": "Hello {name},\n\nSomeone used this email address to sign up, but you already have an account. Sign in here:\n{signin_link}\n\nForgot your password? Reset it here:\n{reset_link}\n\nIf this was not you, you can ignore this email."

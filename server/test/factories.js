@@ -35,6 +35,8 @@ export async function makeUser({
   email = `u${rand()}@baiust.ac.bd`,
   password,
   totp = false,
+  phone,
+  departmentId,
 } = {}) {
   const totpSecret = totp ? generateSecret() : undefined;
   const user = await User.create({
@@ -44,6 +46,8 @@ export async function makeUser({
     email_enc: encrypt(email),
     email_hmac: emailHmac(email),
     email_verified_at: state === 'email_unverified' ? undefined : new Date(),
+    ...(phone && { phone_enc: encrypt(phone) }),
+    ...(departmentId && { department_id: departmentId }),
     ...(password && { password_hash: await hashPassword(password) }),
     ...(totp && { totp_secret_enc: encrypt(totpSecret), totp_enabled_at: new Date() }),
   });

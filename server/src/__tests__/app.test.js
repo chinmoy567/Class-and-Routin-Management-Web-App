@@ -91,6 +91,8 @@ describe('errors and validation', () => {
         'CONFLICT',
         'CSRF_FAILED',
         'EMAIL_DOMAIN_NOT_ALLOWED',
+        'FILE_TOO_LARGE',
+        'FILE_TYPE_NOT_ALLOWED',
         'FORBIDDEN',
         'INTERNAL',
         'INVALID_CREDENTIALS',

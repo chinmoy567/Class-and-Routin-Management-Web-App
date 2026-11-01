@@ -51,7 +51,11 @@ async function parse(res) {
 export async function api(path, { method = 'GET', body, headers = {} } = {}) {
   const init = { method, credentials: 'include', headers: { ...headers } };
   if (method !== 'GET') init.headers['X-CSRF-Token'] = await getCsrfToken();
-  if (body !== undefined) {
+  if (body instanceof Blob) {
+    // a file (the profile photo) goes up as it is, with its own content type
+    init.headers['Content-Type'] = body.type || 'application/octet-stream';
+    init.body = body;
+  } else if (body !== undefined) {
     init.headers['Content-Type'] = 'application/json';
     init.body = JSON.stringify(body);
   }

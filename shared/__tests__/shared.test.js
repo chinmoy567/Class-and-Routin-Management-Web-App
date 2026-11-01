@@ -81,3 +81,21 @@ describe('shared', () => {
     expect(dateString.safeParse('10/11/2026').success).toBe(false);
   });
 });
+
+import { phoneSchema, updateProfileBody } from '../index.js';
+
+describe('profile schemas', () => {
+  it('PRF-03 normalises Bangladeshi mobile numbers to +8801XXXXXXXXX', () => {
+    expect(phoneSchema.parse('01712345678')).toBe('+8801712345678');
+    expect(phoneSchema.parse('+8801712345678')).toBe('+8801712345678');
+    expect(phoneSchema.parse('017 1234-5678')).toBe('+8801712345678');
+  });
+  it('PRF-03 rejects other numbers', () => {
+    for (const bad of ['12345', '01212345678', '0171234567', '+9101712345678', 'abc', ''])
+      expect(phoneSchema.safeParse(bad).success).toBe(false);
+  });
+  it('PRF-03 allows null; PRF-02 refuses any other field', () => {
+    expect(updateProfileBody.parse({ phone: null })).toEqual({ phone: null });
+    expect(updateProfileBody.safeParse({ phone: null, full_name: 'X Y' }).success).toBe(false);
+  });
+});

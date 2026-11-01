@@ -11,6 +11,9 @@ import { MongoRateLimitStore } from './lib/rateLimitStore.js';
 import {
   authRouter,
   meRouter,
+  meProfileRouter,
+  usersRouter,
+  adminUsersRouter,
   loadUser,
   requireAuth,
   enforceSessionLifetime,
@@ -93,7 +96,10 @@ export function createApp(
 
   app.use('/api/auth', authRouter);
   app.use('/api/me', meRouter);
+  app.use('/api/me', meProfileRouter);
+  app.use('/api/users', usersRouter);
   app.use('/api/admin', requireAuth, organisationRouter);
+  app.use('/api/admin', requireAuth, adminUsersRouter);
   if (mountApi) mountApi(app);
 
   app.use(notFoundHandler);

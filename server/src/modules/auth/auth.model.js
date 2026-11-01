@@ -31,6 +31,8 @@ const userSchema = new Schema(
     email_bouncing: { type: Boolean, default: false },
     phone_enc: { type: String, select: false },
     photo_file_id: { type: Schema.Types.ObjectId },
+    pending_photo_file_id: { type: Schema.Types.ObjectId },
+    photo_scan_failed_at: { type: Date },
     password_hash: { type: String, select: false },
     password_changed_at: { type: Date },
     totp_secret_enc: { type: String, select: false },
