@@ -14,6 +14,12 @@ export function useIsSuperAdmin() {
   return (data?.roles ?? []).some((r) => r.role === 'super_admin');
 }
 
+/** True for a super admin or a department admin (the server still enforces it). */
+export function useIsAdmin() {
+  const { data } = useMe();
+  return (data?.roles ?? []).some((r) => r.role === 'super_admin' || r.role === 'dept_admin');
+}
+
 export function useDepartments(enabled) {
   return useQuery({
     queryKey: qk.departments(),

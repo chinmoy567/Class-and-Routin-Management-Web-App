@@ -1,7 +1,15 @@
 import { NavLink, Outlet } from 'react-router';
-import { Building2, CalendarRange, Home, ShieldCheck, User, UserRound } from 'lucide-react';
+import {
+  Building2,
+  CalendarRange,
+  DoorOpen,
+  Home,
+  ShieldCheck,
+  User,
+  UserRound,
+} from 'lucide-react';
 import { CurrentSemester } from '@/components/CurrentSemester.jsx';
-import { useIsSuperAdmin } from '@/features/auth/hooks.js';
+import { useIsAdmin, useIsSuperAdmin } from '@/features/auth/hooks.js';
 import { EmailActionBanner } from '@/features/profile/components/EmailActionBanner.jsx';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -13,6 +21,8 @@ const NAV_ITEMS = [
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];
 
+const ADMIN_ITEMS = [{ to: '/admin/classrooms', labelKey: 'nav.adminClassrooms', icon: DoorOpen }];
+
 const SUPER_ADMIN_ITEMS = [
   { to: '/admin/departments', labelKey: 'nav.adminDepartments', icon: Building2 },
   { to: '/admin/semesters', labelKey: 'nav.adminSemesters', icon: CalendarRange },
@@ -22,7 +32,12 @@ const SUPER_ADMIN_ITEMS = [
 /** Mobile first: a bottom tab bar on phones, a side rail from `md` up. */
 export function AppShell() {
   const isSuper = useIsSuperAdmin();
-  const items = isSuper ? [...NAV_ITEMS, ...SUPER_ADMIN_ITEMS] : NAV_ITEMS;
+  const isAdmin = useIsAdmin();
+  const items = [
+    ...NAV_ITEMS,
+    ...(isAdmin ? ADMIN_ITEMS : []),
+    ...(isSuper ? SUPER_ADMIN_ITEMS : []),
+  ];
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <a

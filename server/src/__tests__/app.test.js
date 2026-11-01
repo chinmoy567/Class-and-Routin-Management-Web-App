@@ -102,6 +102,7 @@ describe('errors and validation', () => {
         'LAST_SUPER_ADMIN',
         'NOT_FOUND',
         'RATE_LIMITED',
+        'ROOM_IN_USE',
         'SECOND_STEP_REQUIRED',
         'SEMESTER_ARCHIVED',
         'SEMESTER_IN_USE',

@@ -9,5 +9,8 @@ export const qk = {
   admins: () => ['admin', 'admins'],
   currentSemester: () => ['semester', 'current'],
   adminSemesters: () => ['admin', 'semesters'],
+  rooms: () => ['rooms'],
+  adminRoomsAll: () => ['admin', 'rooms'],
+  adminRooms: (departmentId) => ['admin', 'rooms', departmentId],
   userSearch: (q) => ['admin', 'user-search', q],
 };

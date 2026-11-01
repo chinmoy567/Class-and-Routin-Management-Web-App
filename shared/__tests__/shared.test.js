@@ -148,3 +148,31 @@ describe('semester schemas (spec 04)', () => {
     expect(updateSemesterBody.safeParse({ end_date: '2027-10-01' }).success).toBe(true);
   });
 });
+
+describe('room schemas (spec 05)', () => {
+  const dept = 'a'.repeat(24);
+  it('ROOM-01 trims the code, collapses spaces, and allows 1 to 20 characters', async () => {
+    const { createRoomBody } = await import('../index.js');
+    const parsed = createRoomBody.parse({ code: '  LR-407B  ', type: 'lab', department_id: dept });
+    expect(parsed.code).toBe('LR-407B');
+    expect(createRoomBody.safeParse({ code: '  ', type: 'lab', department_id: dept }).success).toBe(
+      false,
+    );
+    expect(
+      createRoomBody.safeParse({ code: 'x'.repeat(21), type: 'lab', department_id: dept }).success,
+    ).toBe(false);
+    expect(
+      createRoomBody.safeParse({ code: '311', type: 'hall', department_id: dept }).success,
+    ).toBe(false);
+  });
+  it('ROOM-02 an alias is trimmed with inner spaces collapsed', async () => {
+    const { createAliasBody } = await import('../index.js');
+    expect(createAliasBody.parse({ alias: ' RN:   311 ' }).alias).toBe('RN: 311');
+  });
+  it('ROOM-04 the sharing list refuses duplicates and bad ids', async () => {
+    const { setSharesBody } = await import('../index.js');
+    expect(setSharesBody.safeParse({ department_ids: [dept, 'b'.repeat(24)] }).success).toBe(true);
+    expect(setSharesBody.safeParse({ department_ids: [dept, dept] }).success).toBe(false);
+    expect(setSharesBody.safeParse({ department_ids: ['x'] }).success).toBe(false);
+  });
+});

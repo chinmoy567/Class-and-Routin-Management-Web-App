@@ -90,7 +90,7 @@ describe('the second step is required for admins (AUTH-17)', () => {
       .send({ code: totpCode(admin.totpSecret, clock.now()) });
     expect(res.status).toBe(200);
     expect(res.body.data.next).toBe('dashboard');
-    expect((await agent.get('/api/rooms')).body.error.code).toBe('NOT_FOUND'); // past the gate
+    expect((await agent.get('/api/not-a-route')).body.error.code).toBe('NOT_FOUND'); // past the gate
     expect((await agent.get('/api/admin/email-domains')).status).toBe(200);
   });
 
@@ -112,7 +112,7 @@ describe('the second step is required for admins (AUTH-17)', () => {
     for (const user of [student, teacher]) {
       const { agent, res } = await signIn(app, user.email, TEST_PASSWORD);
       expect(res.body.data.next).toBe('dashboard');
-      expect((await agent.get('/api/rooms')).body.error.code).toBe('NOT_FOUND');
+      expect((await agent.get('/api/not-a-route')).body.error.code).toBe('NOT_FOUND');
       const step = await agent.post('/api/auth/second-step').send({ code: '123456' });
       expect(step.status).toBe(409);
     }

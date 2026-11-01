@@ -25,6 +25,7 @@ export const ERROR_CODES = Object.freeze({
   USER_NOT_ELIGIBLE: { code: 'USER_NOT_ELIGIBLE', status: 422 },
   SEMESTER_ARCHIVED: { code: 'SEMESTER_ARCHIVED', status: 409 },
   SEMESTER_IN_USE: { code: 'SEMESTER_IN_USE', status: 409 },
+  ROOM_IN_USE: { code: 'ROOM_IN_USE', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -53,3 +54,4 @@ export const DEPARTMENT_IN_USE = 'DEPARTMENT_IN_USE';
 export const USER_NOT_ELIGIBLE = 'USER_NOT_ELIGIBLE';
 export const SEMESTER_ARCHIVED = 'SEMESTER_ARCHIVED';
 export const SEMESTER_IN_USE = 'SEMESTER_IN_USE';
+export const ROOM_IN_USE = 'ROOM_IN_USE';

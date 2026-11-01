@@ -7,3 +7,4 @@ export * from './auth.js';
 export * from './profile.js';
 export * from './departments.js';
 export * from './semesters.js';
+export * from './rooms.js';

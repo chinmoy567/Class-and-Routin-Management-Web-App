@@ -12,7 +12,8 @@
     "profile": "Profile",
     "adminDepartments": "Departments",
     "adminAdmins": "Admins",
-    "adminSemesters": "Semesters"
+    "adminSemesters": "Semesters",
+    "adminClassrooms": "Classrooms"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -131,7 +132,8 @@
     "DEPARTMENT_IN_USE": "A section of the current or draft semester still uses this department.",
     "USER_NOT_ELIGIBLE": "Only an active account with a verified email can become an admin.",
     "SEMESTER_ARCHIVED": "An archived semester cannot be changed.",
-    "SEMESTER_IN_USE": "Only an empty draft semester can be deleted."
+    "SEMESTER_IN_USE": "Only an empty draft semester can be deleted.",
+    "ROOM_IN_USE": "A published class of the current or draft semester still uses this room."
   },
   "auth": {
     "fields": {
@@ -352,6 +354,46 @@
         "name": "Enter a name.",
         "start_date": "Enter a valid start date.",
         "end_date": "The end date must be after the start date."
+      }
+    },
+    "classrooms": {
+      "title": "Classrooms",
+      "department": "Department",
+      "add": "Add room",
+      "create": "Create",
+      "save": "Save",
+      "cancel": "Cancel",
+      "code": "Room code",
+      "codeHint": "1 to 20 characters, for example 311 or LR-407B.",
+      "type": "Type",
+      "types": {
+        "classroom": "Classroom",
+        "lab": "Lab"
+      },
+      "edit": "Edit",
+      "retire": "Retire",
+      "retireConfirm": "Retire room {code}? It can no longer be used by new classes or requests, and it cannot be brought back.",
+      "retired": "Retired",
+      "empty": "No rooms yet.",
+      "aliases": "Aliases",
+      "noAliases": "No aliases",
+      "aliasLabel": "New alias",
+      "aliasHint": "A spelling used in routine sheets, for example RN: 311.",
+      "addAlias": "Add alias",
+      "removeAlias": "Remove alias {alias}",
+      "shares": "Shared with",
+      "noShares": "Not shared",
+      "editShares": "Change sharing",
+      "saveShares": "Save sharing",
+      "sharedWithMe": "Shared with your department",
+      "sharedWithMeEmpty": "No other department shares a room with you.",
+      "ownedBy": "Owned by {code}",
+      "fieldError": {
+        "code": "Enter 1 to 20 characters.",
+        "type": "Choose classroom or lab.",
+        "alias": "Enter 1 to 40 characters.",
+        "department_id": "Choose an active department.",
+        "department_ids": "Choose active departments other than the owner."
       }
     }
   },
