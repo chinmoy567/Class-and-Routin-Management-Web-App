@@ -1,0 +1,14 @@
+{
+  "name": "@crm/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./errors": "./errors.js",
+    "./enums": "./enums.js"
+  },
+  "scripts": { "test": "vitest run --passWithNoTests", "build": "echo shared has no build step" },
+  "dependencies": { "zod": "^4.6.7" },
+  "devDependencies": { "vitest": "^2.1.0" }
+}

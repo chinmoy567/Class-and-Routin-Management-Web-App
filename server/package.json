@@ -1,0 +1,36 @@
+{
+  "name": "@crm/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "build": "echo server has no build step",
+    "seed:super-admin": "node --env-file=.env scripts/seed-super-admin.js"
+  },
+  "dependencies": {
+    "@crm/shared": "^0.1.0",
+    "agenda": "^6.2.7",
+    "connect-mongo": "^6.0.0",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.2",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "mongoose": "^9.11.4",
+    "nodemailer": "^10.3.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "socket.io": "^4.8.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
+    "socket.io-client": "^4.8.4",
+    "supertest": "^7.3.1",
+    "vitest": "^2.1.9"
+  }
+}
