@@ -7,7 +7,8 @@
     "home": "Home",
     "menu": "Menu",
     "main": "Main navigation",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "account": "Account"
   },
   "home": {
     "title": "Welcome",
@@ -20,7 +21,11 @@
   },
   "common": {
     "loading": "Loading…",
-    "retry": "Try again"
+    "retry": "Try again",
+    "submit": "Continue",
+    "signOut": "Sign out",
+    "cancel": "Cancel",
+    "working": "Please wait…"
   },
   "errors": {
     "VALIDATION_ERROR": "Some details are not valid. Please check and try again.",
@@ -34,6 +39,150 @@
     "CONFLICT": "That conflicts with something that already exists.",
     "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
     "INTERNAL": "Something went wrong on our side. Please try again.",
-    "NETWORK": "Could not reach the server. Check your connection."
+    "NETWORK": "Could not reach the server. Check your connection.",
+    "EMAIL_DOMAIN_NOT_ALLOWED": "Use your university email address (for example name@baiust.ac.bd).",
+    "INVALID_CREDENTIALS": "The email or password is not correct.",
+    "ACCOUNT_DISABLED": "This account cannot sign in. Please contact your department.",
+    "CAPTCHA_REQUIRED": "Please complete the check to continue.",
+    "TOKEN_INVALID": "This link has expired or was already used.",
+    "CODE_INVALID": "That code is not valid or has expired.",
+    "LAST_DOMAIN": "At least one email domain must remain."
+  },
+  "auth": {
+    "fields": {
+      "kind": {
+        "error": "Choose student or teacher."
+      },
+      "full_name": {
+        "error": "Enter your full name."
+      },
+      "email": {
+        "error": "Enter a valid email address."
+      },
+      "password": {
+        "error": "Use 8 to 128 characters with at least one letter and one number."
+      },
+      "current_password": {
+        "error": "Enter your current password."
+      },
+      "new_password": {
+        "error": "Use 8 to 128 characters with at least one letter and one number."
+      },
+      "department_id": {
+        "error": "Choose your department."
+      },
+      "short_code": {
+        "error": "Use 1 to 10 letters."
+      },
+      "code": {
+        "error": "Enter the 6 digit code."
+      },
+      "token": {
+        "error": "This link is not valid."
+      }
+    },
+    "signup": {
+      "title": "Create your account",
+      "kindLabel": "I am a",
+      "student": "Student",
+      "teacher": "Teacher",
+      "fullName": "Full name",
+      "email": "University email",
+      "emailHint": "Use your university address, for example name@baiust.ac.bd.",
+      "password": "Password",
+      "passwordHint": "At least 8 characters, with a letter and a number.",
+      "department": "Department",
+      "departmentPlaceholder": "Choose a department",
+      "departmentsUnavailable": "The department list is not available yet.",
+      "shortCode": "Short code",
+      "shortCodeHint": "The 1 to 10 letter code used for you in the routine, for example SK.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "body": "If the address can be used, we sent a message with the next step. The link works once and lasts 24 hours.",
+      "toSignIn": "Back to sign in"
+    },
+    "verify": {
+      "title": "Confirming your email",
+      "working": "Checking your link…",
+      "done": "Your email is confirmed.",
+      "signIn": "Sign in to continue",
+      "expiredTitle": "This link has expired",
+      "expired": "The link has expired or was already used. Enter your email and we will send a new one.",
+      "email": "University email",
+      "resend": "Send a new link",
+      "resent": "If that address needs confirming, a new link is on its way."
+    },
+    "verifyEmail": {
+      "title": "Confirm your email",
+      "body": "Open the link we emailed you to continue. You can ask for a new link below.",
+      "resend": "Send a new link",
+      "resent": "A new link is on its way."
+    },
+    "login": {
+      "title": "Sign in",
+      "email": "University email",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgot": "Forgot your password?",
+      "noAccount": "New here?",
+      "signUp": "Create an account",
+      "checking": "Running a quick check…",
+      "wait": "Too many tries. You can try again in {seconds} seconds."
+    },
+    "secondStep": {
+      "title": "Second step",
+      "body": "Enter the 6 digit code from your authenticator app.",
+      "code": "6 digit code",
+      "submit": "Verify",
+      "emailMe": "Email me a code instead",
+      "emailSent": "We emailed you a code. It works once and lasts 10 minutes.",
+      "startOver": "Start again from sign in"
+    },
+    "totp": {
+      "title": "Set up your authenticator app",
+      "body": "Scan this QR code with an authenticator app, then enter the 6 digit code it shows.",
+      "qrAlt": "QR code for your authenticator app",
+      "manualKey": "Or type this key into the app:",
+      "code": "6 digit code",
+      "confirm": "Confirm and continue",
+      "start": "Show the QR code"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "body": "Enter your university email. If there is an account, we will send a link that lasts 1 hour.",
+      "email": "University email",
+      "submit": "Send the link",
+      "sent": "If the account exists, we sent a link. Check your email.",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "password": "New password",
+      "submit": "Save password",
+      "done": "Your password was changed. Sign in with the new one.",
+      "signIn": "Go to sign in",
+      "missing": "This reset link is not valid. Ask for a new one.",
+      "again": "Ask for a new link"
+    },
+    "changePassword": {
+      "title": "Account",
+      "heading": "Change your password",
+      "current": "Current password",
+      "next": "New password",
+      "submit": "Change password",
+      "done": "Your password was changed. Other devices were signed out."
+    },
+    "holding": {
+      "joinTitle": "Join your section",
+      "joinBody": "Your email is confirmed. The form to join your section is coming soon.",
+      "waitingTitle": "Waiting for approval",
+      "waitingBody": "Your request is waiting for approval. We will email you when it is decided.",
+      "updateTitle": "Update your semester details",
+      "updateBody": "A new semester has started. The semester update form is coming soon."
+    }
   }
 }

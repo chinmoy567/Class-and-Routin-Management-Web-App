@@ -1,8 +1,21 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppShell } from '@/components/AppShell.jsx';
+import { AuthGate } from '@/components/AuthGate.jsx';
+import { AuthLayout } from '@/components/AuthLayout.jsx';
 import { HomePage } from '@/routes/HomePage.jsx';
 import { NotFoundPage } from '@/routes/NotFoundPage.jsx';
+import { SignUpPage } from '@/routes/SignUpPage.jsx';
+import { CheckEmailPage } from '@/routes/CheckEmailPage.jsx';
+import { VerifyPage } from '@/routes/VerifyPage.jsx';
+import { VerifyEmailPage } from '@/routes/VerifyEmailPage.jsx';
+import { SignInPage } from '@/routes/SignInPage.jsx';
+import { SecondStepPage } from '@/routes/SecondStepPage.jsx';
+import { TotpSetupPage } from '@/routes/TotpSetupPage.jsx';
+import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage.jsx';
+import { ResetPasswordPage } from '@/routes/ResetPasswordPage.jsx';
+import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
+import { HoldingPage } from '@/routes/HoldingPage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -11,9 +24,33 @@ export const queryClient = new QueryClient({
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
-        <Route index element={<HomePage />} />
-        <Route path="*" element={<NotFoundPage />} />
+      <Route element={<AuthLayout />}>
+        {/* open to anyone */}
+        <Route path="/login" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/check-email" element={<CheckEmailPage />} />
+        <Route path="/verify" element={<VerifyPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* signed in, held on one screen until the account state moves on (AUTH-29) */}
+        <Route element={<AuthGate mode="step" />}>
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/second-step" element={<SecondStepPage />} />
+          <Route path="/setup-totp" element={<TotpSetupPage />} />
+          <Route path="/join" element={<HoldingPage screen="join" />} />
+          <Route path="/waiting-approval" element={<HoldingPage screen="waiting" />} />
+          <Route path="/semester-update" element={<HoldingPage screen="update" />} />
+        </Route>
+      </Route>
+
+      {/* the signed-in app */}
+      <Route element={<AuthGate mode="app" />}>
+        <Route element={<AppShell />}>
+          <Route index element={<HomePage />} />
+          <Route path="/account/password" element={<ChangePasswordPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Route>
     </Routes>
   );

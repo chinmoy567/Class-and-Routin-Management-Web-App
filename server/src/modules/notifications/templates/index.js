@@ -6,16 +6,32 @@ const escapeHtml = (s) =>
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
   );
 
+/** A plain template: text from the i18n file, and the same text as HTML paragraphs. */
+function simple(key) {
+  const text = (data) => t(`email.${key}.body`, data);
+  return {
+    subject: () => t(`email.${key}.subject`),
+    text,
+    html: (data) =>
+      text(data)
+        .split('\n\n')
+        .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+        .join(''),
+  };
+}
+
 /**
  * Each template has a text and an HTML version, both built from the i18n file.
- * The real catalogue comes with spec 15.
+ * The auth templates are here (spec 01); the rest of the catalogue comes with spec 15.
  */
 const templates = {
-  test: {
-    subject: () => t('email.test.subject'),
-    text: (data) => t('email.test.body', data),
-    html: (data) => `<p>${escapeHtml(t('email.test.body', data))}</p>`,
-  },
+  test: simple('test'),
+  verify_email: simple('verify_email'),
+  already_registered: simple('already_registered'),
+  reset_password: simple('reset_password'),
+  password_changed: simple('password_changed'),
+  failed_logins: simple('failed_logins'),
+  second_step_code: simple('second_step_code'),
 };
 
 export function renderTemplate(name, data = {}) {

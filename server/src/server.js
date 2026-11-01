@@ -7,6 +7,7 @@ import { initSocket } from './lib/socket.js';
 import { MongoRateLimitStore } from './lib/rateLimitStore.js';
 import { createApp, createSessionMiddleware } from './app.js';
 import { defineMailJobs } from './modules/notifications/index.js';
+import { ensureSessionIndex } from './modules/auth/index.js';
 
 async function main() {
   let config;
@@ -29,6 +30,7 @@ async function main() {
 
   if (config.NODE_ENV !== 'production') await syncAllIndexes();
   await new MongoRateLimitStore().ensureIndexes();
+  await ensureSessionIndex();
   await startJobs({ url: config.MONGO_URL, registrars: [defineMailJobs] });
 
   const sessionMiddleware = createSessionMiddleware(config);

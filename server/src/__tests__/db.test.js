@@ -34,9 +34,12 @@ describe('database', () => {
 
   it('FND-07 withTransaction commits all writes together', async () => {
     await withTransaction(async (session) => {
-      await User.create([{ kind: 'staff', state: 'active', name: 'A', email_hmac: 'tx-commit' }], {
-        session,
-      });
+      await User.create(
+        [{ kind: 'staff', state: 'active', full_name: 'A', email_hmac: 'tx-commit' }],
+        {
+          session,
+        },
+      );
     });
     expect(await User.countDocuments({ email_hmac: 'tx-commit' })).toBe(1);
   });
@@ -44,9 +47,12 @@ describe('database', () => {
   it('FND-07 withTransaction rolls back when fn throws', async () => {
     await expect(
       withTransaction(async (session) => {
-        await User.create([{ kind: 'staff', state: 'active', name: 'B', email_hmac: 'tx-abort' }], {
-          session,
-        });
+        await User.create(
+          [{ kind: 'staff', state: 'active', full_name: 'B', email_hmac: 'tx-abort' }],
+          {
+            session,
+          },
+        );
         throw new Error('boom');
       }),
     ).rejects.toThrow('boom');
@@ -57,9 +63,12 @@ describe('database', () => {
     let runs = 0;
     await withTransaction(async (session) => {
       runs += 1;
-      await User.create([{ kind: 'staff', state: 'active', name: 'C', email_hmac: 'tx-retry' }], {
-        session,
-      });
+      await User.create(
+        [{ kind: 'staff', state: 'active', full_name: 'C', email_hmac: 'tx-retry' }],
+        {
+          session,
+        },
+      );
       if (runs === 1) {
         const err = new MongoServerError({ message: 'write conflict' });
         err.addErrorLabel('TransientTransactionError');

@@ -10,6 +10,13 @@ export class AppError extends Error {
   }
 }
 
+/** 429 with a Retry-After header (the error middleware sets it from `retryAfter`, in seconds). */
+export function rateLimited(retryAfterSeconds, message = 'Too many requests. Try again later.') {
+  const err = new AppError(429, 'RATE_LIMITED', message);
+  err.retryAfter = Math.max(1, Math.ceil(retryAfterSeconds));
+  return err;
+}
+
 export const notFound = (message = 'Not found.') =>
   new AppError(ERROR_CODES.NOT_FOUND.status, ERROR_CODES.NOT_FOUND.code, message);
 
@@ -21,6 +28,7 @@ export function errorMiddleware(err, req, res, _next) {
   if (err instanceof AppError) {
     const error = { code: err.code, message: err.message };
     if (err.fields) error.fields = err.fields;
+    if (err.retryAfter) res.set('Retry-After', String(err.retryAfter));
     return res.status(err.status).json({ error });
   }
   if (err?.type === 'entity.too.large') {

@@ -10,6 +10,13 @@ export const ERROR_CODES = Object.freeze({
   CONFLICT: { code: 'CONFLICT', status: 409 },
   RATE_LIMITED: { code: 'RATE_LIMITED', status: 429 },
   INTERNAL: { code: 'INTERNAL', status: 500 },
+  EMAIL_DOMAIN_NOT_ALLOWED: { code: 'EMAIL_DOMAIN_NOT_ALLOWED', status: 400 },
+  INVALID_CREDENTIALS: { code: 'INVALID_CREDENTIALS', status: 401 },
+  ACCOUNT_DISABLED: { code: 'ACCOUNT_DISABLED', status: 403 },
+  CAPTCHA_REQUIRED: { code: 'CAPTCHA_REQUIRED', status: 403 },
+  TOKEN_INVALID: { code: 'TOKEN_INVALID', status: 400 },
+  CODE_INVALID: { code: 'CODE_INVALID', status: 400 },
+  LAST_DOMAIN: { code: 'LAST_DOMAIN', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -23,3 +30,10 @@ export const ALREADY_DECIDED = 'ALREADY_DECIDED';
 export const CONFLICT = 'CONFLICT';
 export const RATE_LIMITED = 'RATE_LIMITED';
 export const INTERNAL = 'INTERNAL';
+export const EMAIL_DOMAIN_NOT_ALLOWED = 'EMAIL_DOMAIN_NOT_ALLOWED';
+export const INVALID_CREDENTIALS = 'INVALID_CREDENTIALS';
+export const ACCOUNT_DISABLED = 'ACCOUNT_DISABLED';
+export const CAPTCHA_REQUIRED = 'CAPTCHA_REQUIRED';
+export const TOKEN_INVALID = 'TOKEN_INVALID';
+export const CODE_INVALID = 'CODE_INVALID';
+export const LAST_DOMAIN = 'LAST_DOMAIN';

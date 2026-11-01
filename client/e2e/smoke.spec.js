@@ -29,6 +29,22 @@ test('FND-31 the skip link is the first focusable element', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
 });
 
+test('FND-33 a service worker is registered and API responses are never cached', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.evaluate(() => fetch('/api/health').catch(() => null));
+  const cachedApi = await page.evaluate(async () => {
+    const urls = [];
+    for (const name of await caches.keys()) {
+      for (const req of await (await caches.open(name)).keys()) urls.push(req.url);
+    }
+    return urls.filter((u) => u.includes('/api/') || u.includes('/socket.io/'));
+  });
+  expect(cachedApi).toEqual([]);
+});
+
 test('FND-33 the app serves a web manifest', async ({ page }) => {
   const res = await page.request.get('/manifest.webmanifest');
   expect(res.ok()).toBe(true);

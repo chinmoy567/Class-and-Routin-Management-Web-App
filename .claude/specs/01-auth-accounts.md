@@ -1,6 +1,6 @@
 # 01: Auth and accounts
 
-R1 · Status: Draft · Depends on: 00 · PRD: Users & roles, Account states and access, Authentication & onboarding, Non-functional requirements (Security, Stored data) · Diagrams: 17-seq-auth-login, 19-state-account
+R1 · Status: Done · Depends on: 00 · PRD: Users & roles, Account states and access, Authentication & onboarding, Non-functional requirements (Security, Stored data) · Diagrams: 17-seq-auth-login, 19-state-account
 
 ## Goal
 
@@ -73,8 +73,9 @@ People can create a student or teacher account with a university email, verify i
 
 - `user`: kind, state, full_name, `email_enc`, `email_hmac` (unique), `email_verified_at`, `email_bouncing` (bool), `phone_enc?`, `photo_file_id?`, `password_hash`, `password_changed_at`, `totp_secret_enc?`, `totp_enabled_at?`, `department_id?` (teacher's registration department), `requested_short_code?` (teacher), `created_at`, `updated_at`. `email_enc`, `phone_enc`, `password_hash` and `totp_secret_enc` are `select: false`.
 - `one_time_token`: user_id, purpose (`verify_email` | `reset_password` | `second_step` | `change_email`), `token_hash` (unique), `payload?` (for example the new email for `change_email`), expires_at (TTL index), used_at?.
-- `login_throttle`: key (`acct:<user_id>` or `ip:<ip>`), fails, first_fail_at, next_allowed_at. TTL index 1 day after the last update.
-- `allowed_email_domain`: domain (unique, lower-case).
+- `login_throttle`: key (`acct:<email_hmac>` or `ip:<ip>`; the account key uses the email HMAC so an unknown email throttles like a known one), fails, first_fail_at, next_allowed_at, hour_fails, hour_started_at, notified_at?, updated_at. TTL index 1 day after the last update.
+- `captcha_challenge`: prefix, bits, expires_at (TTL), used_at?. A self-hosted proof-of-work challenge, single use.
+- `allowed_domain` (organisation module): domain (unique, lower-case), plus a one-document `allowed_domain_guard` that serialises removals so the last domain can never be removed.
 - `sessions` (connect-mongo) with `user_id` stored so all of an account's sessions can be found (AUTH-23).
 
 ## API
@@ -82,10 +83,11 @@ People can create a student or teacher account with a university email, verify i
 | Method and path | Who | Body | Success | Errors |
 |---|---|---|---|---|
 | `GET /api/auth/csrf` | anyone | none | `{ token }` | none |
+| `GET /api/auth/captcha` | anyone | none | `{ id, prefix, bits }` | `RATE_LIMITED` |
 | `POST /api/auth/signup` | anyone | kind, full_name, email, password, department_id?, short_code? | 202 "check your email" | `VALIDATION_ERROR`, `EMAIL_DOMAIN_NOT_ALLOWED`, `RATE_LIMITED` |
 | `POST /api/auth/verify` | anyone | token | 200 `{ next }` | `TOKEN_INVALID` (expired or used) |
 | `POST /api/auth/verify/resend` | anyone | email | 202 | `RATE_LIMITED` |
-| `POST /api/auth/login` | anyone | email, password, captcha? | 200 `{ next }` | `INVALID_CREDENTIALS`, `ACCOUNT_DISABLED`, `CAPTCHA_REQUIRED`, `RATE_LIMITED` |
+| `POST /api/auth/login` | anyone | email, password, captcha? (`{ id, solution }`) | 200 `{ next }` | `INVALID_CREDENTIALS`, `ACCOUNT_DISABLED`, `CAPTCHA_REQUIRED` (403), `RATE_LIMITED` |
 | `POST /api/auth/second-step` | half-signed-in admin | code | 200 `{ next }` | `CODE_INVALID`, `RATE_LIMITED` |
 | `POST /api/auth/second-step/email-code` | half-signed-in admin | none | 202 | `RATE_LIMITED` |
 | `POST /api/auth/totp/setup` | half-signed-in admin with no TOTP | none | `{ otpauth_url, secret }` | none |
@@ -124,20 +126,22 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 ## Decisions and open questions
 
 - **Decision:** sign-up answers the same way whether or not the email exists (AUTH-08). The PRD says the HMAC is used "to check that an address is not already taken". This spec does that check silently, to avoid revealing who has an account.
-- **Decision:** the TOTP library (for example `otplib`) and QR rendering (for example `qrcode`) aren't in `tech-stack.md`. Both are small and needed for the PRD's authenticator requirement. Confirm before adding.
-- **Open:** CAPTCHA provider (Cloudflare Turnstile, hCaptcha or a self-hosted puzzle). The PRD requires a CAPTCHA, but `tech-stack.md` doesn't name one, and a hosted provider sends data to a third party.
+- **Decision (confirmed):** TOTP (RFC 6238) is written in-house on `node:crypto`. Only the `qrcode` package is added, in `client/`, to draw the setup QR. The server returns `{ otpauth_url, secret }`.
+- **Decision (confirmed):** CAPTCHA is self-hosted: a proof-of-work challenge (`GET /api/auth/captcha`, solved in the browser, single use, 5 minutes). No third party. The verifier is one function, so Turnstile can replace it later.
+- **Decision:** the foundation's `user.name` becomes `full_name`; its `reset_token_*` fields are replaced by `one_time_token`. Department existence at sign-up goes through `organisation.isActiveDepartment`, a stub until spec 03. `next` uses a hook (`registerOpenJoinRequestCheck`) for "open join request" until spec 10.
+- **Decision:** resend and reset limits (AUTH-11, AUTH-25) are keyed by the email HMAC, so a `429` never reveals whether an address is registered.
 - **Open (PRD Open question 1):** whether university mail accepts the sender. This blocks launch, not development.
 
 ## Tasks
 
-- [ ] `user`, `one_time_token`, `login_throttle`, `allowed_email_domain` models and indexes
-- [ ] Shared Zod schemas: signup, login, password rules
-- [ ] Sign-up + verification + resend (with the `already_registered` path)
-- [ ] Sign-in with throttling, CAPTCHA hook, failed-login email
-- [ ] Session config (rolling 14 days / admin 30 min idle + 12 h absolute), session-per-user index, "end all sessions" helper
-- [ ] Second step: TOTP setup and confirm, code check, email-code fallback, lockout after 5 wrong codes
-- [ ] Forgot and reset password, change password
-- [ ] Allowed domains admin endpoints + audit
-- [ ] `/api/auth/me` with `next`
-- [ ] Client screens and the route guard
-- [ ] Tests for every AUTH requirement
+- [x] `user`, `one_time_token`, `login_throttle`, `allowed_email_domain` models and indexes
+- [x] Shared Zod schemas: signup, login, password rules
+- [x] Sign-up + verification + resend (with the `already_registered` path)
+- [x] Sign-in with throttling, CAPTCHA hook, failed-login email
+- [x] Session config (rolling 14 days / admin 30 min idle + 12 h absolute), session-per-user index, "end all sessions" helper
+- [x] Second step: TOTP setup and confirm, code check, email-code fallback, lockout after 5 wrong codes
+- [x] Forgot and reset password, change password
+- [x] Allowed domains admin endpoints + audit
+- [x] `/api/auth/me` with `next`
+- [x] Client screens and the route guard
+- [x] Tests for every AUTH requirement

@@ -3,6 +3,30 @@
     "test": {
       "subject": "Test email",
       "body": "This is a test email for {name}."
+    },
+    "verify_email": {
+      "subject": "Confirm your email address",
+      "body": "Hello {name},\n\nOpen this link to confirm your email address. It works once and lasts 24 hours:\n{link}\n\nIf you did not sign up, ignore this email."
+    },
+    "already_registered": {
+      "subject": "You already have an account",
+      "body": "Hello {name},\n\nSomeone used this email address to sign up, but you already have an account. Sign in here:\n{signin_link}\n\nForgot your password? Reset it here:\n{reset_link}\n\nIf this was not you, you can ignore this email."
+    },
+    "reset_password": {
+      "subject": "Reset your password",
+      "body": "Hello {name},\n\nOpen this link to choose a new password. It works once and lasts 1 hour:\n{link}\n\nIf you did not ask for this, ignore this email."
+    },
+    "password_changed": {
+      "subject": "Your password was changed",
+      "body": "Hello {name},\n\nYour password was just changed and you were signed out everywhere else. If this was not you, reset your password now:\n{reset_link}"
+    },
+    "failed_logins": {
+      "subject": "Many failed sign-in attempts on your account",
+      "body": "Hello {name},\n\nThere were many failed attempts to sign in to your account in the last hour. Your account is not locked. If this was not you, consider changing your password:\n{reset_link}"
+    },
+    "second_step_code": {
+      "subject": "Your sign-in code",
+      "body": "Hello {name},\n\nYour sign-in code is {code}. It works once and lasts 10 minutes. If you did not try to sign in, change your password."
     }
   }
 }

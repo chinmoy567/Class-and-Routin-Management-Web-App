@@ -8,24 +8,37 @@ import { requestLogger } from './lib/logger.js';
 import { errorMiddleware, notFoundHandler, AppError } from './lib/errors.js';
 import { csrfProtection } from './lib/csrf.js';
 import { MongoRateLimitStore } from './lib/rateLimitStore.js';
-import { authRouter, loadUser } from './modules/auth/index.js';
+import {
+  authRouter,
+  meRouter,
+  loadUser,
+  requireAuth,
+  enforceSessionLifetime,
+  secondStepGate,
+} from './modules/auth/index.js';
+import { organisationRouter } from './modules/organisation/index.js';
 
+// AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
+// queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
+// age is set per request by enforceSessionLifetime (14 days, or 30 minutes for an admin).
 export function createSessionMiddleware(config) {
   return session({
     name: 'sid',
     secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    rolling: true,
     store: MongoStore.create({
       client: mongoose.connection.getClient(),
       dbName: mongoose.connection.name,
       collectionName: 'sessions',
+      stringify: false,
     }),
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
       secure: config.NODE_ENV === 'production',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      maxAge: 1000 * 60 * 60 * 24 * 14,
     },
   });
 }
@@ -65,7 +78,9 @@ export function createApp(
   app.use(sessionMiddleware ?? createSessionMiddleware(config));
   if (mountBefore) mountBefore(app); // test-only hook, runs before CSRF
   app.use(csrfProtection);
-  app.use(loadUser);
+  app.use(loadUser); // AUTH-24: state and roles are read fresh on every request
+  app.use(enforceSessionLifetime);
+  app.use(secondStepGate);
 
   app.get('/api/health', async (_req, res) => {
     try {
@@ -77,6 +92,8 @@ export function createApp(
   });
 
   app.use('/api/auth', authRouter);
+  app.use('/api/me', meRouter);
+  app.use('/api/admin', requireAuth, organisationRouter);
   if (mountApi) mountApi(app);
 
   app.use(notFoundHandler);

@@ -1,14 +1,15 @@
-import { AllowedDomain } from './organisation.model.js';
+import { registerPolicies } from '../../policy/index.js';
+import { organisationPolicy } from './organisation.policy.js';
 
-/** Idempotently allow an email domain for sign-up. */
-export async function addAllowedDomain(domain, { session } = {}) {
-  await AllowedDomain.updateOne(
-    { domain: domain.toLowerCase() },
-    { $setOnInsert: { domain: domain.toLowerCase() } },
-    { upsert: true, session },
-  );
-}
+registerPolicies(organisationPolicy);
 
-export async function isDomainAllowed(domain) {
-  return Boolean(await AllowedDomain.exists({ domain: domain.toLowerCase() }));
-}
+export { organisationRouter } from './organisation.routes.js';
+export {
+  addAllowedDomain,
+  isDomainAllowed,
+  isActiveDepartment,
+  setDepartmentLookup,
+  listDomains,
+  addDomain,
+  removeDomain,
+} from './organisation.service.js';

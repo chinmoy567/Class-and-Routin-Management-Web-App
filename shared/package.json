@@ -6,7 +6,8 @@
   "exports": {
     ".": "./index.js",
     "./errors": "./errors.js",
-    "./enums": "./enums.js"
+    "./enums": "./enums.js",
+    "./schemas": "./schemas/index.js"
   },
   "scripts": {
     "test": "vitest run",
@@ -16,6 +17,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
     "vitest": "^2.1.0"
   }
 }

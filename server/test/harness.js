@@ -6,6 +6,10 @@ import { syncAllIndexes } from '../src/lib/db.js';
 import { clock } from '../src/lib/time.js';
 import { createApp, createSessionMiddleware } from '../src/app.js';
 import { MongoRateLimitStore } from '../src/lib/rateLimitStore.js';
+import { startJobs, stopJobs, getAgenda } from '../src/lib/jobs.js';
+import { ensureSessionIndex } from '../src/modules/auth/index.js';
+import { solves } from '../src/modules/auth/captcha.service.js';
+import { sendEmailJob, getOutbox, clearOutbox } from '../src/modules/notifications/index.js';
 // Register every model so syncAllIndexes() builds their indexes.
 import '../src/modules/auth/auth.model.js';
 import '../src/modules/organisation/organisation.model.js';
@@ -17,6 +21,38 @@ export async function connectTestDb() {
   await mongoose.connect(process.env.TEST_MONGO_URI, { dbName });
   await syncAllIndexes();
   await new MongoRateLimitStore().ensureIndexes();
+  await ensureSessionIndex();
+}
+
+/**
+ * Mail in tests: the queue is started but never polls, and `drainMail()` runs the queued
+ * `email.send` jobs on the spot and returns the outbox. No waiting, no timing.
+ */
+export async function startTestMail() {
+  const url = process.env.TEST_MONGO_URI.replace('/?', `/${mongoose.connection.name}?`);
+  await startJobs({ url, processEvery: '1 hour', registrars: [] });
+}
+export const stopTestMail = () => stopJobs();
+
+export async function drainMail() {
+  const jobs = await getAgenda().jobs({ name: 'email.send' });
+  for (const job of jobs) {
+    await sendEmailJob(job);
+    await job.remove();
+  }
+  return [...getOutbox()];
+}
+export { clearOutbox };
+
+/** The token in the first link of an email body, for tests that follow a link. */
+export const tokenFrom = (mail) =>
+  new URL(mail.text.match(/https?:\/\/\S+/)[0]).searchParams.get('token');
+
+/** Sign in through the real route, on a fresh agent that already carries a CSRF token. */
+export async function signIn(app, email, password, extra = {}) {
+  const agent = await loginAs(null, app);
+  const res = await agent.post('/api/auth/login').send({ email, password, ...extra });
+  return { agent, res };
 }
 
 export async function disconnectTestDb() {
@@ -64,4 +100,13 @@ export async function loginAs(user, app = buildTestApp()) {
   }
   agent.csrfToken = token;
   return agent;
+}
+
+/** Solve a proof-of-work CAPTCHA challenge the way the browser does. */
+export async function solveCaptcha(agent) {
+  const { body } = await agent.get('/api/auth/captcha');
+  const { id, prefix, bits } = body.data;
+  for (let n = 0; ; n++) {
+    if (solves(prefix, String(n), bits)) return { id, solution: String(n) };
+  }
 }

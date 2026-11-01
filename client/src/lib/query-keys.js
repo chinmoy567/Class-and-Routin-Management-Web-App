@@ -2,4 +2,5 @@
 export const qk = {
   health: () => ['health'],
   me: () => ['me'],
+  departments: () => ['departments'],
 };

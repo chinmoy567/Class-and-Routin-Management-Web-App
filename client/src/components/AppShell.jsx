@@ -1,10 +1,13 @@
 import { NavLink, Outlet } from 'react-router';
-import { Home } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 // Feature specs add their entries here. Each one needs a translation key and an icon.
-const NAV_ITEMS = [{ to: '/', labelKey: 'nav.home', icon: Home, end: true }];
+const NAV_ITEMS = [
+  { to: '/', labelKey: 'nav.home', icon: Home, end: true },
+  { to: '/account/password', labelKey: 'nav.account', icon: User },
+];
 
 /** Mobile first: a bottom tab bar on phones, a side rail from `md` up. */
 export function AppShell() {

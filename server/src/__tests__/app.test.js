@@ -84,15 +84,22 @@ describe('errors and validation', () => {
   it('FND-11 error codes in shared/errors.js cover the spec table', () => {
     expect(Object.keys(ERROR_CODES).sort()).toEqual(
       [
+        'ACCOUNT_DISABLED',
         'ALREADY_DECIDED',
+        'CAPTCHA_REQUIRED',
+        'CODE_INVALID',
         'CONFLICT',
         'CSRF_FAILED',
+        'EMAIL_DOMAIN_NOT_ALLOWED',
         'FORBIDDEN',
         'INTERNAL',
+        'INVALID_CREDENTIALS',
+        'LAST_DOMAIN',
         'NOT_FOUND',
         'RATE_LIMITED',
         'SECOND_STEP_REQUIRED',
         'STATE_NOT_ALLOWED',
+        'TOKEN_INVALID',
         'UNAUTHENTICATED',
         'VALIDATION_ERROR',
       ].sort(),

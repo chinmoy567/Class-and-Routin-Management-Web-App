@@ -1,30 +1,23 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppRoutes } from '@/App.jsx';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { screen } from '@testing-library/react';
+import { mockApi, meResponse, renderApp } from '@/test/mockApi.jsx';
 
-const renderAt = (path) =>
-  render(
-    <QueryClientProvider client={new QueryClient()}>
-      <MemoryRouter initialEntries={[path]}>
-        <AppRoutes />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
+afterEach(() => vi.unstubAllGlobals());
 
 describe('AppShell', () => {
-  it('FND-31 renders the navigation, a skip link and the home page', () => {
-    renderAt('/');
+  it('FND-31 renders the navigation, a skip link and the home page', async () => {
+    mockApi({ 'GET /api/auth/me': meResponse('dashboard') });
+    renderApp('/');
+    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main');
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
   });
 
-  it('FND-31 an unknown route shows the not-found page inside the shell', () => {
-    renderAt('/nope');
-    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  it('FND-31 an unknown route shows the not-found page inside the shell', async () => {
+    mockApi({ 'GET /api/auth/me': meResponse('dashboard') });
+    renderApp('/nope');
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 });

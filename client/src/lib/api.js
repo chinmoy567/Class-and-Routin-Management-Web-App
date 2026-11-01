@@ -1,10 +1,11 @@
 export class ApiError extends Error {
-  constructor(status, code, message, fields) {
+  constructor(status, code, message, fields, retryAfter) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.fields = fields;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -31,7 +32,14 @@ async function parse(res) {
   }
   if (!res.ok) {
     const e = body?.error;
-    throw new ApiError(res.status, e?.code ?? 'INTERNAL', e?.message ?? res.statusText, e?.fields);
+    const retryAfter = Number(res.headers?.get?.('Retry-After')) || undefined;
+    throw new ApiError(
+      res.status,
+      e?.code ?? 'INTERNAL',
+      e?.message ?? res.statusText,
+      e?.fields,
+      retryAfter,
+    );
   }
   return body;
 }
