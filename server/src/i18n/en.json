@@ -48,6 +48,14 @@
       "subject": "Your second step was reset",
       "body": "Hello {name},\n\nA super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again."
     },
+    "teacher_approved": {
+      "subject": "Your teacher account was approved",
+      "body": "Hello {name},\n\nYour department admin approved your account. Sign in here:\n{link}"
+    },
+    "teacher_rejected": {
+      "subject": "Your teacher registration was not approved",
+      "body": "Hello {name},\n\nYour department admin did not approve your registration. Reason:\n{reason}\n\nSign in to correct your department or short code and apply again:\n{link}"
+    },
     "no_active_admin": {
       "subject": "A department has no active admin",
       "body": "Hello,\n\nThe department {department} has no active department admin. You can act for it, or appoint a new admin here:\n{link}"

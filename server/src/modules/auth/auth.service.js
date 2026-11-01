@@ -28,6 +28,12 @@ const HOUR = 60 * 60 * 1000;
 const VERIFY_TTL_MS = 24 * HOUR; // AUTH-07
 const RESET_TTL_MS = HOUR; // AUTH-25
 
+const verifiedHooks = [];
+/** Spec 06: runs inside the verification transaction when a teacher's email is verified. */
+export function registerTeacherVerifiedHook(fn) {
+  verifiedHooks.push(fn);
+}
+
 const link = (path, token) => `${getConfig().APP_URL}${path}?token=${token}`;
 
 /** FND-16: the per-request user object. Returns null if the user can't be loaded. */
@@ -159,6 +165,7 @@ export async function verifyEmail(token) {
       user.state = user.kind === 'teacher' ? 'pending' : 'claim_pending';
       user.email_verified_at = clock.now();
       await user.save({ session });
+      if (user.kind === 'teacher') for (const hook of verifiedHooks) await hook(user, session);
     }
     return { next: await nextScreen({ user }) };
   });

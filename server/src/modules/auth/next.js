@@ -10,6 +10,13 @@ export function registerOpenJoinRequestCheck(fn) {
   hasOpenJoinRequest = fn;
 }
 
+let pendingScreen = async () => 'waiting-approval';
+
+/** Spec 06 registers this: a `pending` teacher whose registration was rejected sees another screen. */
+export function registerPendingScreen(fn) {
+  pendingScreen = fn;
+}
+
 export async function nextScreen({ user, totpEnabled = false, secondStepPending = false }) {
   if (secondStepPending) return totpEnabled ? 'second-step' : 'setup-totp';
   switch (user.state) {
@@ -18,7 +25,7 @@ export async function nextScreen({ user, totpEnabled = false, secondStepPending 
     case 'claim_pending':
       return (await hasOpenJoinRequest(user._id)) ? 'waiting-approval' : 'join-form';
     case 'pending':
-      return 'waiting-approval';
+      return pendingScreen(user);
     case 'unconfirmed':
       return 'semester-update';
     default:

@@ -23,12 +23,18 @@ export { meProfileRouter, usersRouter, adminUsersRouter } from './profile.routes
 export { registerProfileExtras } from './profile.service.js';
 export { defineJobs as defineAuthJobs } from './photo.jobs.js';
 export { loadUser, requireAuth } from './auth.middleware.js';
-export { loadRequestUser, getEmailAddress, seedSuperAdmin, toPublicUser } from './auth.service.js';
+export {
+  registerTeacherVerifiedHook,
+  loadRequestUser,
+  getEmailAddress,
+  seedSuperAdmin,
+  toPublicUser,
+} from './auth.service.js';
 export {
   endAllSessions,
   ensureSessionIndex,
   enforceSessionLifetime,
   secondStepGate,
 } from './sessions.js';
-export { registerOpenJoinRequestCheck } from './next.js';
+export { registerOpenJoinRequestCheck, registerPendingScreen } from './next.js';
 export { User, UserRole } from './auth.model.js';

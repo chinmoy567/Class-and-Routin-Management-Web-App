@@ -24,6 +24,9 @@ import { DepartmentsPage } from '@/routes/admin/DepartmentsPage.jsx';
 import { AdminsPage } from '@/routes/admin/AdminsPage.jsx';
 import { SemestersPage } from '@/routes/admin/SemestersPage.jsx';
 import { ClassroomsPage } from '@/routes/admin/ClassroomsPage.jsx';
+import { TeacherRegistrationsPage } from '@/routes/admin/TeacherRegistrationsPage.jsx';
+import { TeachersPage } from '@/routes/admin/TeachersPage.jsx';
+import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
 export const queryClient = new QueryClient({
@@ -50,6 +53,7 @@ export function AppRoutes() {
           <Route path="/setup-totp" element={<TotpSetupPage />} />
           <Route path="/join" element={<HoldingPage screen="join" />} />
           <Route path="/waiting-approval" element={<HoldingPage screen="waiting" />} />
+          <Route path="/teacher-rejected" element={<TeacherRejectedPage />} />
           <Route path="/semester-update" element={<HoldingPage screen="update" />} />
         </Route>
       </Route>
@@ -63,6 +67,8 @@ export function AppRoutes() {
           <Route path="/account/password" element={<ChangePasswordPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
+            <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />
+            <Route path="/admin/teachers" element={<TeachersPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />

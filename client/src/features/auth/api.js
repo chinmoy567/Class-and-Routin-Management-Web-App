@@ -8,6 +8,7 @@ export const NEXT_PATHS = {
   'setup-totp': '/setup-totp',
   'join-form': '/join',
   'waiting-approval': '/waiting-approval',
+  'teacher-rejected': '/teacher-rejected',
   'semester-update': '/semester-update',
   dashboard: '/',
 };

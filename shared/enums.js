@@ -37,6 +37,7 @@ export const NEXT_SCREENS = Object.freeze([
   'setup-totp',
   'join-form',
   'waiting-approval',
+  'teacher-rejected',
   'semester-update',
   'dashboard',
 ]);

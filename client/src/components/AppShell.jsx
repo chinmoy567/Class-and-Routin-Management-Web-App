@@ -3,6 +3,8 @@ import {
   Building2,
   CalendarRange,
   DoorOpen,
+  GraduationCap,
+  UserCheck,
   Home,
   ShieldCheck,
   User,
@@ -21,7 +23,11 @@ const NAV_ITEMS = [
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];
 
-const ADMIN_ITEMS = [{ to: '/admin/classrooms', labelKey: 'nav.adminClassrooms', icon: DoorOpen }];
+const ADMIN_ITEMS = [
+  { to: '/admin/classrooms', labelKey: 'nav.adminClassrooms', icon: DoorOpen },
+  { to: '/admin/teacher-registrations', labelKey: 'nav.adminRegistrations', icon: UserCheck },
+  { to: '/admin/teachers', labelKey: 'nav.adminTeachers', icon: GraduationCap },
+];
 
 const SUPER_ADMIN_ITEMS = [
   { to: '/admin/departments', labelKey: 'nav.adminDepartments', icon: Building2 },

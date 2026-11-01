@@ -13,7 +13,9 @@
     "adminDepartments": "Departments",
     "adminAdmins": "Admins",
     "adminSemesters": "Semesters",
-    "adminClassrooms": "Classrooms"
+    "adminClassrooms": "Classrooms",
+    "adminRegistrations": "Teacher registrations",
+    "adminTeachers": "Teachers"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -104,6 +106,71 @@
     "signOut": "Sign out",
     "cancel": "Cancel",
     "working": "Please wait…"
+  },
+  "teachers": {
+    "department": "Department",
+    "cancel": "Cancel",
+    "rejected": {
+      "title": "Your registration was not approved",
+      "reasonLabel": "Reason from your department admin",
+      "intro": "Correct your department or short code below and apply again.",
+      "shortCode": "Short code",
+      "shortCodeHint": "1 to 10 letters, as in the routine sheet.",
+      "apply": "Apply again",
+      "fieldError": {
+        "department_id": "Choose a department from the list.",
+        "short_code": "Use 1 to 10 letters."
+      }
+    },
+    "registrations": {
+      "title": "Teacher registrations",
+      "empty": "No registrations are waiting.",
+      "email": "Email",
+      "requestedCode": "Requested short code",
+      "date": "Date",
+      "earlier": "Earlier rejections",
+      "earlierItem": "{code}: {reason}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "linkTo": "Link to record",
+      "linkAuto": "Match the requested short code",
+      "reasonLabel": "Reason for rejecting",
+      "reasonHint": "5 to 500 characters. The teacher will read it.",
+      "confirmReject": "Reject registration",
+      "fieldError": { "reason": "Enter 5 to 500 characters." }
+    },
+    "records": {
+      "title": "Teachers",
+      "empty": "No teacher records yet.",
+      "add": "Add teacher",
+      "create": "Add",
+      "shortCode": "Short code",
+      "fullName": "Full name",
+      "linked": "Linked to {name}",
+      "notLinked": "Not linked",
+      "link": "Link account",
+      "unlink": "Unlink",
+      "accountLabel": "Teacher account",
+      "choose": "Choose an account",
+      "saveLink": "Link",
+      "suspend": "Suspend",
+      "remove": "Remove",
+      "reactivate": "Reactivate",
+      "reasonLabel": "Reason",
+      "reasonHint": "5 to 500 characters.",
+      "confirmSuspend": "Suspend {name}? They cannot sign in until you reactivate them.",
+      "confirmRemove": "Remove {name}? Their history is kept and you can reactivate them later.",
+      "state": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "deactivated": "Removed"
+      },
+      "fieldError": {
+        "short_code": "Use 1 to 10 letters. TBA is reserved.",
+        "full_name": "Enter a name of 2 to 100 characters.",
+        "reason": "Enter 5 to 500 characters."
+      }
+    }
   },
   "errors": {
     "VALIDATION_ERROR": "Some details are not valid. Please check and try again.",

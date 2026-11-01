@@ -38,6 +38,8 @@ const templates = {
   admin_password_reset: simple('admin_password_reset'),
   admin_second_step_reset: simple('admin_second_step_reset'),
   no_active_admin: simple('no_active_admin'),
+  teacher_approved: simple('teacher_approved'),
+  teacher_rejected: simple('teacher_rejected'),
 };
 
 export function renderTemplate(name, data = {}) {

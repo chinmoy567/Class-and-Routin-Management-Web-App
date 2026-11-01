@@ -12,5 +12,10 @@ export const qk = {
   rooms: () => ['rooms'],
   adminRoomsAll: () => ['admin', 'rooms'],
   adminRooms: (departmentId) => ['admin', 'rooms', departmentId],
+  teacherRegistrations: () => ['admin', 'teacher-registrations'],
+  myTeacherRegistration: () => ['me', 'teacher-registration'],
+  teachersAll: () => ['admin', 'teachers'],
+  teachers: (departmentId) => ['admin', 'teachers', departmentId],
+  teacherAccounts: (departmentId) => ['admin', 'teachers', 'accounts', departmentId],
   userSearch: (q) => ['admin', 'user-search', q],
 };
