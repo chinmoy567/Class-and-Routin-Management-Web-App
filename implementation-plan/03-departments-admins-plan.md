@@ -134,3 +134,11 @@ Mapping: checklist 1–14 ↔ the test IDs above; 15–16 ↔ the cross-scope an
 ## Out of scope
 
 Admin dashboard screen and the "Departments without an active admin" card (spec 18, only the data function is exported), deactivating/suspending users (specs 06/18, they just call the coverage check later), the audit log viewer, rooms/teachers/sections endpoints for DEP-14's room example (specs 05/06/04/07), Bangla translations.
+
+## Departures from the plan (recorded during implementation)
+
+- **Coverage code lives in `auth`, not `organisation`** (`adminRoles.service.js`, `adminRoles.jobs.js`): it needs `UserRole` and the mail queue, and `organisation` must not import `auth` (no cycle). `organisation` exports `listDepartmentsForCoverage`, `claimAdminAlert`, `clearAdminAlert`.
+- **Partial unique index uses `ended_at: null`.** MongoDB rejects `$exists: false` in a partial index, so `ended_at` defaults to `null` and the filter is `{ ended_at: { $type: 'null' } }`. Queries use `ended_at: null`.
+- **Job** `admin.coverage_check` is scheduled hourly in `server.js` and also runs straight after every role change.
+- **Existing tests updated**: sign-up/verify tests now create a real department (the `setDepartmentLookup` stub is gone); the error-code list test includes the four new codes.
+- **Client**: no dialog component exists in `components/ui`, so the grant flow is an inline panel and confirmations use `window.confirm`.

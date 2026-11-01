@@ -8,6 +8,12 @@ export function useMe() {
   return useQuery({ queryKey: qk.me(), queryFn: authApi.fetchMe, retry: false, staleTime: 15_000 });
 }
 
+/** True when the signed-in person holds the super admin role (the server still enforces it). */
+export function useIsSuperAdmin() {
+  const { data } = useMe();
+  return (data?.roles ?? []).some((r) => r.role === 'super_admin');
+}
+
 export function useDepartments(enabled) {
   return useQuery({
     queryKey: qk.departments(),

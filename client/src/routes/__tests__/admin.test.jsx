@@ -42,7 +42,7 @@ describe('admin screens (spec 03)', () => {
     await userEvent.type(screen.getByLabelText('Code'), 'cse');
     await userEvent.type(screen.getByLabelText('Name'), 'Computer Science');
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('conflicts');
+    expect(await screen.findByText(/conflicts with something/)).toBeInTheDocument();
     expect(
       calls.find((c) => c.method === 'POST' && c.url === '/api/admin/departments').body,
     ).toEqual({

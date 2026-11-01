@@ -103,12 +103,15 @@ export function DepartmentsPage() {
         <p>{t('admin.departments.empty')}</p>
       ) : (
         <ul className="divide-y rounded-md border">
-          {data.map((d) =>
-            mode === d.id ? (
-              <li key={d.id} className="p-3">
-                <DepartmentForm editing={d} onDone={() => setMode(null)} />
-              </li>
-            ) : (
+          {data.map((d) => {
+            if (mode === d.id) {
+              return (
+                <li key={d.id} className="p-3">
+                  <DepartmentForm editing={d} onDone={() => setMode(null)} />
+                </li>
+              );
+            }
+            return (
               <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                 <div>
                   <p className="font-medium">
@@ -129,8 +132,8 @@ export function DepartmentsPage() {
                   </div>
                 )}
               </li>
-            ),
-          )}
+            );
+          })}
         </ul>
       )}
     </section>

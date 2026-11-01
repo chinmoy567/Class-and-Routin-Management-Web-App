@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router';
 import { Building2, Home, ShieldCheck, User, UserRound } from 'lucide-react';
-import { useMe } from '@/features/auth/hooks.js';
+import { useIsSuperAdmin } from '@/features/auth/hooks.js';
 import { EmailActionBanner } from '@/features/profile/components/EmailActionBanner.jsx';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -19,8 +19,7 @@ const SUPER_ADMIN_ITEMS = [
 
 /** Mobile first: a bottom tab bar on phones, a side rail from `md` up. */
 export function AppShell() {
-  const { data: me } = useMe();
-  const isSuper = (me?.roles ?? []).some((r) => r.role === 'super_admin');
+  const isSuper = useIsSuperAdmin();
   const items = isSuper ? [...NAV_ITEMS, ...SUPER_ADMIN_ITEMS] : NAV_ITEMS;
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">

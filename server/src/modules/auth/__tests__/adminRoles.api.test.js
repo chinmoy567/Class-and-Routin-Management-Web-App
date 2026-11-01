@@ -228,7 +228,7 @@ describe('remove admin roles (DEP-07, DEP-08, DEP-09)', () => {
 
   it('DEP-07 a deactivated super admin does not count towards the minimum', async () => {
     const live = await superAdmin();
-    const dead = await superAdmin({ state: 'deactivated' });
+    await superAdmin({ state: 'deactivated' });
     const liveRole = await UserRole.findOne({ user_id: live._id });
     const other = await superAdmin();
     await expect(removeAdminRole(other, String(liveRole._id))).resolves.toBeUndefined();
