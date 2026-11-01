@@ -4,3 +4,9 @@ dev-dist
 coverage
 DOCUMENTS
 package-lock.json
+
+*.md
+.claude
+specs
+implementation-plan
+.github
