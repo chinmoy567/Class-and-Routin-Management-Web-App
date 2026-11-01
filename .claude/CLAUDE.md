@@ -7,6 +7,7 @@ Class & Routine Management is a web app for one university (BAIUST). Teachers an
 - **What to build:** `DOCUMENTS/Class and Routine Management - PRD.md`. Read the relevant section before building any feature. Every acceptance criterion in it must become an automated test.
 - **What to build it with:** `DOCUMENTS/tech-stack.md`. If it conflicts with the PRD, `tech-stack.md` wins.
 - **Diagrams:** `DOCUMENTS/svg/` (Mermaid source in `DOCUMENTS/src/`). Check the state, sequence and ER diagrams before touching onboarding, booking, import or rollover.
+- **Implementation plans:** `implementation-plan/<spec>-plan.md` at the repo root, one file per spec, the only plan folder. Never put plans under `.claude/`.
 - **Open questions:** the PRD's "Open questions" section. Don't build anything an open question blocks. Ask instead.
 
 ## Stack (fixed, don't change it)

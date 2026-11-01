@@ -37,7 +37,7 @@ First plan it in plan mode. Write no code until I approve the plan. After I appr
 
 5. **Show me the plan with ExitPlanMode** and wait for my approval. If I ask for changes, revise and show it again.
 
-6. **After I approve, save it** to `implementation-plan/<spec-file-name>-plan.md` (for example `specs/07-routine-import.md` → `implementation-plan/07-routine-import-plan.md`). Create the `implementation-plan/` folder if it doesn't exist. If the file already exists, tell me and ask before overwriting.
+6. **After I approve, save it** to `implementation-plan/<spec-file-name>-plan.md` (for example `specs/07-routine-import.md` → `implementation-plan/07-routine-import-plan.md`). This is the **repo-root** `implementation-plan/` folder, the only place plans live. Never save plans under `.claude/`, and never create a second plan folder. Create the folder if it doesn't exist. If the file already exists, tell me and ask before overwriting.
 
 7. **Implement the plan** right after saving it. Don't wait for another prompt.
    - Follow the plan's build order, step by step, and use the `build-feature` skill workflow.
