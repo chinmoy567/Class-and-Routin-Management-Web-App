@@ -44,7 +44,10 @@ export class MongoRateLimitStore {
   }
 
   async decrement(key) {
-    await this.coll.updateOne({ _id: this.prefix + key, count: { $gt: 0 } }, { $inc: { count: -1 } });
+    await this.coll.updateOne(
+      { _id: this.prefix + key, count: { $gt: 0 } },
+      { $inc: { count: -1 } },
+    );
   }
 
   async resetKey(key) {

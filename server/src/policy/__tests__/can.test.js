@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import mongoose from 'mongoose';
-import { can, assertCan, registerPolicies, clearPolicies, hasRole, isAdminOf, stateIn } from '../index.js';
+import {
+  can,
+  assertCan,
+  registerPolicies,
+  clearPolicies,
+  hasRole,
+  isAdminOf,
+  stateIn,
+} from '../index.js';
 
 const id = () => new mongoose.Types.ObjectId();
 const deptA = id();
@@ -20,7 +28,10 @@ beforeEach(() => {
     'room.decide': (u, { department_id }) => stateIn(u, 'active') && isAdminOf(u, department_id),
     'room_request.create': (u, { section_id }) =>
       stateIn(u, 'active') && hasRole(u, ['cr', 'dcr'], { section_id }),
-    'student.view': { allow: (u, { department_id }) => isAdminOf(u, department_id), hideExistence: true },
+    'student.view': {
+      allow: (u, { department_id }) => isAdminOf(u, department_id),
+      hideExistence: true,
+    },
   });
 });
 

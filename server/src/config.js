@@ -11,9 +11,7 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
   MONGO_URL: nonEmpty,
-  SESSION_SECRET: z
-    .string({ error: 'is required' })
-    .min(16, 'must be at least 16 characters'),
+  SESSION_SECRET: z.string({ error: 'is required' }).min(16, 'must be at least 16 characters'),
   DATA_ENC_KEY: base64Key32,
   EMAIL_HMAC_KEY: nonEmpty,
   FILE_LINK_KEY: nonEmpty,

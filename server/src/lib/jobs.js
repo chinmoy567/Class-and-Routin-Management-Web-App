@@ -16,7 +16,10 @@ export const getAgenda = () => {
  * stays in the collection marked failed (failedAt/failReason) and is logged at error level.
  * Handlers must be idempotent (FND-22).
  */
-export function withRetry(handler, { maxAttempts = MAX_ATTEMPTS, baseDelayMs = BASE_DELAY_MS } = {}) {
+export function withRetry(
+  handler,
+  { maxAttempts = MAX_ATTEMPTS, baseDelayMs = BASE_DELAY_MS } = {},
+) {
   return async (job) => {
     try {
       await handler(job);

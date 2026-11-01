@@ -13,7 +13,16 @@ describe('config', () => {
   });
 
   it('FND-04 each required variable is named when missing', () => {
-    for (const name of ['MONGO_URL', 'SESSION_SECRET', 'EMAIL_HMAC_KEY', 'FILE_LINK_KEY', 'SMTP_HOST', 'MAIL_FROM', 'APP_URL', 'CLAMAV_HOST']) {
+    for (const name of [
+      'MONGO_URL',
+      'SESSION_SECRET',
+      'EMAIL_HMAC_KEY',
+      'FILE_LINK_KEY',
+      'SMTP_HOST',
+      'MAIL_FROM',
+      'APP_URL',
+      'CLAMAV_HOST',
+    ]) {
       const env = valid();
       delete env[name];
       expect(() => loadConfig(env), name).toThrow(new RegExp(name));
@@ -31,7 +40,17 @@ describe('config', () => {
 
   it('FND-05 .env.example lists every required variable', () => {
     const text = fs.readFileSync(new URL('../../../.env.example', import.meta.url), 'utf8');
-    for (const name of ['MONGO_URL', 'SESSION_SECRET', 'DATA_ENC_KEY', 'EMAIL_HMAC_KEY', 'FILE_LINK_KEY', 'SMTP_HOST', 'MAIL_FROM', 'APP_URL', 'CLAMAV_HOST']) {
+    for (const name of [
+      'MONGO_URL',
+      'SESSION_SECRET',
+      'DATA_ENC_KEY',
+      'EMAIL_HMAC_KEY',
+      'FILE_LINK_KEY',
+      'SMTP_HOST',
+      'MAIL_FROM',
+      'APP_URL',
+      'CLAMAV_HOST',
+    ]) {
       expect(text).toContain(`${name}=`);
     }
     const ignore = fs.readFileSync(new URL('../../../.gitignore', import.meta.url), 'utf8');
