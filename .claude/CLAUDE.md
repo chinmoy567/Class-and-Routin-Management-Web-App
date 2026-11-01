@@ -30,11 +30,14 @@ This is a modular monolith. A module talks to another module only through that m
 
 ## Commands
 
-The project is not scaffolded yet. Fill this section in once it is:
+Three npm workspaces (`client/`, `server/`, `shared/`). Run everything from the repo root. Node 24.
 
-- Start MongoDB (replica set): _TBD_
-- Run server / client: _TBD_
-- Test / lint / build: _TBD_
+- Install: `npm install`
+- Start MongoDB (replica set): the server refuses to start without one. Run a local `mongod --replSet rs0` and `rs.initiate()` once, then set `MONGO_URL=mongodb://localhost:27017/crm?replicaSet=rs0` in `server/.env` (copy from `.env.example`). Tests need nothing running: they start their own in-memory replica set.
+- Run server / client: `npm run dev:server` / `npm run dev:client` (the client proxies `/api` and `/socket.io` to port 4000)
+- First super admin: `npm run seed:super-admin -- --email <e> --name <n>`
+- Test / lint / build: `npm test`, `npm run lint`, `npm run build` (each also works per workspace, e.g. `npm test -w @crm/server`). `npm run format:check` for Prettier.
+- Browser tests: `npm run test:e2e -w @crm/client` (Playwright; builds and serves the client; run only when needed)
 
 ## Rules that must never be broken
 
@@ -66,6 +69,7 @@ These come from the PRD. If one of them gets in the way, stop and ask. Don't wor
 - Admins can never read users' private messages.
 
 **Real-time**
+
 - Socket.IO is for chat and "something changed" push events only (`routine.changed`, `booking.changed`, `calendar.changed`, `message.new`, `message.status`). Everything else is REST.
 
 ## Conventions
