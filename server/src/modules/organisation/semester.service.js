@@ -202,3 +202,18 @@ export async function bootstrapCurrent(actor, id) {
     return adminView(updated);
   });
 }
+
+/** Spec 07: one semester as the admin screens see it, or null. */
+export async function getSemester(id) {
+  if (!idOk(id)) return null;
+  const s = await Semester.findById(id).lean();
+  return s ? adminView(s) : null;
+}
+
+/** Spec 07: ids of the semesters whose routine can still change (draft or current). */
+export async function openSemesterIds() {
+  const rows = await Semester.find({ status: { $in: ['draft', 'current'] } })
+    .select('_id')
+    .lean();
+  return rows.map((r) => String(r._id));
+}

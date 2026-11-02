@@ -31,6 +31,8 @@ export { semestersRouter, semestersAdminRouter } from './semester.routes.js';
 export {
   currentSemester,
   draftSemester,
+  getSemester,
+  openSemesterIds,
   registerSemesterUsage,
   resetSemesterUsage,
 } from './semester.service.js';

@@ -239,3 +239,80 @@ export async function profileBlock(user) {
     linked: Boolean(rec),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Spec 07 (routine import)
+// ---------------------------------------------------------------------------------------------
+
+const keyOf = (departmentId, code) => `${departmentId}:${String(code).toUpperCase()}`;
+
+/** IMP-08: `[{ department_id, short_code }]` to a Map of `deptId:CODE` to `{ id, full_name }`. */
+export async function directoryFor(pairs) {
+  const byDept = new Map();
+  for (const p of pairs) {
+    const set = byDept.get(String(p.department_id)) ?? new Set();
+    set.add(String(p.short_code).toUpperCase());
+    byDept.set(String(p.department_id), set);
+  }
+  if (!byDept.size) return new Map();
+  const rows = await Teacher.find({
+    $or: [...byDept].map(([department_id, codes]) => ({
+      department_id,
+      short_code: { $in: [...codes] },
+    })),
+  }).lean();
+  return new Map(
+    rows.map((r) => [
+      keyOf(r.department_id, r.short_code),
+      { id: String(r._id), full_name: r.full_name },
+    ]),
+  );
+}
+
+/** Records by id (department and short code), for overlap checks against saved slots. */
+export const teachersByIds = (ids) =>
+  Teacher.find({ _id: { $in: ids } })
+    .select('department_id short_code user_id')
+    .lean();
+
+/** The linked account ids of some teacher records. */
+export async function linkedUserIds(ids) {
+  const rows = await Teacher.find({ _id: { $in: ids }, user_id: { $type: 'objectId' } })
+    .select('user_id')
+    .lean();
+  return rows.map((r) => String(r.user_id));
+}
+
+/**
+ * IMP-07: on publish, create missing records and update a changed full name. Runs in the
+ * publish transaction. Returns a Map of `deptId:CODE` to the record id.
+ */
+export async function upsertFromImport(entries, { session }) {
+  const ids = new Map();
+  for (const e of entries) {
+    const short_code = String(e.short_code).toUpperCase();
+    const existing = await Teacher.findOne({ department_id: e.department_id, short_code })
+      .session(session)
+      .lean();
+    if (!existing) {
+      const [created] = await Teacher.create(
+        [
+          {
+            department_id: e.department_id,
+            short_code,
+            full_name: e.full_name,
+            created_from: 'import',
+          },
+        ],
+        { session },
+      );
+      ids.set(keyOf(e.department_id, short_code), String(created._id));
+      continue;
+    }
+    if (existing.full_name !== e.full_name) {
+      await Teacher.updateOne({ _id: existing._id }, { $set: { full_name: e.full_name } }, { session });
+    }
+    ids.set(keyOf(e.department_id, short_code), String(existing._id));
+  }
+  return ids;
+}

@@ -26,6 +26,8 @@ export const ERROR_CODES = Object.freeze({
   SEMESTER_ARCHIVED: { code: 'SEMESTER_ARCHIVED', status: 409 },
   SEMESTER_IN_USE: { code: 'SEMESTER_IN_USE', status: 409 },
   ROOM_IN_USE: { code: 'ROOM_IN_USE', status: 409 },
+  FILE_INFECTED: { code: 'FILE_INFECTED', status: 422 },
+  IMPORT_HAS_ERRORS: { code: 'IMPORT_HAS_ERRORS', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -55,3 +57,5 @@ export const USER_NOT_ELIGIBLE = 'USER_NOT_ELIGIBLE';
 export const SEMESTER_ARCHIVED = 'SEMESTER_ARCHIVED';
 export const SEMESTER_IN_USE = 'SEMESTER_IN_USE';
 export const ROOM_IN_USE = 'ROOM_IN_USE';
+export const FILE_INFECTED = 'FILE_INFECTED';
+export const IMPORT_HAS_ERRORS = 'IMPORT_HAS_ERRORS';

@@ -40,6 +40,7 @@ const templates = {
   no_active_admin: simple('no_active_admin'),
   teacher_approved: simple('teacher_approved'),
   teacher_rejected: simple('teacher_rejected'),
+  routine_changed: simple('routine_changed'),
 };
 
 export function renderTemplate(name, data = {}) {

@@ -9,3 +9,4 @@ export * from './departments.js';
 export * from './semesters.js';
 export * from './rooms.js';
 export * from './teachers.js';
+export * from './imports.js';

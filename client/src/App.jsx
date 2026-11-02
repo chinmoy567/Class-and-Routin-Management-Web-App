@@ -26,6 +26,7 @@ import { SemestersPage } from '@/routes/admin/SemestersPage.jsx';
 import { ClassroomsPage } from '@/routes/admin/ClassroomsPage.jsx';
 import { TeacherRegistrationsPage } from '@/routes/admin/TeacherRegistrationsPage.jsx';
 import { TeachersPage } from '@/routes/admin/TeachersPage.jsx';
+import { RoutineImportPage } from '@/routes/admin/RoutineImportPage.jsx';
 import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
@@ -69,6 +70,7 @@ export function AppRoutes() {
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
             <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />
             <Route path="/admin/teachers" element={<TeachersPage />} />
+            <Route path="/admin/routine-import" element={<RoutineImportPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />

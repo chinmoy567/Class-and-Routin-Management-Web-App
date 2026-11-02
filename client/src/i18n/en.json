@@ -15,7 +15,8 @@
     "adminSemesters": "Semesters",
     "adminClassrooms": "Classrooms",
     "adminRegistrations": "Teacher registrations",
-    "adminTeachers": "Teachers"
+    "adminTeachers": "Teachers",
+    "adminRoutineImport": "Routine import"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -137,7 +138,9 @@
       "reasonLabel": "Reason for rejecting",
       "reasonHint": "5 to 500 characters. The teacher will read it.",
       "confirmReject": "Reject registration",
-      "fieldError": { "reason": "Enter 5 to 500 characters." }
+      "fieldError": {
+        "reason": "Enter 5 to 500 characters."
+      }
     },
     "records": {
       "title": "Teachers",
@@ -200,7 +203,9 @@
     "USER_NOT_ELIGIBLE": "Only an active account with a verified email can become an admin.",
     "SEMESTER_ARCHIVED": "An archived semester cannot be changed.",
     "SEMESTER_IN_USE": "Only an empty draft semester can be deleted.",
-    "ROOM_IN_USE": "A published class of the current or draft semester still uses this room."
+    "ROOM_IN_USE": "A published class of the current or draft semester still uses this room.",
+    "IMPORT_HAS_ERRORS": "Fix every error in the file before publishing.",
+    "FILE_INFECTED": "The file was rejected by the virus scan."
   },
   "auth": {
     "fields": {
@@ -468,5 +473,71 @@
     "current": "{name}",
     "none": "No current semester",
     "label": "Current semester"
+  },
+  "imports": {
+    "title": "Routine import",
+    "department": "Department",
+    "semester": "Semester",
+    "noSemester": "There is no draft or current semester yet.",
+    "template": "Download template",
+    "templateFailed": "The template could not be downloaded.",
+    "uploadLabel": "Excel file (.xlsx, up to 5 MB)",
+    "upload": "Upload and check",
+    "uploading": "Checking…",
+    "uploadHint": "A new upload replaces the file waiting to be published.",
+    "fileType": "Only an .xlsx file is accepted.",
+    "fileTooLarge": "The file must be 5 MB or smaller.",
+    "empty": "No file is waiting to be published. Download the template, fill it in and upload it.",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "status": {
+      "checked": "Waiting to be published",
+      "failed": "Could not be read",
+      "published": "Published",
+      "replaced": "Replaced"
+    },
+    "summary": "{rows} rows, {errors} errors, {warnings} warnings to review",
+    "issues": "Issues",
+    "filterAll": "All",
+    "filterErrors": "Errors",
+    "filterWarnings": "Warnings",
+    "noIssues": "No issues found.",
+    "error": "Error",
+    "warning": "Warning",
+    "row": "Row {row}",
+    "confirmed": "Confirmed",
+    "confirmCombined": "Confirm combined class",
+    "preview": "Preview",
+    "newSection": "new",
+    "newGroup": "new group",
+    "whole": "Whole section",
+    "tba": "Teacher to be announced",
+    "diff": "Changes to your department's routine",
+    "added": "Added",
+    "removed": "Removed",
+    "changed": "Changed",
+    "noDiff": "Nothing changes.",
+    "editedByHand": "edited by hand",
+    "keep": "Keep this slot",
+    "replace": "Replace it",
+    "keepFor": "What to do with {course}",
+    "publish": "Publish",
+    "publishTitle": "Publish this routine?",
+    "publishBody": "Students and teachers will see the new routine.",
+    "reviewed": "I have reviewed {count} warnings",
+    "cancel": "Cancel",
+    "confirmPublish": "Publish now",
+    "blockedByErrors": "Fix the errors and upload again to publish.",
+    "publishedPlain": "The routine was published.",
+    "decided": "This import was already decided.",
+    "day": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    }
   }
 }

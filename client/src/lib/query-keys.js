@@ -17,5 +17,8 @@ export const qk = {
   teachersAll: () => ['admin', 'teachers'],
   teachers: (departmentId) => ['admin', 'teachers', departmentId],
   teacherAccounts: (departmentId) => ['admin', 'teachers', 'accounts', departmentId],
+  importsAll: () => ['admin', 'imports'],
+  imports: (semesterId, departmentId) => ['admin', 'imports', 'list', semesterId, departmentId],
+  importPreview: (id) => ['admin', 'imports', 'preview', id],
   userSearch: (q) => ['admin', 'user-search', q],
 };

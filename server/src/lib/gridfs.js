@@ -50,3 +50,18 @@ export async function ensurePhotoIndex() {
 function toId(id) {
   return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
 }
+
+// Routine import files (spec 07): a bucket of their own.
+const importBucket = () =>
+  new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'imports' });
+
+/** Store an uploaded import file and return its id. */
+export async function putImportFile(buffer, metadata) {
+  const upload = importBucket().openUploadStream(`import-${metadata.department_id}`, { metadata });
+  await new Promise((resolve, reject) => {
+    upload.on('error', reject);
+    upload.on('finish', resolve);
+    upload.end(buffer);
+  });
+  return upload.id;
+}

@@ -9,6 +9,6 @@ registerPolicies(roomsPolicy);
 registerDepartmentUsage({ codeLocked: departmentHasRooms });
 
 export { roomsRouter, roomsAdminRouter } from './rooms.routes.js';
-export { resolve, registerRoomUsage, resetRoomUsage } from './rooms.service.js';
+export { resolve, listAdminRooms, registerRoomUsage, resetRoomUsage } from './rooms.service.js';
 export { normaliseName } from './normalise.js';
 export { Room, RoomAlias, RoomShare } from './rooms.model.js';

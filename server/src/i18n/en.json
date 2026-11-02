@@ -1,5 +1,9 @@
 {
   "email": {
+    "routine_changed": {
+      "subject": "Your class routine changed",
+      "body": "Hello,\n\nThe class routine for {semester} changed. Open the app to see the latest routine."
+    },
     "test": {
       "subject": "Test email",
       "body": "This is a test email for {name}."

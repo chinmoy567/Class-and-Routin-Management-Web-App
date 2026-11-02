@@ -3,6 +3,7 @@ import {
   Building2,
   CalendarRange,
   DoorOpen,
+  FileUp,
   GraduationCap,
   UserCheck,
   Home,
@@ -27,6 +28,7 @@ const ADMIN_ITEMS = [
   { to: '/admin/classrooms', labelKey: 'nav.adminClassrooms', icon: DoorOpen },
   { to: '/admin/teacher-registrations', labelKey: 'nav.adminRegistrations', icon: UserCheck },
   { to: '/admin/teachers', labelKey: 'nav.adminTeachers', icon: GraduationCap },
+  { to: '/admin/routine-import', labelKey: 'nav.adminRoutineImport', icon: FileUp },
 ];
 
 const SUPER_ADMIN_ITEMS = [
