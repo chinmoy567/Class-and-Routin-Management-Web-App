@@ -20,7 +20,12 @@ import { AppError, rateLimited } from '../../lib/errors.js';
 import { hit } from '../../lib/rateLimit.js';
 import { clock } from '../../lib/time.js';
 import { record } from '../audit/index.js';
-import { addAllowedDomain, isActiveDepartment, isDomainAllowed } from '../organisation/index.js';
+import {
+  addAllowedDomain,
+  currentSemester,
+  isActiveDepartment,
+  isDomainAllowed,
+} from '../organisation/index.js';
 import { enqueue } from '../notifications/index.js';
 import { ALLOWED_EMAIL_DOMAIN } from '@crm/shared/enums';
 
@@ -40,7 +45,16 @@ const link = (path, token) => `${getConfig().APP_URL}${path}?token=${token}`;
 export async function loadRequestUser(userId) {
   const user = await User.findById(userId).lean();
   if (!user) return null;
-  const roles = await UserRole.find({ user_id: user._id, ended_at: null }).lean();
+  let roles = await UserRole.find({ user_id: user._id, ended_at: null }).lean();
+  // CRD-05: a CR/DCR role only counts while its semester is the current one.
+  if (roles.some((r) => r.role === 'cr' || r.role === 'dcr')) {
+    const current = await currentSemester();
+    roles = roles.filter(
+      (r) =>
+        (r.role !== 'cr' && r.role !== 'dcr') ||
+        (current && String(r.semester_id) === String(current.id)),
+    );
+  }
   return {
     _id: user._id,
     kind: user.kind,

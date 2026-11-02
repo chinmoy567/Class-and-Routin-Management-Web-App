@@ -54,6 +54,15 @@ export function ProfilePage() {
               ? profile.roles.map((r) => roleLabel(r.role)).join(', ')
               : t('profile.noRoles')}
           </Row>
+          {profile.representative && (
+            <Row label={t('profile.representativeLabel')}>
+              {t('profile.representative', {
+                role: roleLabel(profile.representative.role),
+                section: profile.representative.section_name,
+                semester: profile.representative.semester_name,
+              })}
+            </Row>
+          )}
           {profile.student && (
             <>
               <Row label={t('profile.student.level')}>{orDash(profile.student.level)}</Row>

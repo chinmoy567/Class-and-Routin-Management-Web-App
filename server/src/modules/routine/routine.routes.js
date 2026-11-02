@@ -5,8 +5,15 @@ import {
   importIdParam,
   importIssueParams,
   keepChoicesBody,
+  groupBody,
   publishBody,
+  sectionCreateBody,
+  sectionsQuery,
   semesterIdParam,
+  slotCreateBody,
+  slotDeleteBody,
+  slotIdParam,
+  slotUpdateBody,
 } from '@crm/shared';
 import { validate } from '../../lib/validate.js';
 import { AppError } from '../../lib/errors.js';
@@ -45,7 +52,12 @@ routineRouter.get(
   validate({ params: semesterIdParam, query: importDepartmentQuery }),
   c.list,
 );
-routineRouter.get('/imports/:id/preview', requireAuth, validate({ params: importIdParam }), c.preview);
+routineRouter.get(
+  '/imports/:id/preview',
+  requireAuth,
+  validate({ params: importIdParam }),
+  c.preview,
+);
 routineRouter.post(
   '/imports/:id/issues/:issueId/confirm',
   requireAuth,
@@ -63,4 +75,55 @@ routineRouter.post(
   requireAuth,
   validate({ params: importIdParam, body: publishBody }),
   c.publishImport,
+);
+
+// Spec 08: routine edit. Each service checks the 'slot.*' and 'section.manage' policies.
+routineRouter.get(
+  '/admin/semesters/:id/sections',
+  requireAuth,
+  validate({ params: semesterIdParam, query: sectionsQuery }),
+  c.sectionList,
+);
+routineRouter.get(
+  '/admin/sections/:id/routine',
+  requireAuth,
+  validate({ params: slotIdParam }),
+  c.sectionGrid,
+);
+routineRouter.post('/slots', requireAuth, validate({ body: slotCreateBody }), c.slotCreate);
+routineRouter.put(
+  '/slots/:id',
+  requireAuth,
+  validate({ params: slotIdParam, body: slotUpdateBody }),
+  c.slotUpdate,
+);
+routineRouter.delete(
+  '/slots/:id',
+  requireAuth,
+  validate({ params: slotIdParam, body: slotDeleteBody }),
+  c.slotDelete,
+);
+routineRouter.post(
+  '/admin/sections',
+  requireAuth,
+  validate({ body: sectionCreateBody }),
+  c.sectionCreate,
+);
+routineRouter.post(
+  '/admin/sections/:id/groups',
+  requireAuth,
+  validate({ params: slotIdParam, body: groupBody }),
+  c.groupAdd,
+);
+routineRouter.patch(
+  '/admin/groups/:id',
+  requireAuth,
+  validate({ params: slotIdParam, body: groupBody }),
+  c.groupRename,
+);
+routineRouter.delete(
+  '/admin/groups/:id',
+  requireAuth,
+  validate({ params: slotIdParam }),
+  c.groupRemove,
 );

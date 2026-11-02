@@ -29,6 +29,8 @@ import {
 } from './modules/organisation/index.js';
 import { roomsAdminRouter, roomsRouter } from './modules/rooms/index.js';
 import { teachersAdminRouter, teachersMeRouter } from './modules/teachers/index.js';
+import { representativesRouter } from './modules/representatives/index.js';
+import { joinRouter } from './modules/join/index.js';
 import { routineRouter } from './modules/routine/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
@@ -119,6 +121,8 @@ export function createApp(
   app.use('/api/rooms', requireAuth, roomsRouter);
   app.use('/api/admin', requireAuth, adminRolesRouter);
   app.use('/api/admin', requireAuth, teachersAdminRouter);
+  app.use('/api/admin', requireAuth, representativesRouter);
+  app.use('/api', joinRouter);
   app.use('/api', routineRouter);
   if (mountApi) mountApi(app);
 

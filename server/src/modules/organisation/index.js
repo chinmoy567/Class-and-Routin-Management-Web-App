@@ -32,6 +32,7 @@ export {
   currentSemester,
   draftSemester,
   getSemester,
+  latestArchivedSemester,
   openSemesterIds,
   registerSemesterUsage,
   resetSemesterUsage,

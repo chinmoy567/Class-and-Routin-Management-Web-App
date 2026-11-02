@@ -28,6 +28,13 @@ export const ERROR_CODES = Object.freeze({
   ROOM_IN_USE: { code: 'ROOM_IN_USE', status: 409 },
   FILE_INFECTED: { code: 'FILE_INFECTED', status: 422 },
   IMPORT_HAS_ERRORS: { code: 'IMPORT_HAS_ERRORS', status: 409 },
+  SLOT_INVALID: { code: 'SLOT_INVALID', status: 400 },
+  GROUP_IN_USE: { code: 'GROUP_IN_USE', status: 409 },
+  ROLE_LIMIT: { code: 'ROLE_LIMIT', status: 409 },
+  REQUEST_ALREADY_OPEN: { code: 'REQUEST_ALREADY_OPEN', status: 409 },
+  UV_ID_TAKEN: { code: 'UV_ID_TAKEN', status: 409 },
+  CLAIM_BLOCKED: { code: 'CLAIM_BLOCKED', status: 429 },
+  SECTION_CLOSED: { code: 'SECTION_CLOSED', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -59,3 +66,10 @@ export const SEMESTER_IN_USE = 'SEMESTER_IN_USE';
 export const ROOM_IN_USE = 'ROOM_IN_USE';
 export const FILE_INFECTED = 'FILE_INFECTED';
 export const IMPORT_HAS_ERRORS = 'IMPORT_HAS_ERRORS';
+export const SLOT_INVALID = 'SLOT_INVALID';
+export const GROUP_IN_USE = 'GROUP_IN_USE';
+export const ROLE_LIMIT = 'ROLE_LIMIT';
+export const REQUEST_ALREADY_OPEN = 'REQUEST_ALREADY_OPEN';
+export const UV_ID_TAKEN = 'UV_ID_TAKEN';
+export const CLAIM_BLOCKED = 'CLAIM_BLOCKED';
+export const SECTION_CLOSED = 'SECTION_CLOSED';

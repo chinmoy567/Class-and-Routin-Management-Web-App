@@ -17,6 +17,8 @@ import '../src/modules/organisation/organisation.model.js';
 import '../src/modules/rooms/rooms.model.js';
 import '../src/modules/teachers/teachers.model.js';
 import '../src/modules/routine/routine.model.js';
+import '../src/modules/enrolments/enrolment.model.js';
+import '../src/modules/enrolments/uvclaim.model.js';
 import '../src/modules/audit/audit.model.js';
 
 /** Connect this test file to its own database on the shared replica set. */

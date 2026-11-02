@@ -1,6 +1,6 @@
 # 10: Join requests and UV ID claims
 
-R1 · Status: Draft · Depends on: 09 · PRD: Student ID claim, Account states and access, Sessional groups (How a student's group is decided, Edge cases), CR/DCR dashboard (Act, Rules, Checks on CR power), Acceptance criteria (Account states, UV ID claims) · Diagrams: 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request
+R1 · Status: Done · Depends on: 09 · PRD: Student ID claim, Account states and access, Sessional groups (How a student's group is decided, Edge cases), CR/DCR dashboard (Act, Rules, Checks on CR power), Acceptance criteria (Account states, UV ID claims) · Diagrams: 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request
 
 ## Goal
 
@@ -114,14 +114,14 @@ Join form (with "department still setting up" state), Waiting screen (status, CR
 
 ## Tasks
 
-- [ ] `enrolment`, `uv_claim` models + indexes; UV ID normaliser (unit-tested)
-- [ ] Join options endpoint (open sections, setting-up departments)
-- [ ] Create, withdraw, my-request endpoints with all checks
-- [ ] Decision transaction (accept/reject) incl. claim approval and auto-rejection of duplicates
-- [ ] Escalation job
-- [ ] Group change (CR/DCR, admin override)
-- [ ] Revoke + appeals
-- [ ] CR/DCR own-claim path to admin
-- [ ] Emails, audit, hooks
-- [ ] Join form + waiting screen
-- [ ] Tests incl. the PRD acceptance criteria
+- [x] `enrolment`, `uv_claim` models + indexes; UV ID normaliser (unit-tested)
+- [x] Join options endpoint (open sections, setting-up departments)
+- [x] Create, withdraw, my-request endpoints with all checks
+- [x] Decision transaction (accept/reject) incl. claim approval and auto-rejection of duplicates
+- [x] Escalation job
+- [x] Group change (CR/DCR, admin override)
+- [x] Revoke + appeals
+- [x] CR/DCR own-claim path to admin
+- [x] Emails, audit, hooks
+- [x] Join form + waiting screen
+- [x] Tests incl. the PRD acceptance criteria

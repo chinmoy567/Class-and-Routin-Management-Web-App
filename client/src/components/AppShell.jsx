@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router';
 import {
   Building2,
+  CalendarCog,
   CalendarRange,
   DoorOpen,
   FileUp,
@@ -10,6 +11,7 @@ import {
   ShieldCheck,
   User,
   UserRound,
+  UsersRound,
 } from 'lucide-react';
 import { CurrentSemester } from '@/components/CurrentSemester.jsx';
 import { useIsAdmin, useIsSuperAdmin } from '@/features/auth/hooks.js';
@@ -29,6 +31,8 @@ const ADMIN_ITEMS = [
   { to: '/admin/teacher-registrations', labelKey: 'nav.adminRegistrations', icon: UserCheck },
   { to: '/admin/teachers', labelKey: 'nav.adminTeachers', icon: GraduationCap },
   { to: '/admin/routine-import', labelKey: 'nav.adminRoutineImport', icon: FileUp },
+  { to: '/admin/routine-edit', labelKey: 'nav.adminRoutineEdit', icon: CalendarCog },
+  { to: '/admin/representatives', labelKey: 'nav.adminRepresentatives', icon: UsersRound },
 ];
 
 const SUPER_ADMIN_ITEMS = [

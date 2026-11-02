@@ -13,6 +13,7 @@ const sectionSchema = new Schema(
     letter: { type: String, required: true },
     created_by_import_of: oid(), // IMP-27: the department whose import created it, if not its own
     closed_at: { type: Date },
+    role_seq: { type: Number, default: 0 }, // spec 09: serialises the CR/DCR limit check
   },
   { collection: 'section', timestamps: { createdAt: 'created_at', updatedAt: false } },
 );
@@ -74,6 +75,7 @@ const slotSchema = new Schema(
     combined_key: { type: String },
     published: { type: Boolean, default: false },
     import_id: oid(),
+    version: { type: Number, default: 1, min: 1 }, // EDT-09: optimistic versioning
   },
   { collection: 'routine_slot', timestamps: true },
 );

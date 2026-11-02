@@ -40,6 +40,15 @@ const userSchema = new Schema(
     department_id: { type: Schema.Types.ObjectId },
     requested_short_code: { type: String },
     chat_suspended_until: { type: Date },
+    // Spec 09/10: the semester in which the student was last confirmed (or made CR/DCR).
+    confirmed_semester_id: { type: Schema.Types.ObjectId },
+    // JR-08: rejected UV ID claims since the last block, and when a block ends.
+    claim_rejections: {
+      type: new Schema(
+        { count: { type: Number, default: 0 }, blocked_until: { type: Date } },
+        { _id: false },
+      ),
+    },
   },
   { collection: 'user', timestamps: true },
 );
@@ -57,15 +66,38 @@ const userRoleSchema = new Schema(
     granted_at: { type: Date },
     ended_at: { type: Date, default: null },
     ended_by: { type: Schema.Types.ObjectId },
+    // Spec 09: CR/DCR rows only.
+    is_representative: { type: Boolean },
+    ended_reason: { type: String, enum: ['removed', 'semester_ended'] },
   },
   { collection: 'user_role' },
 );
 userRoleSchema.index({ user_id: 1, ended_at: 1 });
 userRoleSchema.index({ role: 1, department_id: 1, ended_at: 1 });
 // No duplicate active grant of the same role in the same department.
+// Spec 09: the semester is part of the key, so a student can hold a draft and a current CR/DCR role.
 userRoleSchema.index(
-  { user_id: 1, role: 1, department_id: 1 },
+  { user_id: 1, role: 1, department_id: 1, semester_id: 1 },
   { unique: true, partialFilterExpression: { ended_at: { $type: 'null' } } },
+);
+userRoleSchema.index({ section_id: 1, role: 1, ended_at: 1 });
+// CRD-03 backstop: one CR/DCR role per student per semester.
+userRoleSchema.index(
+  { user_id: 1, semester_id: 1 },
+  {
+    unique: true,
+    name: 'rep_one_per_user_semester',
+    partialFilterExpression: { is_representative: true, ended_at: { $type: 'null' } },
+  },
+);
+// CRD-02 backstop: one CR per section.
+userRoleSchema.index(
+  { section_id: 1 },
+  {
+    unique: true,
+    name: 'rep_one_cr_per_section',
+    partialFilterExpression: { role: 'cr', ended_at: { $type: 'null' } },
+  },
 );
 
 // One document. Every admin-role grant or removal writes it first inside its transaction, so two

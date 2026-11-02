@@ -373,3 +373,11 @@ export async function resolve(text, { includeRetired = false } = {}) {
 /** DEP-02: has this department got any room? Then its code can no longer change. */
 export const departmentHasRooms = async (departmentId) =>
   Boolean(await Room.exists({ owner_department_id: departmentId }));
+
+/** Spec 08: a Map of room id to code, for the routine grid. Retired rooms keep their code. */
+export async function roomCodes(ids) {
+  const rows = await Room.find({ _id: { $in: ids } })
+    .select('code')
+    .lean();
+  return new Map(rows.map((r) => [String(r._id), r.code]));
+}

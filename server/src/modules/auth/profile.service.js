@@ -28,6 +28,12 @@ export function registerProfileExtras({ student, teacher } = {}) {
   if (teacher) extras.teacher = teacher;
 }
 
+let representativeProvider = async () => null;
+/** Spec 09 registers this: the CR/DCR line for the owner's own profile (CRD-09). */
+export function registerRepresentativeProvider(fn) {
+  representativeProvider = fn;
+}
+
 const stateNotAllowed = (actor) =>
   new AppError(403, 'STATE_NOT_ALLOWED', 'This account cannot edit its profile yet.', {
     state: actor.state,
@@ -74,6 +80,7 @@ export async function getOwnProfile(actor) {
     email_bouncing: Boolean(user.email_bouncing),
     photo: { url: photoUrl(user), status: photoStatus(user) },
     roles,
+    representative: await representativeProvider(actor),
     ...(user.kind === 'student' && { student: await extras.student(user) }),
     ...(user.kind === 'teacher' && { teacher: await extras.teacher(user) }),
   };

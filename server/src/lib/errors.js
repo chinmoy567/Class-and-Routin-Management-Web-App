@@ -28,6 +28,7 @@ export function errorMiddleware(err, req, res, _next) {
   if (err instanceof AppError) {
     const error = { code: err.code, message: err.message };
     if (err.fields) error.fields = err.fields;
+    if (err.extra) Object.assign(error, err.extra);
     if (err.retryAfter) res.set('Retry-After', String(err.retryAfter));
     return res.status(err.status).json({ error });
   }

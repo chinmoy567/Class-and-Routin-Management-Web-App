@@ -11,11 +11,15 @@ export const sectionKey = (s) => `${s.department_id}:${s.level}:${s.term}:${s.le
  * `teacher_keys` are `DEPT:CODE`.
  */
 export async function loadSlots(filter, { session } = {}) {
-  const slots = await RoutineSlot.find(filter).session(session ?? null).lean();
+  const slots = await RoutineSlot.find(filter)
+    .session(session ?? null)
+    .lean();
   if (!slots.length) return [];
   const slotIds = slots.map((s) => s._id);
   const [links, sections, groups] = await Promise.all([
-    RoutineSlotTeacher.find({ slot_id: { $in: slotIds } }).session(session ?? null).lean(),
+    RoutineSlotTeacher.find({ slot_id: { $in: slotIds } })
+      .session(session ?? null)
+      .lean(),
     Section.find({ _id: { $in: [...new Set(slots.map((s) => String(s.section_id)))] } })
       .session(session ?? null)
       .lean(),
@@ -59,6 +63,10 @@ export async function loadSlots(filter, { session } = {}) {
       teacher_keys: ids.map((i) => keyOfTeacher.get(i)).filter(Boolean),
       tba: Boolean(s.tba),
       edited_by_hand: Boolean(s.edited_by_hand),
+      version: s.version ?? 1,
+      source: s.source,
+      combined_key: s.combined_key ?? null,
+      group_id: s.group_id ? String(s.group_id) : null,
     };
   });
 }

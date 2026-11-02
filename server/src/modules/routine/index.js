@@ -41,6 +41,12 @@ export {
   registerRoutineChangeListener,
   resetRoutineHooks,
 } from './publish.service.js';
+export { registerGroupUsage, resetGroupUsage } from './section.service.js';
+export {
+  registerBookingClashProvider,
+  registerBookingActionHandler,
+  resetBookingHooks,
+} from './bookings.hooks.js';
 export {
   Section,
   SectionGroup,
@@ -48,3 +54,11 @@ export {
   RoutineSlot,
   RoutineSlotTeacher,
 } from './routine.model.js';
+export {
+  getSectionBrief,
+  findSectionByBatch,
+  listSectionsBrief,
+  bumpSectionRoleSeq,
+  listGroupsOfSections,
+  getGroupBrief,
+} from './section.brief.js';

@@ -10,7 +10,7 @@ const escapeHtml = (s) =>
 function simple(key) {
   const text = (data) => t(`email.${key}.body`, data);
   return {
-    subject: () => t(`email.${key}.subject`),
+    subject: (data) => t(`email.${key}.subject`, data),
     text,
     html: (data) =>
       text(data)
@@ -41,6 +41,12 @@ const templates = {
   teacher_approved: simple('teacher_approved'),
   teacher_rejected: simple('teacher_rejected'),
   routine_changed: simple('routine_changed'),
+  role_assigned: simple('role_assigned'),
+  role_removed: simple('role_removed'),
+  join_accepted: simple('join_accepted'),
+  join_rejected: simple('join_rejected'),
+  group_changed: simple('group_changed'),
+  uv_id_conflict: simple('uv_id_conflict'),
 };
 
 export function renderTemplate(name, data = {}) {

@@ -20,8 +20,13 @@ const groupsClash = (a, b) => a.group === null || b.group === null || a.group ==
  * published slots of this semester, as `{ section_key, group, day, start_min, end_min,
  * course_code, room_id, teacher_keys, department_code }`.
  * Returns the issue list (without ids).
+ *
+ * `single` (spec 08, one slot being saved): `{ department_code }` of the slot's owner. It
+ * turns on the checks against saved slots of the same section (SECTION_OVERLAP,
+ * DUPLICATE_COURSE_DAY), skips CROSS_DEPARTMENT_DUPLICATE for the owner's own slots, and
+ * offers "combined" (`offer_combined`, `other_slot_id`) on an identical overlap (IMP-21).
  */
-export function validateRows({ rows, teacherEntries, directory, others }) {
+export function validateRows({ rows, teacherEntries, directory, others, single = null }) {
   const issues = [];
   const add = (severity, code, row, message, extra) =>
     issues.push(makeIssue(severity, code, row, message, extra));
@@ -122,12 +127,24 @@ export function validateRows({ rows, teacherEntries, directory, others }) {
           );
         }
         if (sameRoom) {
-          add('warning', 'ROOM_OVERLAP', a.row, `Room ${a.room_text} is used twice at the same time.`, pair);
+          add(
+            'warning',
+            'ROOM_OVERLAP',
+            a.row,
+            `Room ${a.room_text} is used twice at the same time.`,
+            pair,
+          );
         }
         if (a.section_key === b.section_key && groupsClash(a, b)) {
-          add('warning', 'SECTION_OVERLAP', a.row, 'The section has two classes at the same time.', {
-            related_rows: [b.row],
-          });
+          add(
+            'warning',
+            'SECTION_OVERLAP',
+            a.row,
+            'The section has two classes at the same time.',
+            {
+              related_rows: [b.row],
+            },
+          );
         }
       }
     }
@@ -137,8 +154,38 @@ export function validateRows({ rows, teacherEntries, directory, others }) {
   for (const r of ok) {
     const rk = r.teachers.map(teacherKey);
     for (const o of others) {
+      const own = single && o.department_code === single.department_code;
+      if (single && o.day === r.day && r.section_key === o.section_key && groupsClash(r, o)) {
+        if (o.course_code === r.course_code) {
+          add(
+            'warning',
+            'DUPLICATE_COURSE_DAY',
+            r.row,
+            `${r.course_code} appears twice on one day.`,
+          );
+        }
+        if (overlaps(r, o)) {
+          add('warning', 'SECTION_OVERLAP', r.row, 'The section has two classes at the same time.');
+        }
+      }
       if (o.day !== r.day || !overlaps(r, o)) continue;
-      if (r.section_key && o.section_key === r.section_key && o.course_code === r.course_code) {
+      const identical =
+        single &&
+        r.room_id &&
+        r.room_id === o.room_id &&
+        r.start_min === o.start_min &&
+        r.end_min === o.end_min &&
+        !r.tba &&
+        !o.tba &&
+        sameSet(rk, o.teacher_keys) &&
+        (r.section_key !== o.section_key || r.group !== o.group);
+      const offer = identical ? { offer_combined: true, other_slot_id: o.id } : {};
+      if (
+        !own &&
+        r.section_key &&
+        o.section_key === r.section_key &&
+        o.course_code === r.course_code
+      ) {
         add(
           'warning',
           'CROSS_DEPARTMENT_DUPLICATE',
@@ -153,7 +200,7 @@ export function validateRows({ rows, teacherEntries, directory, others }) {
           'ROOM_OVERLAP',
           r.row,
           `Room ${r.room_text} is used by ${o.department_code} at this time.`,
-          { other_department: o.department_code },
+          { other_department: o.department_code, ...offer },
         );
       }
       const shared = rk.filter((k) => o.teacher_keys.includes(k));
@@ -163,7 +210,7 @@ export function validateRows({ rows, teacherEntries, directory, others }) {
           'TEACHER_OVERLAP',
           r.row,
           `${shared.join(', ')} teaches for ${o.department_code} at this time.`,
-          { other_department: o.department_code },
+          { other_department: o.department_code, ...offer },
         );
       }
     }

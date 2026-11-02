@@ -33,13 +33,15 @@ async function parse(res) {
   if (!res.ok) {
     const e = body?.error;
     const retryAfter = Number(res.headers?.get?.('Retry-After')) || undefined;
-    throw new ApiError(
+    const error = new ApiError(
       res.status,
       e?.code ?? 'INTERNAL',
       e?.message ?? res.statusText,
       e?.fields,
       retryAfter,
     );
+    error.issues = e?.issues; // SLOT_INVALID: the list of problems (spec 08)
+    throw error;
   }
   return body;
 }

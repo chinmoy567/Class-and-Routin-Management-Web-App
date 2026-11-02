@@ -20,7 +20,7 @@ export {
   listAdmins,
 } from './adminRoles.service.js';
 export { meProfileRouter, usersRouter, adminUsersRouter } from './profile.routes.js';
-export { registerProfileExtras } from './profile.service.js';
+export { registerProfileExtras, registerRepresentativeProvider } from './profile.service.js';
 export { defineJobs as defineAuthJobs } from './photo.jobs.js';
 export { loadUser, requireAuth } from './auth.middleware.js';
 export {
@@ -38,3 +38,15 @@ export {
 } from './sessions.js';
 export { registerOpenJoinRequestCheck, registerPendingScreen } from './next.js';
 export { User, UserRole } from './auth.model.js';
+export {
+  representativeCandidate,
+  activateStudentForSemester,
+  studentSummaries,
+  findEligibleStudents,
+  studentForJoin,
+  claimBlockedUntil,
+  countClaimRejection,
+  setStudentName,
+  sendStudentBackToWaiting,
+  departmentAdminIds,
+} from './students.service.js';

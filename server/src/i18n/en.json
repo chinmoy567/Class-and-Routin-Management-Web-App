@@ -60,6 +60,30 @@
       "subject": "Your teacher registration was not approved",
       "body": "Hello {name},\n\nYour department admin did not approve your registration. Reason:\n{reason}\n\nSign in to correct your department or short code and apply again:\n{link}"
     },
+    "role_assigned": {
+      "subject": "You are now {role} of {section}",
+      "body": "Hello {name},\n\nYour department admin made you {role} of {section} for {semester}. Sign in to see it:\n{link}"
+    },
+    "role_removed": {
+      "subject": "Your {role} role was removed",
+      "body": "Hello {name},\n\nYour department admin removed your {role} role for {section} ({semester}). Your place in the section stays.\n{link}"
+    },
+    "join_accepted": {
+      "subject": "You joined {section}",
+      "body": "Hello {name},\n\nYour join request for {section} ({semester}) was accepted. Sign in to see your routine:\n{link}"
+    },
+    "join_rejected": {
+      "subject": "Your join request was not accepted",
+      "body": "Hello {name},\n\nYour join request for {section} ({semester}) was not accepted. Reason:\n{reason}\n\nSign in to send a new request or to appeal:\n{link}"
+    },
+    "group_changed": {
+      "subject": "Your lab group changed",
+      "body": "Hello {name},\n\nYour lab group in {section} is now {group}. Sign in to see your routine:\n{link}"
+    },
+    "uv_id_conflict": {
+      "subject": "A UV ID claim needs your attention",
+      "body": "Hello,\n\nThe UV ID {uv_id} is involved in a claim problem for {section}: {detail}\n\nReview it here:\n{link}"
+    },
     "no_active_admin": {
       "subject": "A department has no active admin",
       "body": "Hello,\n\nThe department {department} has no active department admin. You can act for it, or appoint a new admin here:\n{link}"

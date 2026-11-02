@@ -10,6 +10,7 @@ import { makeDepartment, makeUser } from '../../../../test/factories.js';
 import { User } from '../auth.model.js';
 import { AuditLog } from '../../audit/audit.model.js';
 import { registerProfileExtras } from '../index.js';
+import { Semester } from '../../organisation/index.js';
 
 let app;
 beforeAll(async () => {
@@ -23,11 +24,18 @@ const asUser = (user) => loginAs(user, app);
 
 describe('GET /api/me/profile (PRF-01)', () => {
   it('PRF-01 a student sees own email, phone, kind, roles and the student block', async () => {
+    // A CR role only counts while its semester is the current one (CRD-05).
+    const sem = await Semester.create({
+      name: 'Fall 2026',
+      status: 'current',
+      start_date: '2026-07-01',
+      end_date: '2026-12-31',
+    });
     const me = await makeUser({
       kind: 'student',
       name: 'Rafi Ahmed',
       phone: '+8801712345678',
-      roles: [{ role: 'cr' }],
+      roles: [{ role: 'cr', semester_id: sem._id }],
     });
     const res = await (await asUser(me)).get('/api/me/profile');
     expect(res.status).toBe(200);

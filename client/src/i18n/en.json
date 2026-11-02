@@ -16,7 +16,9 @@
     "adminClassrooms": "Classrooms",
     "adminRegistrations": "Teacher registrations",
     "adminTeachers": "Teachers",
-    "adminRoutineImport": "Routine import"
+    "adminRoutineImport": "Routine import",
+    "adminRoutineEdit": "Routine edit",
+    "adminRepresentatives": "CR / DCR"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -89,7 +91,9 @@
       "toProfile": "Go to my profile",
       "invalidTitle": "This link is not valid",
       "missing": "The link is missing its code. Open the link from your email again."
-    }
+    },
+    "representative": "{role} of {section} · {semester}",
+    "representativeLabel": "Representative role"
   },
   "home": {
     "title": "Welcome",
@@ -205,7 +209,14 @@
     "SEMESTER_IN_USE": "Only an empty draft semester can be deleted.",
     "ROOM_IN_USE": "A published class of the current or draft semester still uses this room.",
     "IMPORT_HAS_ERRORS": "Fix every error in the file before publishing.",
-    "FILE_INFECTED": "The file was rejected by the virus scan."
+    "FILE_INFECTED": "The file was rejected by the virus scan.",
+    "SLOT_INVALID": "The class has errors. Fix them and save again.",
+    "GROUP_IN_USE": "A class or a student still uses this group.",
+    "ROLE_LIMIT": "This section already has that many representatives.",
+    "REQUEST_ALREADY_OPEN": "You already have a request waiting. Withdraw it to send another.",
+    "UV_ID_TAKEN": "This UV ID is already approved for another account. Your department admin has been told.",
+    "CLAIM_BLOCKED": "Too many UV ID claims were rejected. Please try again later.",
+    "SECTION_CLOSED": "This section is not open for join requests yet."
   },
   "auth": {
     "fields": {
@@ -538,6 +549,202 @@
       "4": "Thursday",
       "5": "Friday",
       "6": "Saturday"
+    }
+  },
+  "routineEdit": {
+    "title": "Routine edit",
+    "semester": "Semester",
+    "batch": "Batch department",
+    "allBatches": "All departments",
+    "section": "Section",
+    "acting": "Acting for",
+    "noSemester": "There is no draft or current semester.",
+    "noSections": "No sections yet.",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "pickSection": "Choose a section to see its routine.",
+    "ownedBy": "Owned by {code}",
+    "readOnly": "Read only",
+    "empty": "No classes",
+    "combined": "Combined class",
+    "group": "Group {label}",
+    "wholeSection": "Whole section",
+    "edit": "Edit",
+    "delete": "Delete",
+    "addSlot": "Add a class",
+    "editedByHand": "Edited by hand",
+    "slot": {
+      "addTitle": "Add a class",
+      "editTitle": "Edit class",
+      "day": "Day",
+      "start": "Start",
+      "end": "End",
+      "courseCode": "Course code",
+      "courseName": "Course name (optional)",
+      "teachers": "Teachers (DEPT:CODE, comma separated, or TBA)",
+      "room": "Room",
+      "group": "Group",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "fieldError": {
+        "day_of_week": "Choose a day from Sunday to Thursday.",
+        "start": "Enter the start time as HH:MM.",
+        "end": "Enter the end time as HH:MM.",
+        "course_code": "Enter the course code.",
+        "teachers": "Enter teachers or TBA.",
+        "room": "Enter the room."
+      },
+      "issues": "Fix these and save again:"
+    },
+    "warnings": {
+      "title": "Check these warnings",
+      "body": "You can still save the class.",
+      "confirm": "Save anyway",
+      "back": "Back to the form",
+      "combine": "Combine with the matching class (same room, time and teachers)",
+      "bookings": "Approved room bookings on this room and time",
+      "bookingOf": "{name} on {date}",
+      "keepBooking": "Keep the bookings",
+      "cancelBooking": "Cancel the bookings",
+      "bookingChoice": "What should happen to these bookings?"
+    },
+    "deleteConfirm": {
+      "title": "Delete this class?",
+      "body": "{course} on {day} {start}–{end} will be removed for students and teachers.",
+      "confirm": "Delete",
+      "cancel": "Keep it"
+    },
+    "conflict": "Someone else changed this class. The routine was reloaded; try again.",
+    "sections": {
+      "title": "Sections and groups",
+      "add": "Add a section",
+      "level": "Level",
+      "term": "Term",
+      "letter": "Section letter",
+      "create": "Add section",
+      "groups": "Groups",
+      "noGroups": "No groups",
+      "addGroup": "Add group",
+      "newGroup": "New group (G1)",
+      "rename": "Rename",
+      "renameLabel": "New label for {label}",
+      "save": "Save",
+      "remove": "Remove {label}",
+      "groupInUse": "This group is used by a class or a student, so it cannot be removed.",
+      "cannotManage": "Only the department that owns this section can change its groups.",
+      "termI": "I",
+      "termII": "II"
+    },
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday"
+    }
+  },
+  "representatives": {
+    "title": "CR and DCR",
+    "semester": "Semester",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "noSemester": "There is no draft or current semester.",
+    "readiness": "Sections",
+    "noSections": "There are no sections in this semester yet.",
+    "missingHint": "{count} sections have no CR yet. A section opens for join requests only when it has a CR.",
+    "allReady": "Every section has a CR.",
+    "noCr": "No CR yet",
+    "hasCr": "CR assigned",
+    "dcrCount": "{count} of 2 DCRs",
+    "open": "Open {name}",
+    "pick": "Choose a section to see its CR and DCRs.",
+    "draftNote": "Not in effect until this semester becomes current.",
+    "slots": "CR and DCRs of {name}",
+    "cr": "CR",
+    "dcr": "DCR",
+    "empty": "Empty",
+    "assign": "Assign",
+    "remove": "Remove",
+    "assignTo": "Assign {role}",
+    "removeConfirm": "Remove {name} as {role}?",
+    "removeConfirmBody": "Their place in the section stays. They lose the {role} role at once.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "removing": "Removing…",
+    "assigning": "Assigning…",
+    "search": "Search students by name",
+    "searchHint": "Type at least 2 letters.",
+    "searching": "Searching…",
+    "noResults": "No eligible student found.",
+    "uvId": "UV ID {id}",
+    "state": {
+      "claim_pending": "Waiting to join",
+      "active": "Active",
+      "unconfirmed": "Needs update"
+    },
+    "last": {
+      "title": "Last semester ({semester})",
+      "section": "Section {name}",
+      "none": "No earlier section or no CR or DCR to show.",
+      "reappoint": "Re-appoint",
+      "working": "Re-appointing…"
+    },
+    "result": {
+      "title": "Re-appoint result",
+      "assigned": "Assigned",
+      "skipped": "Skipped",
+      "none": "Nobody was assigned.",
+      "reason": {
+        "USER_NOT_ELIGIBLE": "Not eligible any more",
+        "ROLE_LIMIT": "The section already has that role filled",
+        "CONFLICT": "Already has a CR or DCR role or a place in another section",
+        "ALREADY_ASSIGNED": "Already assigned here"
+      }
+    },
+    "errors": {
+      "crFull": "This section already has a CR.",
+      "dcrFull": "This section already has two DCRs.",
+      "CONFLICT": "This student already has a CR or DCR role, or a place in another section.",
+      "USER_NOT_ELIGIBLE": "This student cannot be CR or DCR. Choose a student with a verified email who is not deactivated or graduated.",
+      "SEMESTER_ARCHIVED": "An archived semester cannot be changed."
+    },
+    "results": "Search results",
+    "removeFor": "Remove {name}"
+  },
+  "join": {
+    "title": "Join your section",
+    "intro": "Choose your department, section and (if you have one) lab group. Your CR or DCR will answer your request.",
+    "fullName": "Full name",
+    "uvId": "UV ID",
+    "uvIdHint": "Digits only. Spaces and dashes are fine.",
+    "department": "Department",
+    "section": "Section",
+    "group": "Lab group (optional)",
+    "noGroup": "I do not know yet",
+    "choose": "Choose…",
+    "settingUp": "Your department is still setting up this semester.",
+    "submit": "Send request",
+    "fieldError": {
+      "full_name": "Enter a name of 2 to 100 characters.",
+      "uv_id": "Enter your UV ID (1 to 20 digits)."
+    },
+    "rejected": {
+      "title": "Your last request was not accepted.",
+      "reason": "Reason:"
+    },
+    "appeal": {
+      "send": "Ask the admin to review",
+      "open": "Your appeal was sent to the admin.",
+      "upheld": "The admin kept the decision.",
+      "reversed": "The admin reversed the decision."
+    },
+    "waiting": {
+      "title": "Waiting for approval",
+      "body": "Your request to join {section} is waiting for your CR or DCR. We will email you when it is decided.",
+      "escalated": "Your request to join {section} is now with your department admin. We will email you when it is decided.",
+      "contacts": "Your CR and DCR",
+      "withdraw": "Withdraw request"
     }
   }
 }

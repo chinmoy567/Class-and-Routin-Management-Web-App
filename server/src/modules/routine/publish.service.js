@@ -1,5 +1,11 @@
 import { SOCKET_EVENTS } from '@crm/shared';
-import { RoutineImport, RoutineSlot, RoutineSlotTeacher, Section, SectionGroup } from './routine.model.js';
+import {
+  RoutineImport,
+  RoutineSlot,
+  RoutineSlotTeacher,
+  Section,
+  SectionGroup,
+} from './routine.model.js';
 import { alreadyDecided, diffFor, loadImportFor } from './import.service.js';
 import { withTransaction, afterCommit } from '../../lib/db.js';
 import { emitAfterCommit } from '../../lib/events.js';
@@ -21,6 +27,36 @@ export const registerRoutineChangeListener = (fn) => changeListeners.push(fn);
 export function resetRoutineHooks() {
   audienceProviders.length = 0;
   changeListeners.length = 0;
+}
+
+/**
+ * EDT-08, IMP-28: after a change to published slots. Call inside the transaction: the events
+ * and the follow-up work run after the commit. `dedupeKey(userId)` makes the email batched.
+ * A draft semester gets events but no email.
+ */
+export async function notifyRoutineChange({ semester, sectionIds, teacherIds, dedupeKey }) {
+  const userIds = new Set(await linkedUserIds(teacherIds));
+  for (const sid of sectionIds) {
+    emitAfterCommit(`section:${sid}`, SOCKET_EVENTS.ROUTINE_CHANGED, { section_id: sid });
+  }
+  for (const uid of userIds) {
+    emitAfterCommit(`user:${uid}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
+  }
+  afterCommit(async () => {
+    for (const fn of changeListeners) await fn({ sectionIds, userIds: [...userIds] });
+    if (semester.status !== 'current') return;
+    const audience = new Set(userIds);
+    for (const fn of audienceProviders)
+      for (const u of await fn(sectionIds)) audience.add(String(u));
+    for (const uid of audience) {
+      await enqueue({
+        to_user_id: uid,
+        template: 'routine_changed',
+        data: { semester: semester.name },
+        dedupe_key: dedupeKey(uid),
+      });
+    }
+  });
 }
 
 const archived = () =>
@@ -70,7 +106,8 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
 
   // Ids of the teachers the rows name that are already saved (the sheet's teachers are upserted).
   const departmentIds = new Map();
-  for (const r of imp0.rows) if (r.department_id) departmentIds.set(r.department_code, r.department_id);
+  for (const r of imp0.rows)
+    if (r.department_id) departmentIds.set(r.department_code, r.department_id);
   for (const e of imp0.teachers) departmentIds.set(e.department_code, e.department_id);
   const wanted = [];
   for (const r of imp0.rows) {
@@ -145,7 +182,8 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
 
     // IMP-24, IMP-26: only this department's slots.
     const { diff } = await diffFor(imp, { session });
-    const choice = (slot) => (slot.edited_by_hand ? (imp.keep_choices?.[slot.id] ?? 'keep') : 'replace');
+    const choice = (slot) =>
+      slot.edited_by_hand ? (imp.keep_choices?.[slot.id] ?? 'keep') : 'replace';
     const withKeys = (row) => ({
       ...row,
       combined_key: row.combined_key ? `${imp._id}:${row.combined_key}` : null,
@@ -163,7 +201,7 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
       const { _teachers, ...fields } = doc;
       await RoutineSlot.updateOne(
         { _id: slot.id },
-        { $set: { ...fields, combined_key: fields.combined_key ?? null } },
+        { $set: { ...fields, combined_key: fields.combined_key ?? null }, $inc: { version: 1 } },
         { session },
       );
       await RoutineSlotTeacher.deleteMany({ slot_id: slot.id }, { session });
@@ -207,38 +245,27 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
       for (const t of teacherIds) if (t) touchedTeachers.add(String(t));
     };
     for (const row of diff.added) {
-      mark(sectionIds.get(row.section_key), row.teacher_keys.map((k) => idByCode.get(k)));
+      mark(
+        sectionIds.get(row.section_key),
+        row.teacher_keys.map((k) => idByCode.get(k)),
+      );
     }
     for (const s of diff.removed.filter((s) => removeIds.includes(s.id))) {
       mark(s.section_id, s.teacher_ids);
     }
     for (const { slot, row } of changes) {
       mark(slot.section_id, slot.teacher_ids);
-      mark(sectionIds.get(row.section_key), row.teacher_keys.map((k) => idByCode.get(k)));
+      mark(
+        sectionIds.get(row.section_key),
+        row.teacher_keys.map((k) => idByCode.get(k)),
+      );
     }
     const sectionList = [...touchedSections];
-    const userIds = new Set(await linkedUserIds([...touchedTeachers]));
-
-    for (const sid of sectionList) {
-      emitAfterCommit(`section:${sid}`, SOCKET_EVENTS.ROUTINE_CHANGED, { section_id: sid });
-    }
-    for (const uid of userIds) {
-      emitAfterCommit(`user:${uid}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
-    }
-    afterCommit(async () => {
-      for (const fn of changeListeners) await fn({ sectionIds: sectionList, userIds: [...userIds] });
-      if (semester.status !== 'current') return;
-      const audience = new Set(userIds);
-      for (const fn of audienceProviders) for (const u of await fn(sectionList)) audience.add(String(u));
-      // IMP-28: one email per person, however many of their slots changed.
-      for (const uid of audience) {
-        await enqueue({
-          to_user_id: uid,
-          template: 'routine_changed',
-          data: { semester: semester.name },
-          dedupe_key: `routine:${imp._id}:${uid}`,
-        });
-      }
+    await notifyRoutineChange({
+      semester,
+      sectionIds: sectionList,
+      teacherIds: [...touchedTeachers],
+      dedupeKey: (uid) => `routine:${imp._id}:${uid}`,
     });
     return { ...counts, sections: sectionList.length };
   });

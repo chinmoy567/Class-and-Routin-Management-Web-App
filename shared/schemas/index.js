@@ -10,3 +10,6 @@ export * from './semesters.js';
 export * from './rooms.js';
 export * from './teachers.js';
 export * from './imports.js';
+export * from './slots.js';
+export * from './representatives.js';
+export * from './join.js';

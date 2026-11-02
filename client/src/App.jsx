@@ -16,6 +16,8 @@ import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage.jsx';
 import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
 import { HoldingPage } from '@/routes/HoldingPage.jsx';
+import { JoinPage } from '@/routes/JoinPage.jsx';
+import { WaitingPage } from '@/routes/WaitingPage.jsx';
 import { ProfilePage } from '@/routes/ProfilePage.jsx';
 import { PublicProfilePage } from '@/routes/PublicProfilePage.jsx';
 import { RequireAdmin } from '@/components/RequireAdmin.jsx';
@@ -27,6 +29,8 @@ import { ClassroomsPage } from '@/routes/admin/ClassroomsPage.jsx';
 import { TeacherRegistrationsPage } from '@/routes/admin/TeacherRegistrationsPage.jsx';
 import { TeachersPage } from '@/routes/admin/TeachersPage.jsx';
 import { RoutineImportPage } from '@/routes/admin/RoutineImportPage.jsx';
+import { RoutineEditPage } from '@/routes/admin/RoutineEditPage.jsx';
+import { RepresentativesPage } from '@/routes/admin/RepresentativesPage.jsx';
 import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 
@@ -52,8 +56,8 @@ export function AppRoutes() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/second-step" element={<SecondStepPage />} />
           <Route path="/setup-totp" element={<TotpSetupPage />} />
-          <Route path="/join" element={<HoldingPage screen="join" />} />
-          <Route path="/waiting-approval" element={<HoldingPage screen="waiting" />} />
+          <Route path="/join" element={<JoinPage />} />
+          <Route path="/waiting-approval" element={<WaitingPage />} />
           <Route path="/teacher-rejected" element={<TeacherRejectedPage />} />
           <Route path="/semester-update" element={<HoldingPage screen="update" />} />
         </Route>
@@ -71,6 +75,8 @@ export function AppRoutes() {
             <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />
             <Route path="/admin/teachers" element={<TeachersPage />} />
             <Route path="/admin/routine-import" element={<RoutineImportPage />} />
+            <Route path="/admin/routine-edit" element={<RoutineEditPage />} />
+            <Route path="/admin/representatives" element={<RepresentativesPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />

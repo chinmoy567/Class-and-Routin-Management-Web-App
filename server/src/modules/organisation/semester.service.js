@@ -217,3 +217,9 @@ export async function openSemesterIds() {
     .lean();
   return rows.map((r) => String(r._id));
 }
+
+/** Spec 09: the most recently archived semester, or null (the "last semester" for a current target). */
+export async function latestArchivedSemester() {
+  const s = await Semester.findOne({ status: 'archived' }).sort({ start_date: -1 }).lean();
+  return s ? adminView(s) : null;
+}
