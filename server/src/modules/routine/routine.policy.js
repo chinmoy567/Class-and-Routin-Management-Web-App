@@ -3,6 +3,9 @@ import { hasRole, isAdminOf, stateIn } from '../../policy/index.js';
 const active = (user) => stateIn(user, 'active');
 
 export const routinePolicy = {
+  // RTN-04: only active students and active teachers may fetch their routine.
+  'routine.my.read': (user) => active(user),
+
   // Any import endpoint: an active admin. Students, teachers and CRs are refused with 403.
   'import.access': (user) => active(user) && hasRole(user, ['super_admin', 'dept_admin']),
   // Template, upload, view, confirm, publish for department D: its admin, or a super admin.

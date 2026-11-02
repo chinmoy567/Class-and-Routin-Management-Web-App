@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router';
 import {
   Building2,
   CalendarCog,
+  CalendarDays,
   CalendarRange,
   DoorOpen,
   FileUp,
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils';
 // Feature specs add their entries here. Each one needs a translation key and an icon.
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.home', icon: Home, end: true },
+  { to: '/routine', labelKey: 'nav.routine', icon: CalendarDays },
   { to: '/profile', labelKey: 'nav.profile', icon: UserRound },
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];

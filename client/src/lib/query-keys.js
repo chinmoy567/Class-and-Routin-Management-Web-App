@@ -37,4 +37,6 @@ export const qk = {
     departmentId,
   ],
   studentSearch: (q, departmentId) => ['admin', 'representatives', 'search', q, departmentId],
+  myRoutine: (from, to) => ['me', 'routine', from, to],
+  myRoutineAll: () => ['me', 'routine'],
 };

@@ -18,7 +18,8 @@
     "adminTeachers": "Teachers",
     "adminRoutineImport": "Routine import",
     "adminRoutineEdit": "Routine edit",
-    "adminRepresentatives": "CR / DCR"
+    "adminRepresentatives": "CR / DCR",
+    "routine": "My Routine"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -216,7 +217,9 @@
     "REQUEST_ALREADY_OPEN": "You already have a request waiting. Withdraw it to send another.",
     "UV_ID_TAKEN": "This UV ID is already approved for another account. Your department admin has been told.",
     "CLAIM_BLOCKED": "Too many UV ID claims were rejected. Please try again later.",
-    "SECTION_CLOSED": "This section is not open for join requests yet."
+    "SECTION_CLOSED": "This section is not open for join requests yet.",
+    "SLOT_NOT_ON_DATE": "This class does not run on that date.",
+    "TOO_LATE": "The class has already started. The cancellation cannot be undone."
   },
   "auth": {
     "fields": {
@@ -746,5 +749,33 @@
       "contacts": "Your CR and DCR",
       "withdraw": "Withdraw request"
     }
+  },
+  "routine": {
+    "title": "My Routine",
+    "statusInClass": "In class",
+    "statusTeaching": "Teaching",
+    "statusFree": "Free",
+    "statusNoClasses": "No classes today",
+    "statusNoSemester": "No classes",
+    "statusEvent": "{label}",
+    "statusClassesOver": "Classes over today: {label}",
+    "countdownEndsIn": "Class ends in {time}",
+    "countdownNextIn": "Next class {course} in {time}",
+    "countdownNextRoom": "Room {room}",
+    "groupMissing": "Your group has not been set yet. Ask your CR or DCR to set it.",
+    "tba": "Teacher to be announced",
+    "noSlotsToday": "No classes today",
+    "week": "Week",
+    "today": "Today",
+    "loading": "Loading your routine…",
+    "noSemester": "No active semester.",
+    "cancelled": "Cancelled",
+    "group": "Group {g}",
+    "section": "Section {s}",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu"
   }
 }

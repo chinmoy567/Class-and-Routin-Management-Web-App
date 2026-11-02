@@ -115,7 +115,9 @@ describe('errors and validation', () => {
         'SEMESTER_ARCHIVED',
         'SEMESTER_IN_USE',
         'SLOT_INVALID',
+        'SLOT_NOT_ON_DATE',
         'STATE_NOT_ALLOWED',
+        'TOO_LATE',
         'TOKEN_INVALID',
         'UNAUTHENTICATED',
         'USER_NOT_ELIGIBLE',
@@ -283,7 +285,7 @@ describe('health and harness', () => {
   it('FND-16 the request user carries _id, kind, state, chat_suspended_until and in-effect roles', async () => {
     const user = await makeUser({ kind: 'teacher', state: 'pending' });
     expect(Object.keys(user).sort()).toEqual(
-      ['_id', 'chat_suspended_until', 'email', 'kind', 'roles', 'state'].sort(),
+      ['_id', 'chat_suspended_until', 'department_id', 'email', 'kind', 'roles', 'state'].sort(),
     );
     expect(user.kind).toBe('teacher');
     expect(user.state).toBe('pending');

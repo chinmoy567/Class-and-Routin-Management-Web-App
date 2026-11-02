@@ -35,6 +35,8 @@ export const ERROR_CODES = Object.freeze({
   UV_ID_TAKEN: { code: 'UV_ID_TAKEN', status: 409 },
   CLAIM_BLOCKED: { code: 'CLAIM_BLOCKED', status: 429 },
   SECTION_CLOSED: { code: 'SECTION_CLOSED', status: 409 },
+  SLOT_NOT_ON_DATE: { code: 'SLOT_NOT_ON_DATE', status: 409 },
+  TOO_LATE: { code: 'TOO_LATE', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -73,3 +75,5 @@ export const REQUEST_ALREADY_OPEN = 'REQUEST_ALREADY_OPEN';
 export const UV_ID_TAKEN = 'UV_ID_TAKEN';
 export const CLAIM_BLOCKED = 'CLAIM_BLOCKED';
 export const SECTION_CLOSED = 'SECTION_CLOSED';
+export const SLOT_NOT_ON_DATE = 'SLOT_NOT_ON_DATE';
+export const TOO_LATE = 'TOO_LATE';

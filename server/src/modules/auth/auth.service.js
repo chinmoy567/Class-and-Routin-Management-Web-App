@@ -60,6 +60,7 @@ export async function loadRequestUser(userId) {
     kind: user.kind,
     state: user.state,
     chat_suspended_until: user.chat_suspended_until ?? null,
+    department_id: user.department_id ?? null,
     roles: roles.map(({ role, department_id, section_id, semester_id }) => ({
       role,
       ...(department_id && { department_id }),

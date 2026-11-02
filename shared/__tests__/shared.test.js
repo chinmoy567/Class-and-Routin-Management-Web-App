@@ -82,6 +82,142 @@ describe('shared', () => {
   });
 });
 
+import { dayRule, slotRuns } from '../calendar.js';
+
+const semester = { start_date: '2027-06-01', end_date: '2027-11-30' };
+
+const mkEvent = (overrides) => ({
+  scope_department_id: null,
+  from_date: '2027-06-07',
+  to_date: '2027-06-07',
+  kind: 'exam',
+  cutoff_min: null,
+  label: 'Mid-term exam',
+  created_at: new Date('2027-01-01'),
+  ...overrides,
+});
+
+describe('calendar resolver — dayRule (CAL-06, CAL-07)', () => {
+  it('CAL-06-test1 date after semester end → no_semester', () => {
+    expect(dayRule('2027-12-01', 'cse', { events: [], semester }).kind).toBe('no_semester');
+  });
+
+  it('CAL-06 date before semester start → no_semester', () => {
+    expect(dayRule('2027-05-31', 'cse', { events: [], semester }).kind).toBe('no_semester');
+  });
+
+  it('CAL-06 Friday → non_teaching_day', () => {
+    // 2027-06-04 is a Friday
+    expect(dayRule('2027-06-04', 'cse', { events: [], semester }).kind).toBe('non_teaching_day');
+  });
+
+  it('CAL-06 Saturday → non_teaching_day', () => {
+    // 2027-06-05 is a Saturday
+    expect(dayRule('2027-06-05', 'cse', { events: [], semester }).kind).toBe('non_teaching_day');
+  });
+
+  it('CAL-06 no events → normal', () => {
+    expect(dayRule('2027-06-07', 'cse', { events: [], semester }).kind).toBe('normal');
+  });
+
+  it('[PRD-AC1] university exam event → closed with label', () => {
+    const result = dayRule('2027-06-07', 'cse', { events: [mkEvent()], semester });
+    expect(result).toEqual({ kind: 'closed', label: 'Mid-term exam' });
+  });
+
+  it('[PRD-AC3] CSE dept_event does not affect EEE', () => {
+    const ev = mkEvent({ kind: 'dept_event', scope_department_id: 'cse_id', label: 'CSE FEST' });
+    expect(dayRule('2027-06-07', 'cse_id', { events: [ev], semester }).kind).toBe('closed');
+    expect(dayRule('2027-06-07', 'eee_id', { events: [ev], semester }).kind).toBe('normal');
+  });
+
+  it('[PRD-AC2] early_closing at 12:00 → cutoff 720', () => {
+    const ev = mkEvent({ kind: 'early_closing', cutoff_min: 720, label: 'Campus Day' });
+    const result = dayRule('2027-06-07', 'cse', { events: [ev], semester });
+    expect(result).toEqual({ kind: 'cutoff', cutoff_min: 720, label: 'Campus Day' });
+  });
+
+  it('[CAL-07-test1] holiday + early_closing on same day → closed', () => {
+    const holiday = mkEvent({ kind: 'holiday', label: 'Public Holiday' });
+    const ec = mkEvent({ kind: 'early_closing', cutoff_min: 720, label: 'Campus Day' });
+    expect(dayRule('2027-06-07', 'cse', { events: [holiday, ec], semester }).kind).toBe('closed');
+  });
+
+  it('[CAL-07-test2] two early_closings at 12:00 and 13:00 → cutoff 720', () => {
+    const ec1 = mkEvent({ kind: 'early_closing', cutoff_min: 720, label: 'Early' });
+    const ec2 = mkEvent({ kind: 'early_closing', cutoff_min: 780, label: 'Later' });
+    const result = dayRule('2027-06-07', 'cse', { events: [ec1, ec2], semester });
+    expect(result).toEqual({ kind: 'cutoff', cutoff_min: 720, label: 'Early' });
+  });
+
+  it('CAL-07 dept scope label beats university scope label', () => {
+    const univ = mkEvent({
+      kind: 'holiday',
+      label: 'University Holiday',
+      created_at: new Date('2027-01-01'),
+    });
+    const dept = mkEvent({
+      kind: 'exam',
+      scope_department_id: 'cse_id',
+      label: 'Dept Exam',
+      created_at: new Date('2027-01-02'),
+    });
+    const result = dayRule('2027-06-07', 'cse_id', { events: [univ, dept], semester });
+    expect(result.label).toBe('Dept Exam');
+  });
+
+  it('CAL-03 dept_event without cutoff → closed', () => {
+    const ev = mkEvent({ kind: 'dept_event', scope_department_id: 'cse_id', cutoff_min: null, label: 'Fest' });
+    expect(dayRule('2027-06-07', 'cse_id', { events: [ev], semester }).kind).toBe('closed');
+  });
+
+  it('CAL-03 dept_event with cutoff → cutoff', () => {
+    const ev = mkEvent({ kind: 'dept_event', scope_department_id: 'cse_id', cutoff_min: 720, label: 'Fest' });
+    const result = dayRule('2027-06-07', 'cse_id', { events: [ev], semester });
+    expect(result).toEqual({ kind: 'cutoff', cutoff_min: 720, label: 'Fest' });
+  });
+});
+
+describe('calendar resolver — slotRuns (CAL-08)', () => {
+  const slot = { slot_id: 'slot1', day_of_week: 1, start_min: 695, end_min: 750, department_id: 'cse' };
+
+  it('CAL-08 normal day → runs with original end_min', () => {
+    const result = slotRuns(slot, '2027-06-07', { events: [], cancellations: [], semester });
+    expect(result).toEqual({ status: 'runs', end_min: 750 });
+  });
+
+  it('[PRD-AC2] early_closing at 720 — class 695–750 runs until 720', () => {
+    const ev = mkEvent({ kind: 'early_closing', cutoff_min: 720, label: 'Campus Day' });
+    const result = slotRuns(slot, '2027-06-07', { events: [ev], cancellations: [], semester });
+    expect(result).toEqual({ status: 'runs', end_min: 720 });
+  });
+
+  it('[CAL-08-test1] class starting at cutoff (720) with 720 cutoff → stopped', () => {
+    const ev = mkEvent({ kind: 'early_closing', cutoff_min: 720, label: 'Campus Day' });
+    const s = { ...slot, start_min: 720, end_min: 780 };
+    const result = slotRuns(s, '2027-06-07', { events: [ev], cancellations: [], semester });
+    expect(result.status).toBe('stopped');
+  });
+
+  it('CAL-10 cancelled slot → cancelled with reason', () => {
+    const cancellation = { slot_id: 'slot1', date: '2027-06-07', reason: 'Teacher absent' };
+    const result = slotRuns(slot, '2027-06-07', { events: [], cancellations: [cancellation], semester });
+    expect(result).toEqual({ status: 'cancelled', reason: 'Teacher absent' });
+  });
+
+  it('CAL-08 closed day → stopped', () => {
+    const ev = mkEvent({ kind: 'holiday', label: 'Holiday' });
+    const result = slotRuns(slot, '2027-06-07', { events: [ev], cancellations: [], semester });
+    expect(result.status).toBe('stopped');
+    expect(result.label).toBe('Holiday');
+  });
+
+  it('CAL-08 outside semester → stopped', () => {
+    const result = slotRuns(slot, '2027-12-01', { events: [], cancellations: [], semester });
+    expect(result.status).toBe('stopped');
+  });
+});
+
 import { phoneSchema, updateProfileBody } from '../index.js';
 
 describe('profile schemas', () => {
