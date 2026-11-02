@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.home', icon: Home, end: true },
   { to: '/routine', labelKey: 'nav.routine', icon: CalendarDays },
+  { to: '/rooms/free', labelKey: 'nav.freeRooms', icon: DoorOpen },
   { to: '/profile', labelKey: 'nav.profile', icon: UserRound },
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];

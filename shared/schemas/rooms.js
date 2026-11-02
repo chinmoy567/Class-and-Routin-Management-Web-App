@@ -40,3 +40,26 @@ export const setSharesBody = z.strictObject({
 export const roomIdParam = z.object({ id: objectIdString });
 export const roomAliasParams = z.object({ id: objectIdString, aliasId: objectIdString });
 export const adminRoomsQuery = z.object({ department_id: objectIdString.optional() });
+
+// FRV-01: a time of day as minutes since midnight, on 5-minute steps, between 08:00 and 18:00.
+const minuteOfDay = z.coerce
+  .number({ error: 'Choose a time' })
+  .int('Use whole minutes')
+  .min(480, 'Choose a time from 08:00')
+  .max(1080, 'Choose a time up to 18:00')
+  .refine((m) => m % 5 === 0, 'Use 5-minute steps');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
+
+// FRV-01, FRV-06: the free-room query.
+export const availabilityQuery = z
+  .object({
+    date: isoDate,
+    from: minuteOfDay,
+    to: minuteOfDay,
+    type: roomType.optional(),
+    department_id: objectIdString.optional(),
+  })
+  .refine((v) => v.from < v.to, {
+    message: 'The end time must be after the start time',
+    path: ['to'],
+  });

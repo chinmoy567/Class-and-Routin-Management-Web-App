@@ -3,6 +3,8 @@ import { hasRole, isAdminOf, stateIn } from '../../policy/index.js';
 const active = (user) => stateIn(user, 'active');
 
 export const roomsPolicy = {
+  // FRV-08: every `active` student, teacher and admin views free rooms (the state is checked first).
+  'room.availability.view': (user) => active(user),
   // ROOM-08: every signed-in `active` person lists active rooms (code and type only).
   'room.list': (user) => active(user),
   // The admin list: one department (its own, unless a super admin), or no department given.

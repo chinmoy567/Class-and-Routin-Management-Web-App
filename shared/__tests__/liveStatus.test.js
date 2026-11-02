@@ -38,16 +38,16 @@ function makeSlot(overrides = {}) {
 // A ms timestamp that represents a specific BDT time:
 function bdtMs(dateStr, hour, minute) {
   // dateStr: YYYY-MM-DD. Subtract 6 h to get UTC.
-  return Date.parse(`${dateStr}T${String(hour - 6).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`);
+  return Date.parse(
+    `${dateStr}T${String(hour - 6).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`,
+  );
 }
 
 const SEMESTER = { start_date: '2027-04-04', end_date: '2027-10-04' };
 
 // 2027-04-07 is a Wednesday (day 3) — a teaching day.
 const TEACHING_DATE = '2027-04-07';
-// 2027-04-09 is a Friday (day 5) — non-teaching.
-const FRIDAY = '2027-04-11'; // 2027-04-11 is a Saturday (let's verify): Apr 4 is Sunday → Apr 11 is Sunday. Use Apr 12 (Monday=1). Actually let's use real days.
-// Let's anchor: 2027-04-04 is Sunday (start of semester). Day 0 = Sun.
+// Anchor: 2027-04-04 is Sunday (start of semester). Day 0 = Sun.
 // Apr 4 Sun, Apr 5 Mon, Apr 6 Tue, Apr 7 Wed, Apr 8 Thu, Apr 9 Fri, Apr 10 Sat.
 const REAL_FRIDAY = '2027-04-09';
 const REAL_SATURDAY = '2027-04-10';
@@ -93,7 +93,9 @@ describe('liveStatus', () => {
     const now = bdtMs(TEACHING_DATE, 10, 0);
     const payload = makePayload({
       semester: SEMESTER,
-      days: [{ date: TEACHING_DATE, dayRule: { kind: 'closed', label: 'Mid-term exam' }, slots: [] }],
+      days: [
+        { date: TEACHING_DATE, dayRule: { kind: 'closed', label: 'Mid-term exam' }, slots: [] },
+      ],
     });
     expect(liveStatus(payload, now)).toEqual({ kind: 'event', label: 'Mid-term exam' });
   });

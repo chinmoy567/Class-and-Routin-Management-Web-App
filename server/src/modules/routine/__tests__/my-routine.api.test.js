@@ -20,7 +20,8 @@ import {
 import { Enrolment } from '../../enrolments/index.js';
 import { Teacher } from '../../teachers/index.js';
 import { Room } from '../../rooms/index.js';
-import { clearAll as clearRoutineCache } from '../routine-cache.js';
+import { clearAll as clearRoutineCache, getSectionSlots } from '../routine-cache.js';
+import { addGroup } from '../section.service.js';
 
 let app;
 beforeAll(async () => {
@@ -124,17 +125,11 @@ async function enrolStudent(user, sem, section, group = null) {
 }
 
 async function asActiveStudent(dept) {
-  return loginAs(
-    await makeUser({ kind: 'student', state: 'active', departmentId: dept._id }),
-    app,
-  );
+  return loginAs(await makeUser({ kind: 'student', state: 'active', departmentId: dept._id }), app);
 }
 
 async function asActiveTeacher(dept) {
-  return loginAs(
-    await makeUser({ kind: 'teacher', state: 'active', departmentId: dept._id }),
-    app,
-  );
+  return loginAs(await makeUser({ kind: 'teacher', state: 'active', departmentId: dept._id }), app);
 }
 
 // ── RTN-04: permission checks ─────────────────────────────────────────────────
@@ -154,6 +149,7 @@ describe('RTN-04 access control', () => {
     );
     const res = await agent.get('/api/me/routine');
     expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
   });
 
   it('RTN-04 unconfirmed student → 403', async () => {
@@ -164,11 +160,12 @@ describe('RTN-04 access control', () => {
     );
     const res = await agent.get('/api/me/routine');
     expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
   });
 
   it('RTN-04 active student → 200', async () => {
     const dept = await createDepartment();
-    const sem = await makeSemester();
+    await makeSemester();
     const agent = await asActiveStudent(dept);
     const res = await agent.get('/api/me/routine');
     expect(res.status).toBe(200);
@@ -234,18 +231,18 @@ describe('RTN-01 group-aware filtering', () => {
     const g2 = await makeGroup(section, 'G2');
 
     // Whole-section slot (no group)
-    const wholeSlot = await makePublishedSlot(sem, dept, section, room, {
+    await makePublishedSlot(sem, dept, section, room, {
       day_of_week: 0,
       course_code: 'CSE-THEORY',
     });
     // G1 lab
-    const g1Slot = await makePublishedSlot(sem, dept, section, room, {
+    await makePublishedSlot(sem, dept, section, room, {
       day_of_week: 1,
       group_id: g1._id,
       course_code: 'CSE-LAB-G1',
     });
     // G2 lab
-    const g2Slot = await makePublishedSlot(sem, dept, section, room, {
+    await makePublishedSlot(sem, dept, section, room, {
       day_of_week: 2,
       group_id: g2._id,
       course_code: 'CSE-LAB-G2',
@@ -263,9 +260,7 @@ describe('RTN-01 group-aware filtering', () => {
     const res = await agent.get('/api/me/routine?from=2027-04-04&to=2027-04-10');
     expect(res.status).toBe(200);
 
-    const allCourseCodes = res.body.data.days.flatMap((d) =>
-      d.slots.map((s) => s.course_code),
-    );
+    const allCourseCodes = res.body.data.days.flatMap((d) => d.slots.map((s) => s.course_code));
 
     expect(allCourseCodes).toContain('CSE-THEORY');
     expect(allCourseCodes).toContain('CSE-LAB-G1');
@@ -279,7 +274,10 @@ describe('RTN-01 group-aware filtering', () => {
     const room = await makeRoom(dept);
     const g1 = await makeGroup(section, 'G1');
 
-    await makePublishedSlot(sem, dept, section, room, { course_code: 'CSE-THEORY', day_of_week: 0 });
+    await makePublishedSlot(sem, dept, section, room, {
+      course_code: 'CSE-THEORY',
+      day_of_week: 0,
+    });
     await makePublishedSlot(sem, dept, section, room, {
       course_code: 'CSE-LAB-G1',
       day_of_week: 1,
@@ -304,7 +302,7 @@ describe('RTN-01 group-aware filtering', () => {
 // ── RTN-05: cross-section isolation ──────────────────────────────────────────
 
 describe('RTN-05 cross-section isolation', () => {
-  it('RTN-05 student never receives another section\'s slots', async () => {
+  it("RTN-05 student never receives another section's slots", async () => {
     const dept = await createDepartment();
     const sem = await makeSemester();
     const sectionA = await makeSection(sem, dept, { letter: 'A' });
@@ -411,7 +409,10 @@ describe('RTN-14 cache', () => {
     const sem = await makeSemester();
     const section = await makeSection(sem, dept);
     const room = await makeRoom(dept);
-    await makePublishedSlot(sem, dept, section, room, { course_code: 'CSE-CACHED', day_of_week: 0 });
+    await makePublishedSlot(sem, dept, section, room, {
+      course_code: 'CSE-CACHED',
+      day_of_week: 0,
+    });
 
     const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
     await enrolStudent(user, sem, section);
@@ -434,7 +435,10 @@ describe('RTN-14 cache', () => {
     const sem = await makeSemester();
     const section = await makeSection(sem, dept);
     const room = await makeRoom(dept);
-    await makePublishedSlot(sem, dept, section, room, { course_code: 'CSE-BEFORE', day_of_week: 0 });
+    await makePublishedSlot(sem, dept, section, room, {
+      course_code: 'CSE-BEFORE',
+      day_of_week: 0,
+    });
 
     const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
     await enrolStudent(user, sem, section);
@@ -451,5 +455,90 @@ describe('RTN-14 cache', () => {
     const res = await agent.get('/api/me/routine?from=2027-04-04&to=2027-04-07');
     const codes = res.body.data.days.flatMap((d) => d.slots.map((s) => s.course_code));
     expect(codes).toContain('CSE-AFTER');
+  });
+});
+
+// ── Review fixes: RTN-02, RTN-04 (teacher states), RTN-06 (today), RTN-07, RTN-14 ─────────
+
+describe('RTN-04 teacher states', () => {
+  it('RTN-04 a teacher awaiting approval gets STATE_NOT_ALLOWED', async () => {
+    await makeSemester();
+    const agent = await loginAs(await makeUser({ kind: 'teacher', state: 'pending' }), app);
+    const res = await agent.get('/api/me/routine');
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
+  });
+
+  it('RTN-04 a suspended teacher gets STATE_NOT_ALLOWED', async () => {
+    await makeSemester();
+    const agent = await loginAs(await makeUser({ kind: 'teacher', state: 'suspended' }), app);
+    const res = await agent.get('/api/me/routine');
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
+  });
+});
+
+describe('RTN-06 institution today', () => {
+  it('RTN-06 the response says which institution date is today', async () => {
+    const dept = await createDepartment();
+    await makeSemester();
+    fixClock('2027-04-04T04:00:00Z'); // Sunday 10:00 in Asia/Dhaka
+    const res = await (await asActiveStudent(dept)).get('/api/me/routine');
+    expect(res.body.data.today).toBe('2027-04-04');
+  });
+});
+
+describe("RTN-02 every department's slots for a section", () => {
+  it('RTN-02 a LAW student sees both LAW-owned and CSE-owned slots of the section', async () => {
+    const sem = await makeSemester();
+    const law = await createDepartment({ code: 'LAW' });
+    const cse = await createDepartment({ code: 'CSE' });
+    const section = await makeSection(sem, law);
+    const room = await makeRoom(law);
+    await makePublishedSlot(sem, law, section, room, { day_of_week: 0, course_code: 'LAW-101' });
+    await makePublishedSlot(sem, cse, section, room, { day_of_week: 0, course_code: 'CSE-101' });
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: law._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-04T04:00:00Z');
+    const res = await (await loginAs(user, app)).get('/api/me/routine');
+    const codes = res.body.data.week[0].slots.map((s) => s.course_code);
+    expect(codes.sort()).toEqual(['CSE-101', 'LAW-101']);
+  });
+});
+
+describe('RTN-07 teacher short codes', () => {
+  it('RTN-07 each teacher on a slot carries a short code and full name', async () => {
+    const sem = await makeSemester();
+    const dept = await createDepartment({ code: 'CSE' });
+    const section = await makeSection(sem, dept);
+    const room = await makeRoom(dept);
+    const slot = await makePublishedSlot(sem, dept, section, room, { day_of_week: 0 });
+    await linkTeacher(slot, await makeTeacher(dept, 'AR'));
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-04T04:00:00Z');
+    const res = await (await loginAs(user, app)).get('/api/me/routine');
+    expect(res.body.data.week[0].slots[0].teachers).toEqual([
+      { short_code: 'AR', full_name: 'Test Teacher' },
+    ]);
+  });
+});
+
+describe('RTN-14 cache clears on group change', () => {
+  it('RTN-14 adding a group drops the cached pattern of its section', async () => {
+    const sem = await makeSemester();
+    const dept = await createDepartment({ code: 'CSE' });
+    const section = await makeSection(sem, dept);
+    const room = await makeRoom(dept);
+    await makePublishedSlot(sem, dept, section, room, { day_of_week: 0 });
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-04T04:00:00Z');
+    await (await loginAs(user, app)).get('/api/me/routine');
+    expect(getSectionSlots(String(sem._id), String(section._id))).not.toBeNull();
+
+    const actor = await makeUser({ kind: 'staff', roles: [{ role: 'super_admin' }] });
+    await addGroup(actor, String(section._id), { label: 'G9' });
+    expect(getSectionSlots(String(sem._id), String(section._id))).toBeNull();
   });
 });

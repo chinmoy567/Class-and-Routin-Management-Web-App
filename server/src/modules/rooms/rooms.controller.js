@@ -1,4 +1,5 @@
 import * as service from './rooms.service.js';
+import { listAvailability, freeNow } from './availability.service.js';
 
 export async function listActive(req, res) {
   res.json({ data: await service.listActiveRooms(req.user) });
@@ -24,4 +25,10 @@ export async function setShares(req, res) {
 }
 export async function retire(req, res) {
   res.json({ data: await service.retireRoom(req.user, req.params.id) });
+}
+export async function availability(req, res) {
+  res.json({ data: await listAvailability(req.user, req.query) });
+}
+export async function freeNowRooms(req, res) {
+  res.json({ data: await freeNow(req.user) });
 }

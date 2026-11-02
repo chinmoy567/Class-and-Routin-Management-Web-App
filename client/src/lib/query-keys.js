@@ -39,4 +39,7 @@ export const qk = {
   studentSearch: (q, departmentId) => ['admin', 'representatives', 'search', q, departmentId],
   myRoutine: (from, to) => ['me', 'routine', from, to],
   myRoutineAll: () => ['me', 'routine'],
+  availabilityAll: () => ['rooms', 'availability'],
+  availability: (params) => ['rooms', 'availability', params],
+  freeNow: () => ['rooms', 'free-now'],
 };

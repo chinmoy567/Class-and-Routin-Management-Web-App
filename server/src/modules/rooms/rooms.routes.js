@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   adminRoomsQuery,
+  availabilityQuery,
   createAliasBody,
   createRoomBody,
   roomAliasParams,
@@ -14,6 +15,9 @@ import * as controller from './rooms.controller.js';
 // Mounted at /api/rooms behind requireAuth. The 'room.*' policies are checked in the service.
 export const roomsRouter = Router();
 roomsRouter.get('/', controller.listActive);
+// FRV-01, FRV-07: the free-room view and the free-now card.
+roomsRouter.get('/availability', validate({ query: availabilityQuery }), controller.availability);
+roomsRouter.get('/free-now', controller.freeNowRooms);
 
 // Mounted at /api/admin behind requireAuth.
 export const roomsAdminRouter = Router();

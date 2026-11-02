@@ -88,12 +88,15 @@ function SlotCell({ slot }) {
   );
 }
 
-function WeekGrid({ week }) {
+/** Day of week (0 = Sunday) for an institution date string from the server. */
+const dowOf = (date) => new Date(`${date}T00:00:00Z`).getUTCDay();
+
+function WeekGrid({ week, today }) {
   if (!week?.length) {
     return <p className="text-muted-foreground text-sm">{t('routine.noSlotsToday')}</p>;
   }
 
-  const todayDow = new Date().getDay();
+  const todayDow = dowOf(today);
 
   return (
     <div className="overflow-x-auto">
@@ -135,7 +138,7 @@ function WeekGrid({ week }) {
   );
 }
 
-function DaySlotItem({ slot, todayStr }) {
+function DaySlotItem({ slot }) {
   const teachers = slot.teachers?.length
     ? slot.teachers.map((tc) => tc.full_name ?? tc.short_code).join(', ')
     : t('routine.tba');
@@ -176,8 +179,8 @@ function DaySlotItem({ slot, todayStr }) {
   );
 }
 
-function DayList({ days }) {
-  const todayStr = isoDate(0);
+function DayList({ days, today }) {
+  const todayStr = today;
   const hasToday = days?.some((d) => d.date === todayStr);
   const defaultTab = hasToday ? todayStr : (days?.[0]?.date ?? todayStr);
   const [activeDate, setActiveDate] = useState(defaultTab);
@@ -188,12 +191,13 @@ function DayList({ days }) {
 
   let activeDay = days[0];
   for (const d of days) {
-    if (d.date === activeDate) { activeDay = d; break; }
+    if (d.date === activeDate) {
+      activeDay = d;
+      break;
+    }
   }
   const drKind = activeDay.dayRule?.kind;
-  const dayRuleLabel = drKind && drKind !== 'normal'
-    ? (activeDay.dayRule.label ?? drKind)
-    : null;
+  const dayRuleLabel = drKind && drKind !== 'normal' ? (activeDay.dayRule.label ?? drKind) : null;
 
   return (
     <div>
@@ -213,16 +217,14 @@ function DayList({ days }) {
         })}
       </div>
 
-      {dayRuleLabel && (
-        <p className="text-sm text-muted-foreground mb-2">{dayRuleLabel}</p>
-      )}
+      {dayRuleLabel && <p className="text-sm text-muted-foreground mb-2">{dayRuleLabel}</p>}
 
       {!activeDay.slots?.length ? (
         <p className="text-muted-foreground text-sm">{t('routine.noSlotsToday')}</p>
       ) : (
         <ul className="space-y-2">
           {activeDay.slots.map((slot) => (
-            <DaySlotItem key={slot.slot_id} slot={slot} todayStr={todayStr} />
+            <DaySlotItem key={slot.slot_id} slot={slot} />
           ))}
         </ul>
       )}
@@ -279,11 +281,11 @@ export function MyRoutinePage() {
       )}
 
       <div className="hidden md:block">
-        <WeekGrid week={routineData.week} />
+        <WeekGrid week={routineData.week} today={routineData.today} />
       </div>
 
       <div className="md:hidden">
-        <DayList days={routineData.days} />
+        <DayList days={routineData.days} today={routineData.today} />
       </div>
     </section>
   );

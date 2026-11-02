@@ -91,6 +91,7 @@ describe('errors and validation', () => {
         'CODE_LOCKED',
         'CONFLICT',
         'CSRF_FAILED',
+        'DATE_OUT_OF_RANGE',
         'DEPARTMENT_IN_USE',
         'EMAIL_DOMAIN_NOT_ALLOWED',
         'FILE_INFECTED',

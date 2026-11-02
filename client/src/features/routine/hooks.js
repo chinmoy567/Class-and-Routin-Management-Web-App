@@ -5,8 +5,18 @@ import { qk } from '@/lib/query-keys';
 import { onEvent } from '@/lib/socket';
 import { fetchMyRoutine } from './api.js';
 
-/** RTN-12: fetch the routine for today + tomorrow. Refetches every 5 minutes. */
+/** RTN-12: fetch the routine. Refetches every 5 minutes and when the tab becomes visible again. */
 export function useMyRoutine(from, to) {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: qk.myRoutineAll() });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [queryClient]);
   return useQuery({
     queryKey: qk.myRoutine(from ?? null, to ?? null),
     queryFn: () => fetchMyRoutine(from, to),
@@ -35,38 +45,27 @@ export function useRoutineSocket() {
   }, [queryClient]);
 }
 
+/** RTN-11: the live status for a routine, using server time plus the offset from the response. */
+function computeStatus(routineData, offsetMs) {
+  if (!routineData) return null;
+  return liveStatus(routineData, Date.now() + offsetMs);
+}
+
 /**
- * RTN-11, RTN-12, RTN-13: compute live status every second.
- * Returns { status, data } where status is the liveStatus result.
+ * RTN-11, RTN-12, RTN-13: the live status, recomputed every second with no server call.
+ * The clock offset is taken from `server_time` each time routine data arrives.
  */
 export function useLiveStatus(routineData) {
   const offsetRef = useRef(0);
+  const [status, setStatus] = useState(null);
 
-  // Compute clock offset once when routineData arrives.
   useEffect(() => {
     if (routineData?.server_time) {
       offsetRef.current = new Date(routineData.server_time).getTime() - Date.now();
     }
-  }, [routineData?.server_time]);
-
-  const compute = () => {
-    if (!routineData) return null;
-    const serverNow = Date.now() + offsetRef.current;
-    return liveStatus(routineData, serverNow);
-  };
-
-  const [status, setStatus] = useState(compute);
-
-  // Recompute every second.
-  useEffect(() => {
-    const id = setInterval(() => setStatus(compute()), 1000);
+    setStatus(computeStatus(routineData, offsetRef.current));
+    const id = setInterval(() => setStatus(computeStatus(routineData, offsetRef.current)), 1000);
     return () => clearInterval(id);
-  });
-
-  // Also recompute immediately when routineData changes.
-  useEffect(() => {
-    setStatus(compute());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routineData]);
 
   return status;

@@ -17,4 +17,11 @@ export {
   resetRoomUsage,
 } from './rooms.service.js';
 export { normaliseName } from './normalise.js';
+export {
+  availability,
+  freeNow,
+  listAvailability,
+  registerAvailabilityProvider,
+  resetAvailabilityProviders,
+} from './availability.service.js';
 export { Room, RoomAlias, RoomShare } from './rooms.model.js';

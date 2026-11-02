@@ -34,6 +34,7 @@ import { RepresentativesPage } from '@/routes/admin/RepresentativesPage.jsx';
 import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 import { MyRoutinePage } from '@/routes/MyRoutinePage.jsx';
+import { FreeRoomsPage } from '@/routes/FreeRoomsPage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -72,6 +73,7 @@ export function AppRoutes() {
           <Route path="/users/:id" element={<PublicProfilePage />} />
           <Route path="/account/password" element={<ChangePasswordPage />} />
           <Route path="/routine" element={<MyRoutinePage />} />
+          <Route path="/rooms/free" element={<FreeRoomsPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
             <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />

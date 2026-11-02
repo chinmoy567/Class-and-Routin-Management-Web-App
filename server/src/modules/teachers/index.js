@@ -19,6 +19,7 @@ export { teachersAdminRouter, teachersMeRouter } from './teachers.routes.js';
 export {
   findByCode,
   fullNames,
+  teacherLabels,
   sectionsTaughtBy,
   recordsOf,
   directoryFor,

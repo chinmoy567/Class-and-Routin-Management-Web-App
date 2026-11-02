@@ -37,16 +37,6 @@ function addDays(date, n) {
 }
 
 /**
- * Find the dayRule for a date from the precomputed `days` array.
- * Falls back to `{ kind: 'normal' }` for dates not in the payload — the caller decides
- * whether that date is actually outside the semester.
- */
-function ruleForDate(days, date) {
-  const entry = days.find((d) => d.date === date);
-  return entry ? entry.dayRule : null;
-}
-
-/**
  * RTN-08, RTN-10: walk forward from `date` (inclusive) up to `maxDays` days
  * and return the first slot with status 'runs', or null.
  */

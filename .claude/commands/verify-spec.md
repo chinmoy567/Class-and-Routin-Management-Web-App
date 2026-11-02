@@ -1,11 +1,19 @@
 ---
-description: Verify a finished spec (or all specs) against its requirements - unit, API, security, concurrency, traceability - and save the report to test-results/
+description: Verify that a spec (or all specs) is built, test it against its requirements - unit, API, security, concurrency, traceability - fix any faults found, and save the report to test-results/
 argument-hint: <spec, e.g. 01 or 01-auth-accounts>  |  all
 ---
 
 Verify what was built for: **$ARGUMENTS** (empty or `all` means every spec whose status is `In progress` or `Done`).
 
-This is an audit, not a build. **Do not change source code, tests, config or specs.** Only write the report files under `test-results/`. Never weaken, skip or delete a test, and never add `eslint-disable`. If something fails, record it; fixing is a separate request.
+This command checks that each spec is actually built, tests it, and **fixes any faults it finds**. Work in this order: verify, then fix, then re-verify.
+
+Rules for fixing:
+- Fix only faults that break a requirement, an acceptance test, a CLAUDE.md "must never be broken" rule, or a failing check. Do not refactor or add features beyond that.
+- Follow `.claude/CLAUDE.md` and the `api-module`, `mongo-patterns` and `ui-conventions` skills for the fixes. Write or update the matching tests with each fix.
+- Never weaken, skip or delete a test, and never add `eslint-disable`. If a fix needs a decision the spec or PRD does not settle (an open question), record it and ask instead of guessing.
+- Don't commit. Leave changes in the working tree for the user to review.
+- Record every change in the report (file, what changed, which requirement or check it fixes).
+- Only write to `test-results/` and to the source, test and config files needed for a fix. Don't edit specs or the PRD.
 
 ## 1. Resolve the scope
 
@@ -56,7 +64,18 @@ Check the code against `.claude/CLAUDE.md` "Rules that must never be broken". Fo
 
 Then confirm by test, not only by reading: for each role, a test must try another section's or department's data and be refused; concurrency rules must have a test that fires simultaneous requests. List any role or rule without one as a gap.
 
-## 6. Write the report
+## 6. Fix the faults
+
+Take every item marked **Not implemented**, **Covered but failing**, **Covered but weak**, **Not tested** or **FAIL** from steps 3 to 5, and fix it in the order: failing checks first, then security FAILs (high severity first), then missing implementation, then missing or weak tests.
+
+- Read the spec, its PRD section and its diagram before changing code.
+- For a rule with no test, write the test first, confirm it fails for the right reason, then fix the code.
+- After each fix, re-run the check it belongs to (for example the failing package's `test` or `lint`).
+- If a fix is too large or unclear (a whole missing feature, or a conflict between the spec and the PRD), don't build it. Record it under Gaps and say so.
+
+Then re-run steps 3 and 4 once on the changed code so the report shows the final state. Keep the first run's results too, and list them as "before fixes" in the report.
+
+## 7. Write the report
 
 Save `test-results/<folder>/REPORT.md` with:
 
@@ -65,11 +84,12 @@ Save `test-results/<folder>/REPORT.md` with:
 3. **Failures** - for each: test or check name, file:line, the relevant error lines, one-line likely cause.
 4. **Requirement matrix** - ID, short text, status from step 4, test name and file.
 5. **Security audit** - the step 5 table, FAILs first, each with severity (high / medium / low) and the rule it breaks.
-6. **Gaps** - missing tests (cross-scope, concurrency, account-state), weak tests, skipped checks and why.
-7. **Commands run** - exact commands, exit codes, and where the raw logs are.
+6. **Fixes made** - each change: file, what changed, the requirement or check it fixes, the tests added or updated. Plus anything found but not fixed, and why.
+7. **Gaps** - missing tests (cross-scope, concurrency, account-state), weak tests, skipped checks and why, faults left open.
+8. **Commands run** - exact commands, exit codes, and where the raw logs are. Keep the "before fixes" and "after fixes" runs separate.
 
-Also write `test-results/<folder>/summary.json` (verdict, counts, per-spec status) and update `test-results/LATEST.md` with the verdict and a link to the newest report. Don't overwrite older runs.
+Also write `test-results/<folder>/summary.json` (verdict, counts, per-spec status, fixes made) and update `test-results/LATEST.md` with the verdict and a link to the newest report. Don't overwrite older runs.
 
-## 7. Tell me
+## 8. Tell me
 
-Reply short: verdict, counts, the top failures and security FAILs, and the path to `REPORT.md`. Then offer next steps (fix failures, add the missing tests) and wait. Report test output as it is; never claim a check passed that you did not run.
+Reply short: verdict before and after fixes, counts, what was fixed, anything still failing or open, and the path to `REPORT.md`. Then offer next steps (review the changes, commit, or handle open items) and wait. Report test output as it is; never claim a check passed that you did not run.

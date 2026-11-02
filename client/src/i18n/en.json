@@ -19,7 +19,8 @@
     "adminRoutineImport": "Routine import",
     "adminRoutineEdit": "Routine edit",
     "adminRepresentatives": "CR / DCR",
-    "routine": "My Routine"
+    "routine": "My Routine",
+    "freeRooms": "Free rooms"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -219,7 +220,8 @@
     "CLAIM_BLOCKED": "Too many UV ID claims were rejected. Please try again later.",
     "SECTION_CLOSED": "This section is not open for join requests yet.",
     "SLOT_NOT_ON_DATE": "This class does not run on that date.",
-    "TOO_LATE": "The class has already started. The cancellation cannot be undone."
+    "TOO_LATE": "The class has already started. The cancellation cannot be undone.",
+    "DATE_OUT_OF_RANGE": "Pick a date in this week or next week, inside the current semester."
   },
   "auth": {
     "fields": {
@@ -777,5 +779,46 @@
     "dayTue": "Tue",
     "dayWed": "Wed",
     "dayThu": "Thu"
+  },
+  "freeRooms": {
+    "title": "Free rooms",
+    "intro": "Pick a date and a time range to see which rooms are free. This week or next week only.",
+    "date": "Date",
+    "dateHint": "This week or next week",
+    "from": "From",
+    "to": "To",
+    "type": "Room type",
+    "typeAll": "All types",
+    "department": "Owner department",
+    "departmentAll": "All departments",
+    "rangeError": "The end time must be after the start time.",
+    "legend": "What each status means",
+    "groups": {
+      "free": "Free",
+      "unknown": "Availability unknown",
+      "busy": "In use",
+      "booked": "Booked"
+    },
+    "statusHelp": {
+      "free": "No class or booking uses this room in that time.",
+      "unknown": "A department that uses this room has not published its routine yet. It cannot be requested.",
+      "busy": "A class is using this room. The class is not shown.",
+      "booked": "This room is booked. The booking is not shown."
+    },
+    "unknownNote": "Cannot be requested",
+    "owner": "Owner: {code}",
+    "none": "None",
+    "empty": "No rooms match these filters.",
+    "requestsOff": "Room requests are not allowed on this day: {label}.",
+    "loading": "Loading rooms…",
+    "loadError": "Free rooms could not be loaded. Try again.",
+    "roomType": {
+      "classroom": "Classroom",
+      "lab": "Lab"
+    },
+    "cardTitle": "Free rooms now",
+    "cardFree": "{count} free until {time}",
+    "cardNone": "No free rooms to show right now.",
+    "seeAll": "See all free rooms"
   }
 }

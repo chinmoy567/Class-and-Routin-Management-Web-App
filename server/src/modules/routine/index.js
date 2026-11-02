@@ -1,7 +1,8 @@
 import { registerPolicies } from '../../policy/index.js';
 import { routinePolicy } from './routine.policy.js';
 import { RoutineSlot, RoutineSlotTeacher, Section } from './routine.model.js';
-import { registerRoomUsage } from '../rooms/index.js';
+import { registerRoomUsage, registerAvailabilityProvider } from '../rooms/index.js';
+import { publishedDepartments, runningSlots, dayRules } from './availability.provider.js';
 import { registerSectionsProvider, registerLinkChangeListener } from '../teachers/index.js';
 import { currentSemester, openSemesterIds, registerSemesterUsage } from '../organisation/index.js';
 import { clearSectionCache, clearTeacherCache } from './routine-cache.js';
@@ -35,6 +36,9 @@ registerSectionsProvider(async (teacherIds) => {
   });
   return sectionIds.map((id) => ({ section_id: String(id), semester_id: semester.id }));
 });
+
+// FRV-02 to FRV-04: the free-room view reads the routine through these providers.
+registerAvailabilityProvider({ publishedDepartments, runningSlots, dayRules });
 
 // RTN-14: clear caches when published slots change or teacher links change.
 import { registerRoutineChangeListener } from './publish.service.js';

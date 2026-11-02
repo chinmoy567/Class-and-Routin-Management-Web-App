@@ -10,6 +10,7 @@ import { AppError, notFound } from '../../lib/errors.js';
 import { record } from '../audit/index.js';
 import { departmentNames, getSemester } from '../organisation/index.js';
 import { roomCodes } from '../rooms/index.js';
+import { clearSectionCache } from './routine-cache.js';
 import { fullNames } from '../teachers/index.js';
 
 // EDT-07: spec 10 (enrolments) registers `{ inUse(groupId) => boolean }`.
@@ -181,7 +182,7 @@ export async function addGroup(actor, sectionId, { label }) {
   assertCan(actor, 'section.manage', { department_id: String(section.department_id) });
   await openSemester(String(section.semester_id));
   try {
-    return await withTransaction(async (session) => {
+    const view = await withTransaction(async (session) => {
       const [created] = await SectionGroup.create(
         [{ section_id: section._id, label: normaliseLabel(label) }],
         { session },
@@ -196,6 +197,9 @@ export async function addGroup(actor, sectionId, { label }) {
       });
       return groupView(created);
     });
+    // RTN-14: the cached pattern carries group labels, so drop it once the change is committed.
+    clearSectionCache(String(section.semester_id), String(section._id));
+    return view;
   } catch (err) {
     if (isDuplicate(err)) throw conflict('That group already exists.');
     throw err;
@@ -205,7 +209,7 @@ export async function addGroup(actor, sectionId, { label }) {
 export async function renameGroup(actor, id, { label }) {
   const { group, section } = await loadGroup(actor, id);
   try {
-    return await withTransaction(async (session) => {
+    const view = await withTransaction(async (session) => {
       const updated = await SectionGroup.findOneAndUpdate(
         { _id: group._id },
         { $set: { label: normaliseLabel(label) } },
@@ -222,6 +226,8 @@ export async function renameGroup(actor, id, { label }) {
       });
       return groupView(updated);
     });
+    clearSectionCache(String(section.semester_id), String(section._id));
+    return view;
   } catch (err) {
     if (isDuplicate(err)) throw conflict('That group already exists.');
     throw err;
@@ -247,4 +253,5 @@ export async function removeGroup(actor, id) {
       session,
     });
   });
+  clearSectionCache(String(section.semester_id), String(section._id));
 }

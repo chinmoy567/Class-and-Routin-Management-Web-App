@@ -215,6 +215,16 @@ export async function fullNames(ids) {
   return new Map(rows.map((r) => [String(r._id), r.full_name]));
 }
 
+/** RTN-07: a Map of id to { short_code, full_name }, for the routine. Removed teachers keep both. */
+export async function teacherLabels(ids) {
+  const rows = await Teacher.find({ _id: { $in: ids } })
+    .select('short_code full_name')
+    .lean();
+  return new Map(
+    rows.map((r) => [String(r._id), { short_code: r.short_code, full_name: r.full_name }]),
+  );
+}
+
 /** The records linked to an account (one per department at most). */
 export const recordsOf = (userId) => Teacher.find({ user_id: userId }).lean();
 
@@ -310,7 +320,11 @@ export async function upsertFromImport(entries, { session }) {
       continue;
     }
     if (existing.full_name !== e.full_name) {
-      await Teacher.updateOne({ _id: existing._id }, { $set: { full_name: e.full_name } }, { session });
+      await Teacher.updateOne(
+        { _id: existing._id },
+        { $set: { full_name: e.full_name } },
+        { session },
+      );
     }
     ids.set(keyOf(e.department_id, short_code), String(existing._id));
   }
