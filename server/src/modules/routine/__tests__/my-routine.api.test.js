@@ -469,12 +469,14 @@ describe('RTN-04 teacher states', () => {
     expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
   });
 
-  it('RTN-04 a suspended teacher gets STATE_NOT_ALLOWED', async () => {
+  it('RTN-04 a suspended teacher is refused and gets no routine', async () => {
+    // Auth signs out a suspended account at once (auth/sessions.js), so the request has no user
+    // and gets 401 UNAUTHENTICATED before the routine rule runs.
     await makeSemester();
     const agent = await loginAs(await makeUser({ kind: 'teacher', state: 'suspended' }), app);
     const res = await agent.get('/api/me/routine');
-    expect(res.status).toBe(403);
-    expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
+    expect(res.status).toBe(401);
+    expect(res.body.data).toBeUndefined();
   });
 });
 
@@ -512,7 +514,7 @@ describe('RTN-07 teacher short codes', () => {
     const dept = await createDepartment({ code: 'CSE' });
     const section = await makeSection(sem, dept);
     const room = await makeRoom(dept);
-    const slot = await makePublishedSlot(sem, dept, section, room, { day_of_week: 0 });
+    const slot = await makePublishedSlot(sem, dept, section, room, { day_of_week: 0, tba: false });
     await linkTeacher(slot, await makeTeacher(dept, 'AR'));
     const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
     await enrolStudent(user, sem, section);

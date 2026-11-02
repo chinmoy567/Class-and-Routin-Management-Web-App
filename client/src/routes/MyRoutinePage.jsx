@@ -238,7 +238,7 @@ export function MyRoutinePage() {
   const { data, isLoading, isError } = useMyRoutine(from, to);
   useRoutineSocket();
 
-  const routineData = data?.data;
+  const routineData = data;
   const groupMissing = routineData?.group_missing;
 
   if (isLoading) {

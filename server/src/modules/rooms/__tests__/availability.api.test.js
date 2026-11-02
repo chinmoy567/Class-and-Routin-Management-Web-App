@@ -323,6 +323,16 @@ describe('free-room view (spec 13)', () => {
     expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
   });
 
+  it('FRV-08 an active student can use the view', async () => {
+    const semester = await makeSemester();
+    const cse = await createDepartment({ code: 'CSE' });
+    await publish(semester, cse);
+    await makeRoom(cse, { code: '311' });
+    const res = await query(await asStudent('active'), base);
+    expect(res.status).toBe(200);
+    expect(roomRow(res.body, '311')).toBeDefined();
+  });
+
   it('FRV-08 an active teacher and an active admin can use the view', async () => {
     const semester = await makeSemester();
     const cse = await createDepartment({ code: 'CSE' });

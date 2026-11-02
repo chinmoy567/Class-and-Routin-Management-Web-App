@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { objectIdString, dateString } from './index.js';
+import { objectIdString, dateString } from './primitives.js';
 
 export const EVENT_KINDS = ['holiday', 'prep_leave', 'exam', 'early_closing', 'dept_event'];
 
