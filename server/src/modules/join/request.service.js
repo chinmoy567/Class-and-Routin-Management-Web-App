@@ -4,6 +4,7 @@ import { Enrolment, UvClaim } from '../enrolments/index.js';
 import {
   claimBlockedUntil,
   departmentAdminIds,
+  clearNotEnrolled,
   setStudentName,
   studentSummaries,
 } from '../auth/index.js';
@@ -162,6 +163,8 @@ export async function createRequest(actor, body) {
           { session },
         );
       }
+      // ROL-10: sending a request ends a "not enrolled this semester" choice.
+      await clearNotEnrolled(actor._id, session);
       // JR-01: the name is given on the first request only.
       const first = !(await Enrolment.exists({ user_id: actor._id }).session(session));
       if (first && body.full_name) await setStudentName(actor._id, body.full_name, session);

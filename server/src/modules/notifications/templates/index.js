@@ -41,6 +41,7 @@ const templates = {
   teacher_approved: simple('teacher_approved'),
   teacher_rejected: simple('teacher_rejected'),
   routine_changed: simple('routine_changed'),
+  semester_update_reminder: simple('semester_update_reminder'),
   role_assigned: simple('role_assigned'),
   role_removed: simple('role_removed'),
   join_accepted: simple('join_accepted'),

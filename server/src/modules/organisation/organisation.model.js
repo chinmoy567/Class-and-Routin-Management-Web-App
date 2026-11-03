@@ -45,6 +45,8 @@ const semesterSchema = new Schema(
     made_current_at: { type: Date },
     made_current_by: { type: Schema.Types.ObjectId },
     archived_at: { type: Date },
+    // ROL-04: counts written by the make-current transaction (spec 14).
+    rollover_summary: { type: Schema.Types.Mixed },
   },
   { collection: 'semester', timestamps: { createdAt: 'created_at', updatedAt: false } },
 );

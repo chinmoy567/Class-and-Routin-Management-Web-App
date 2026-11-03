@@ -1,6 +1,6 @@
 # 14: Semester rollover
 
-R1 · Status: Draft · Depends on: 09, 10 · PRD: Semesters and student updates, Admin dashboard and controls (Current semester readiness checklist), Core features (F1a), Acceptance criteria (Rollover), Account states and access · Diagrams: 13-activity-semester-rollover, 22-state-semester-section
+R1 · Status: In progress · Depends on: 09, 10 · PRD: Semesters and student updates, Admin dashboard and controls (Current semester readiness checklist), Core features (F1a), Acceptance criteria (Rollover), Account states and access · Diagrams: 13-activity-semester-rollover, 22-state-semester-section
 
 ## Goal
 
@@ -89,13 +89,18 @@ Readiness panel (admin dashboard card, spec 18) with "Make current" and the not-
 
 - **Decision:** readiness item (b) counts any published import of the department for the draft with zero errors.
 - **Decision:** reminders on day 0, 7 and 14. The PRD asks for a "semester update reminder" email without saying when.
+- **Decision (D2):** at rollover the old semester's pending join requests are withdrawn, with their undecided UV claims, so the student can send a new request. A pending request would otherwise block it (`REQUEST_ALREADY_OPEN`).
+- **Decision (D3):** a draft CR/DCR whose account is no longer eligible (deactivated, graduated) keeps the role row but gets no enrolment and is counted in `roles_skipped`.
+- **Decision (D6):** an `unconfirmed` student with a request waiting is held on the waiting screen, not the update screen (`nextScreen`).
+- **Decision (D7):** the step screens hold `unconfirmed` students on one page, so they cannot open profile or chat in the UI yet. The server permissions (ROL-11) are in place; the navigation is the same gap spec 10 has.
+- **Open for spec 18/20:** the overdue list is a service (`listOverdueUnconfirmed`) with no route yet; the section groups close and open through the post-commit hook point, which spec 20 fills in.
 
 ## Tasks
 
-- [ ] Readiness computation
-- [ ] Make-current transaction (+ idempotency guard, bulk state change, role switch, CR enrolments)
-- [ ] Post-commit hooks (groups, caches, events, audit)
-- [ ] Semester update endpoints (pre-fill, graduate, not enrolled)
-- [ ] Reminder job
-- [ ] Readiness UI + semester update screen
-- [ ] Tests incl. the PRD rollover criterion
+- [x] Readiness computation
+- [x] Make-current transaction (+ idempotency guard, bulk state change, role switch, CR enrolments)
+- [ ] Post-commit hooks (groups, caches, events, audit): caches, events, audit and the hook point are done; closing and creating section groups waits for spec 20
+- [x] Semester update endpoints (pre-fill, graduate, not enrolled)
+- [x] Reminder job
+- [x] Readiness UI + semester update screen
+- [x] Tests incl. the PRD rollover criterion

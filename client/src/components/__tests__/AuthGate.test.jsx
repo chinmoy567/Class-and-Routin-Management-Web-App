@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { fail, mockApi, meResponse, renderApp } from '@/test/mockApi.jsx';
+import { fail, mockApi, meResponse, ok, renderApp } from '@/test/mockApi.jsx';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -16,7 +16,6 @@ describe('AuthGate', () => {
     ['second-step', 'Second step'],
     ['join-form', 'Join your section'],
     ['waiting-approval', 'Waiting for approval'],
-    ['semester-update', 'Update your semester details'],
   ];
   it.each(screens)(
     'AUTH-29 next=%s shows the %s screen from any address',
@@ -26,6 +25,23 @@ describe('AuthGate', () => {
       expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
     },
   );
+
+  it('AUTH-29 next=semester-update shows the semester update screen (spec 14)', async () => {
+    mockApi({
+      'GET /api/auth/me': meResponse('semester-update', { state: 'unconfirmed' }),
+      'GET /api/me/semester-update': ok({
+        semester: { id: 's1', name: 'Fall 2026' },
+        last_section: null,
+        prefill: null,
+        can_graduate: false,
+        not_enrolled: false,
+      }),
+      'GET /api/join/options': ok({ semester: null, departments: [] }),
+      'GET /api/me/join-request': ok(null),
+    });
+    renderApp('/account/password');
+    expect(await screen.findByRole('heading', { name: 'Semester update' })).toBeInTheDocument();
+  });
 
   it('AUTH-29 next=setup-totp shows the authenticator setup', async () => {
     mockApi({

@@ -82,4 +82,6 @@ export {
   bumpSectionRoleSeq,
   listGroupsOfSections,
   getGroupBrief,
+  hasPublishedCleanImport,
 } from './section.brief.js';
+export { clearAll as clearRoutineCaches } from './routine-cache.js';

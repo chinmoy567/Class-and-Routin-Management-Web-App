@@ -1,4 +1,5 @@
 import { Enrolment } from './enrolment.model.js';
+import { UvClaim } from './uvclaim.model.js';
 import { clock } from '../../lib/time.js';
 
 /** The student's accepted enrolment in a semester, or null. */
@@ -51,3 +52,26 @@ export async function escalatePendingOfSection(sectionId, session) {
 /** EDT-07: a group with a pending or accepted enrolment cannot be removed. */
 export const groupInUse = async (groupId) =>
   Boolean(await Enrolment.exists({ group_id: groupId, status: { $in: ['pending', 'accepted'] } }));
+
+/**
+ * ROL-04, D2: at rollover the old semester's pending requests are withdrawn, so the student can
+ * send a new one (a pending request blocks another). Undecided UV claims go with them.
+ */
+export async function withdrawPendingOfSemester(semesterId, session) {
+  const pending = await Enrolment.find({ semester_id: semesterId, status: 'pending' })
+    .select('_id uv_claim_id')
+    .session(session)
+    .lean();
+  if (!pending.length) return 0;
+  const claimIds = pending.map((p) => p.uv_claim_id).filter(Boolean);
+  if (claimIds.length) {
+    await UvClaim.deleteMany({ _id: { $in: claimIds }, status: 'pending' }, { session });
+  }
+  const res = await Enrolment.updateMany(
+    { _id: { $in: pending.map((p) => p._id) }, status: 'pending' },
+    { $set: { status: 'withdrawn', decided_at: clock.now() } },
+    { session },
+  );
+  return res.modifiedCount;
+}
+

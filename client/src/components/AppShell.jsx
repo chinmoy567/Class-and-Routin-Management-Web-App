@@ -4,6 +4,7 @@ import {
   CalendarCog,
   CalendarDays,
   CalendarRange,
+  ClipboardCheck,
   DoorOpen,
   FileUp,
   GraduationCap,
@@ -36,6 +37,7 @@ const ADMIN_ITEMS = [
   { to: '/admin/routine-import', labelKey: 'nav.adminRoutineImport', icon: FileUp },
   { to: '/admin/routine-edit', labelKey: 'nav.adminRoutineEdit', icon: CalendarCog },
   { to: '/admin/representatives', labelKey: 'nav.adminRepresentatives', icon: UsersRound },
+  { to: '/admin/rollover', labelKey: 'nav.adminRollover', icon: ClipboardCheck },
 ];
 
 const SUPER_ADMIN_ITEMS = [

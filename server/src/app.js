@@ -33,6 +33,7 @@ import { representativesRouter } from './modules/representatives/index.js';
 import { joinRouter } from './modules/join/index.js';
 import { routineRouter, myRoutineRouter } from './modules/routine/index.js';
 import { calendarRouter } from './modules/calendar/index.js';
+import { rolloverAdminRouter, rolloverMeRouter } from './modules/rollover/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
 // queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
@@ -123,6 +124,8 @@ export function createApp(
   app.use('/api/admin', requireAuth, adminRolesRouter);
   app.use('/api/admin', requireAuth, teachersAdminRouter);
   app.use('/api/admin', requireAuth, representativesRouter);
+  app.use('/api/admin', requireAuth, rolloverAdminRouter);
+  app.use('/api/me', rolloverMeRouter);
   app.use('/api', joinRouter);
   app.use('/api', routineRouter);
   app.use('/api', myRoutineRouter);

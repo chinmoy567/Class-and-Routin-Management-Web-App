@@ -144,3 +144,66 @@ export async function departmentAdminIds(departmentId) {
     : await UserRole.find({ role: 'super_admin', ended_at: null }).lean();
   return [...new Set(rows.map((r) => String(r.user_id)))];
 }
+
+/** ROL-07: every `active` student becomes `unconfirmed` in one write. Returns how many changed. */
+export async function unconfirmActiveStudents(session) {
+  const res = await User.updateMany(
+    { kind: 'student', state: 'active' },
+    { $set: { state: 'unconfirmed' } },
+    { session },
+  );
+  return res.modifiedCount;
+}
+
+/** Spec 14: what the semester update screen needs about the student. Never email or phone. */
+export async function studentForUpdate(userId) {
+  const u = await User.findById(userId)
+    .select('kind state full_name department_id confirmed_semester_id not_enrolled_semester_id')
+    .lean();
+  return u
+    ? {
+        id: String(u._id),
+        state: u.state,
+        confirmed_semester_id: u.confirmed_semester_id ? String(u.confirmed_semester_id) : null,
+        not_enrolled_semester_id: u.not_enrolled_semester_id
+          ? String(u.not_enrolled_semester_id)
+          : null,
+      }
+    : null;
+}
+
+/** ROL-10: the student is not enrolled this semester. Matches only an unconfirmed student. */
+export async function markNotEnrolled(userId, semesterId, session) {
+  const res = await User.updateOne(
+    { _id: userId, kind: 'student', state: 'unconfirmed' },
+    { $set: { not_enrolled_semester_id: semesterId } },
+    { session },
+  );
+  return res.matchedCount;
+}
+
+/** ROL-10: a join request clears the "not enrolled" choice. */
+export const clearNotEnrolled = (userId, session) =>
+  User.updateOne({ _id: userId }, { $unset: { not_enrolled_semester_id: '' } }, { session });
+
+/** ROL-09: an unconfirmed student who finished the degree becomes graduated. Null if not unconfirmed. */
+export async function graduateStudent(userId, session) {
+  return User.findOneAndUpdate(
+    { _id: userId, kind: 'student', state: 'unconfirmed' },
+    { $set: { state: 'graduated', graduated_at: clock.now() } },
+    { new: true, session },
+  ).lean();
+}
+
+/** ROL-12, ROL-13: unconfirmed students, except those who chose "not enrolled" for this semester. */
+export async function unconfirmedStudentIds(semesterId) {
+  const rows = await User.find({
+    kind: 'student',
+    state: 'unconfirmed',
+    not_enrolled_semester_id: { $ne: semesterId },
+  })
+    .select('_id')
+    .lean();
+  return rows.map((r) => String(r._id));
+}
+

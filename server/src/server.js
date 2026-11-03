@@ -14,6 +14,7 @@ import {
   ensureSessionIndex,
 } from './modules/auth/index.js';
 import { defineJoinJobs, ESCALATE_JOB } from './modules/join/index.js';
+import { defineRolloverJobs, REMINDER_JOB } from './modules/rollover/index.js';
 import { ensurePhotoIndex } from './lib/gridfs.js';
 
 async function main() {
@@ -41,13 +42,16 @@ async function main() {
   await ensurePhotoIndex();
   await startJobs({
     url: config.MONGO_URL,
-    registrars: [defineMailJobs, defineAuthJobs, defineAdminRoleJobs, defineJoinJobs],
+    registrars: [defineMailJobs, defineAuthJobs, defineAdminRoleJobs, defineJoinJobs, defineRolloverJobs],
   });
   // DEP-12: the hourly safety net; role changes also run the check straight away.
   await getAgenda().every('1 hour', COVERAGE_JOB, {}, { timezone: 'UTC' });
 
   // JR-14: requests nobody decided for 72 hours move to the admin.
   await getAgenda().every('15 minutes', ESCALATE_JOB, {}, { timezone: 'UTC' });
+
+  // ROL-13: the semester update reminders, every day at 09:00 Dhaka time.
+  await getAgenda().every('0 9 * * *', REMINDER_JOB, {}, { timezone: 'Asia/Dhaka' });
 
   const sessionMiddleware = createSessionMiddleware(config);
   const app = createApp(config, { sessionMiddleware });

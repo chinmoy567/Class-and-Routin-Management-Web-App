@@ -49,4 +49,10 @@ export {
   setStudentName,
   sendStudentBackToWaiting,
   departmentAdminIds,
+  unconfirmActiveStudents,
+  studentForUpdate,
+  markNotEnrolled,
+  clearNotEnrolled,
+  graduateStudent,
+  unconfirmedStudentIds,
 } from './students.service.js';

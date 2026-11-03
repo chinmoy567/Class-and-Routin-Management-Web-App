@@ -13,6 +13,7 @@ export {
   resolve,
   roomCodes,
   listAdminRooms,
+  countActiveRoomsOf,
   registerRoomUsage,
   resetRoomUsage,
 } from './rooms.service.js';

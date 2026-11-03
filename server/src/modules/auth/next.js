@@ -27,7 +27,8 @@ export async function nextScreen({ user, totpEnabled = false, secondStepPending 
     case 'pending':
       return pendingScreen(user);
     case 'unconfirmed':
-      return 'semester-update';
+      // ROL-08 (D6): a sent request is still waiting, so show the waiting screen.
+      return (await hasOpenJoinRequest(user._id)) ? 'waiting-approval' : 'semester-update';
     default:
       return 'dashboard';
   }

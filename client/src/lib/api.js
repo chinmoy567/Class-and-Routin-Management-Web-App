@@ -41,6 +41,7 @@ async function parse(res) {
       retryAfter,
     );
     error.issues = e?.issues; // SLOT_INVALID: the list of problems (spec 08)
+    error.details = e; // the whole error body, for extra fields such as spec 14's departments
     throw error;
   }
   return body;

@@ -20,7 +20,8 @@
     "adminRoutineEdit": "Routine edit",
     "adminRepresentatives": "CR / DCR",
     "routine": "My Routine",
-    "freeRooms": "Free rooms"
+    "freeRooms": "Free rooms",
+    "adminRollover": "Rollover"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -221,7 +222,9 @@
     "SECTION_CLOSED": "This section is not open for join requests yet.",
     "SLOT_NOT_ON_DATE": "This class does not run on that date.",
     "TOO_LATE": "The class has already started. The cancellation cannot be undone.",
-    "DATE_OUT_OF_RANGE": "Pick a date in this week or next week, inside the current semester."
+    "DATE_OUT_OF_RANGE": "Pick a date in this week or next week, inside the current semester.",
+    "NOT_READY_UNCONFIRMED": "Some departments are not ready. Confirm to make the semester current anyway.",
+    "NOT_FINAL_TERM": "Only students who finished 4-II can choose this."
   },
   "auth": {
     "fields": {
@@ -356,14 +359,6 @@
       "next": "New password",
       "submit": "Change password",
       "done": "Your password was changed. Other devices were signed out."
-    },
-    "holding": {
-      "joinTitle": "Join your section",
-      "joinBody": "Your email is confirmed. The form to join your section is coming soon.",
-      "waitingTitle": "Waiting for approval",
-      "waitingBody": "Your request is waiting for approval. We will email you when it is decided.",
-      "updateTitle": "Update your semester details",
-      "updateBody": "A new semester has started. The semester update form is coming soon."
     }
   },
   "admin": {
@@ -820,5 +815,44 @@
     "cardFree": "{count} free until {time}",
     "cardNone": "No free rooms to show right now.",
     "seeAll": "See all free rooms"
+  },
+  "rollover": {
+    "title": "Semester rollover",
+    "noDraft": "There is no draft semester. Create the next semester first.",
+    "intro": "Every department must be ready before the draft becomes the current semester.",
+    "ready": "Ready",
+    "notReady": "Not ready",
+    "items": {
+      "sections": "{count} sections",
+      "noSections": "No sections yet",
+      "importOk": "Routine published with no errors",
+      "importMissing": "No published routine with zero errors",
+      "crOk": "Every section has a CR",
+      "crMissing": "{without} of {total} sections have no CR",
+      "roomsOk": "{count} active rooms",
+      "noRooms": "No active rooms"
+    },
+    "reasons": {
+      "no_sections": "no sections",
+      "no_import": "no published routine",
+      "sections_without_cr": "sections without a CR",
+      "no_rooms": "no active rooms"
+    },
+    "makeCurrent": "Make current",
+    "notAllowed": "Only the super admin can make a semester current.",
+    "confirmWarning": "Some departments are not ready: {list}. Make the semester current anyway?",
+    "confirmAnyway": "Make current anyway",
+    "cancel": "Cancel",
+    "done": "{name} is now the current semester. {students} students must complete their semester update."
+  },
+  "semesterUpdate": {
+    "title": "Semester update",
+    "intro": "Check your level, term, section and group for {semester}, then send your join request. Your section's CR or DCR will accept it.",
+    "lastTerm": "Last confirmed: {label}",
+    "graduate": "I have completed my degree",
+    "graduateConfirm": "Mark your account as graduated? Only an admin can reverse this.",
+    "notEnrolled": "Not enrolled this semester",
+    "notEnrolledConfirm": "Stay on this screen without reminders until you send a join request?",
+    "notEnrolledDone": "You chose not to enrol this semester. You will not get reminders until you send a join request."
   }
 }

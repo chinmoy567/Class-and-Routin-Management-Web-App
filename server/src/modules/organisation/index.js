@@ -32,8 +32,11 @@ export {
   currentSemester,
   draftSemester,
   getSemester,
+  archiveCurrentSemester,
   latestArchivedSemester,
   openSemesterIds,
+  promoteDraft,
+  setRolloverSummary,
   registerSemesterUsage,
   resetSemesterUsage,
 } from './semester.service.js';

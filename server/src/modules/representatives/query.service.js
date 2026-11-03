@@ -36,6 +36,25 @@ export async function isOpen(sectionId) {
   return (await crDcrOf(section.id)).some((r) => r.role === 'cr');
 }
 
+/** ROL-04(5): the CR and DCR roles of a semester that have not ended. Read by the rollover. */
+export async function rolesInEffect(semesterId, session) {
+  return UserRole.find({ semester_id: semesterId, role: { $in: REP_ROLES }, ended_at: null })
+    .session(session ?? null)
+    .lean();
+}
+
+/** ROL-01(c): the ids (as strings) of the given sections that have a CR in effect. */
+export async function sectionIdsWithCr(sectionIds) {
+  const rows = await UserRole.find({
+    section_id: { $in: sectionIds },
+    role: 'cr',
+    ended_at: null,
+  })
+    .select('section_id')
+    .lean();
+  return new Set(rows.map((r) => String(r.section_id)));
+}
+
 async function withPeople(rows) {
   const people = await studentSummaries(rows.map((r) => r.user_id));
   return rows

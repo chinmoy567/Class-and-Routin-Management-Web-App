@@ -35,14 +35,15 @@ function RejectionNotice({ request }) {
 }
 
 /** JR-01, JR-03, JR-05: the join form. */
-export function JoinPage() {
+export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   const options = useJoinOptions();
   const mine = useMyRequest();
   const me = useMe();
   const send = useSendRequest();
   const signOut = useSignOut();
-  const [departmentId, setDepartmentId] = useState('');
-  const [sectionId, setSectionId] = useState('');
+  // null means the student has not touched the choice yet, so the pre-fill (spec 14) applies.
+  const [departmentChoice, setDepartmentChoice] = useState(null);
+  const [sectionChoice, setSectionChoice] = useState(null);
   const [groupId, setGroupId] = useState('');
   const [fullName, setFullName] = useState(null);
   const [uvId, setUvId] = useState('');
@@ -58,7 +59,11 @@ export function JoinPage() {
   }
 
   const departments = options.data.departments;
+  const departmentId = departmentChoice ?? prefill?.department_id ?? '';
   const department = departments.find((d) => d.id === departmentId);
+  const prefillLabel = prefill ? `${prefill.level}-${prefill.term}-${prefill.letter}` : null;
+  const sectionId =
+    sectionChoice ?? department?.sections.find((s) => s.label === prefillLabel)?.id ?? '';
   const section = department?.sections.find((s) => s.id === sectionId);
   const last = mine.data;
   // JR-01: the name and UV ID are asked until a claim has been approved.
@@ -78,9 +83,9 @@ export function JoinPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('join.title')}</h1>
+      <h1 className="text-2xl font-semibold">{title ?? t('join.title')}</h1>
       {last?.status === 'rejected' && <RejectionNotice request={last} />}
-      <p>{t('join.intro')}</p>
+      <p>{intro ?? t('join.intro')}</p>
       <form onSubmit={submit} className="space-y-3" noValidate>
         {firstRequest && (
           <div className="space-y-1.5">
@@ -123,8 +128,8 @@ export function JoinPage() {
             className={selectClass}
             value={departmentId}
             onChange={(e) => {
-              setDepartmentId(e.target.value);
-              setSectionId('');
+              setDepartmentChoice(e.target.value);
+              setSectionChoice('');
               setGroupId('');
             }}
           >
@@ -151,7 +156,7 @@ export function JoinPage() {
               className={selectClass}
               value={sectionId}
               onChange={(e) => {
-                setSectionId(e.target.value);
+                setSectionChoice(e.target.value);
                 setGroupId('');
               }}
             >
@@ -189,6 +194,7 @@ export function JoinPage() {
           {t('join.submit')}
         </Button>
       </form>
+      {footer}
       <Button variant="secondary" className="w-full" onClick={() => signOut.mutate()}>
         {t('common.signOut')}
       </Button>

@@ -38,6 +38,8 @@ export const ERROR_CODES = Object.freeze({
   SLOT_NOT_ON_DATE: { code: 'SLOT_NOT_ON_DATE', status: 409 },
   TOO_LATE: { code: 'TOO_LATE', status: 409 },
   DATE_OUT_OF_RANGE: { code: 'DATE_OUT_OF_RANGE', status: 400 },
+  NOT_READY_UNCONFIRMED: { code: 'NOT_READY_UNCONFIRMED', status: 409 },
+  NOT_FINAL_TERM: { code: 'NOT_FINAL_TERM', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -79,3 +81,5 @@ export const SECTION_CLOSED = 'SECTION_CLOSED';
 export const SLOT_NOT_ON_DATE = 'SLOT_NOT_ON_DATE';
 export const TOO_LATE = 'TOO_LATE';
 export const DATE_OUT_OF_RANGE = 'DATE_OUT_OF_RANGE';
+export const NOT_READY_UNCONFIRMED = 'NOT_READY_UNCONFIRMED';
+export const NOT_FINAL_TERM = 'NOT_FINAL_TERM';

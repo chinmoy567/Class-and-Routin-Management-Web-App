@@ -15,7 +15,6 @@ import { TotpSetupPage } from '@/routes/TotpSetupPage.jsx';
 import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage.jsx';
 import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
-import { HoldingPage } from '@/routes/HoldingPage.jsx';
 import { JoinPage } from '@/routes/JoinPage.jsx';
 import { WaitingPage } from '@/routes/WaitingPage.jsx';
 import { ProfilePage } from '@/routes/ProfilePage.jsx';
@@ -35,6 +34,8 @@ import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
 import { MyRoutinePage } from '@/routes/MyRoutinePage.jsx';
 import { FreeRoomsPage } from '@/routes/FreeRoomsPage.jsx';
+import { RolloverPage } from '@/routes/admin/RolloverPage.jsx';
+import { SemesterUpdatePage } from '@/routes/SemesterUpdatePage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -61,7 +62,7 @@ export function AppRoutes() {
           <Route path="/join" element={<JoinPage />} />
           <Route path="/waiting-approval" element={<WaitingPage />} />
           <Route path="/teacher-rejected" element={<TeacherRejectedPage />} />
-          <Route path="/semester-update" element={<HoldingPage screen="update" />} />
+          <Route path="/semester-update" element={<SemesterUpdatePage />} />
         </Route>
       </Route>
 
@@ -81,6 +82,7 @@ export function AppRoutes() {
             <Route path="/admin/routine-import" element={<RoutineImportPage />} />
             <Route path="/admin/routine-edit" element={<RoutineEditPage />} />
             <Route path="/admin/representatives" element={<RepresentativesPage />} />
+            <Route path="/admin/rollover" element={<RolloverPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />

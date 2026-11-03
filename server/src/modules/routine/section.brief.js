@@ -1,5 +1,5 @@
 // Spec 09: small reads other modules may use, so none of them touches `section` directly.
-import { Section, SectionGroup } from './routine.model.js';
+import { RoutineImport, Section, SectionGroup } from './routine.model.js';
 import { idOk } from './scope.js';
 
 const brief = (s) => ({
@@ -52,3 +52,16 @@ export async function getGroupBrief(id) {
   const g = idOk(id) ? await SectionGroup.findById(id).lean() : null;
   return g ? groupBrief(g) : null;
 }
+
+/** ROL-01(b): the department has a published routine import for the semester with zero errors. */
+export async function hasPublishedCleanImport(semesterId, departmentId) {
+  return Boolean(
+    await RoutineImport.exists({
+      semester_id: semesterId,
+      department_id: departmentId,
+      status: 'published',
+      'counts.errors': 0,
+    }),
+  );
+}
+

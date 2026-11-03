@@ -1,5 +1,9 @@
 {
   "email": {
+    "semester_update_reminder": {
+      "subject": "Please complete your semester update",
+      "body": "Hello {name},\n\nThe semester {semester} has started. Please complete your semester update so your section and routine are right. Open the app to continue:\n{link}"
+    },
     "routine_changed": {
       "subject": "Your class routine changed",
       "body": "Hello,\n\nThe class routine for {semester} changed. Open the app to see the latest routine."

@@ -42,6 +42,10 @@ const userSchema = new Schema(
     chat_suspended_until: { type: Date },
     // Spec 09/10: the semester in which the student was last confirmed (or made CR/DCR).
     confirmed_semester_id: { type: Schema.Types.ObjectId },
+    // ROL-10: the semester in which the student chose "not enrolled".
+    not_enrolled_semester_id: { type: Schema.Types.ObjectId },
+    // ROL-09: when the student completed the degree.
+    graduated_at: { type: Date },
     // JR-08: rejected UV ID claims since the last block, and when a block ends.
     claim_rejections: {
       type: new Schema(
@@ -53,6 +57,8 @@ const userSchema = new Schema(
   { collection: 'user', timestamps: true },
 );
 userSchema.index({ email_hmac: 1 }, { unique: true });
+// ROL-07: the rollover moves every active student at once, and the reminders find the unconfirmed.
+userSchema.index({ kind: 1, state: 1 });
 
 const userRoleSchema = new Schema(
   {

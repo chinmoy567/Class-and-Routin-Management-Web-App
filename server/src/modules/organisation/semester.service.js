@@ -218,6 +218,29 @@ export async function openSemesterIds() {
   return rows.map((r) => String(r._id));
 }
 
+/** ROL-04: archive the current semester inside the caller's transaction. Null if none is current. */
+export async function archiveCurrentSemester(session) {
+  return Semester.findOneAndUpdate(
+    { status: 'current' },
+    { $set: { status: 'archived', archived_at: clock.now() } },
+    { returnDocument: 'after', session },
+  ).lean();
+}
+
+/** ROL-04, ROL-05: promote the draft inside the caller's transaction. Null: it was not a draft. */
+export async function promoteDraft(id, { by }, session) {
+  return Semester.findOneAndUpdate(
+    { _id: id, status: 'draft' },
+    { $set: { status: 'current', made_current_at: clock.now(), made_current_by: by } },
+    { returnDocument: 'after', session },
+  ).lean();
+}
+
+/** ROL-04: the counts of the rollover, stored on the semester that became current. */
+export async function setRolloverSummary(id, summary, session) {
+  await Semester.updateOne({ _id: id }, { $set: { rollover_summary: summary } }, { session });
+}
+
 /** Spec 09: the most recently archived semester, or null (the "last semester" for a current target). */
 export async function latestArchivedSemester() {
   const s = await Semester.findOne({ status: 'archived' }).sort({ start_date: -1 }).lean();

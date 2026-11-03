@@ -45,7 +45,8 @@ const link = (path, token) => `${getConfig().APP_URL}${path}?token=${token}`;
 export async function loadRequestUser(userId) {
   const user = await User.findById(userId).lean();
   if (!user) return null;
-  let roles = await UserRole.find({ user_id: user._id, ended_at: null }).lean();
+  // Sorted so the roles come back in the same order every time (AUTH-29).
+  let roles = await UserRole.find({ user_id: user._id, ended_at: null }).sort({ _id: 1 }).lean();
   // CRD-05: a CR/DCR role only counts while its semester is the current one.
   if (roles.some((r) => r.role === 'cr' || r.role === 'dcr')) {
     const current = await currentSemester();

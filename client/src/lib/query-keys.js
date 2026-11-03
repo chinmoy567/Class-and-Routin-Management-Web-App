@@ -42,4 +42,6 @@ export const qk = {
   availabilityAll: () => ['rooms', 'availability'],
   availability: (params) => ['rooms', 'availability', params],
   freeNow: () => ['rooms', 'free-now'],
+  rolloverReadiness: (semesterId) => ['admin', 'rollover', semesterId],
+  semesterUpdate: () => ['me', 'semester-update'],
 };
