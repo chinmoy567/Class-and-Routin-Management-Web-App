@@ -18,4 +18,6 @@ export { representativesRouter } from './representatives.routes.js';
 export { crRouter } from './cr/cr.routes.js';
 export { isOpen, crDcrOf, rolesInEffect, sectionIdsWithCr } from './query.service.js';
 export { endRolesOfSemester } from './remove.service.js';
+export { unconfirmedOf as unconfirmedOfSection } from './cr/cr.lists.js';
+export { listFlagsForAdmin, resolveFlag } from './cr/flags.admin.service.js';
 export { registerCrAssignedHook, resetCrAssignedHooks } from './hooks.js';

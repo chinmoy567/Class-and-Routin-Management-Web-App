@@ -23,4 +23,11 @@ export const representativesPolicy = {
     allow: (user, r) => active(user) && r?.is_rep === true,
     hideExistence: true,
   },
+  // Spec 18. Resource: { department_id } of the flag. An admin of another department gets 404.
+  'flag.admin': {
+    allow: (user, r) => active(user) && isAdminOf(user, r?.department_id),
+    hideExistence: true,
+  },
+  // Spec 18: any active department or super admin may list flags, and the scope is applied per request.
+  'flag.admin_list': (user) => active(user) && hasRole(user, ['super_admin', 'dept_admin']),
 };

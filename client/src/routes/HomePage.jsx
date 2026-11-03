@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router';
 import { t } from '@/lib/i18n';
 import { useMe } from '@/features/auth/hooks.js';
 import { DashboardPage } from '@/features/dashboard/components/DashboardPage.jsx';
@@ -7,6 +8,8 @@ export function HomePage() {
   const { data: me } = useMe();
   const kind = me?.user?.kind;
   if (kind === 'student' || kind === 'teacher') return <DashboardPage kind={kind} />;
+  // Spec 18: a staff account (an admin with no teaching role) goes straight to the admin home.
+  if (kind === 'staff') return <Navigate to="/admin" replace />;
 
   return (
     <section>

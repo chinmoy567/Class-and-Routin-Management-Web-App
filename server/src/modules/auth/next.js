@@ -19,6 +19,8 @@ export function registerPendingScreen(fn) {
 
 export async function nextScreen({ user, totpEnabled = false, secondStepPending = false }) {
   if (secondStepPending) return totpEnabled ? 'second-step' : 'setup-totp';
+  // ADM-15: a temporary password must be replaced before anything else.
+  if (user.must_change_password) return 'change-password';
   switch (user.state) {
     case 'email_unverified':
       return 'verify-email';

@@ -19,8 +19,12 @@ export const joinPolicy = {
     (isAdminOf(user, r?.department_id) || (!r?.escalated && repOf(user, r?.section_id))),
   'join.view': (user, r) =>
     active(user) && (isAdminOf(user, r?.department_id) || repOf(user, r?.section_id)),
-  'join.group': (user, r) =>
-    active(user) && (isAdminOf(user, r?.department_id) || repOf(user, r?.section_id)),
+  // Spec 10 (PATCH group): anyone without access gets NOT_FOUND, so another section's existence is hidden.
+  'join.group': {
+    allow: (user, r) =>
+      active(user) && (isAdminOf(user, r?.department_id) || repOf(user, r?.section_id)),
+    hideExistence: true,
+  },
   // Resource: { department_id }. Revoke, appeals, escalated list, standalone claims.
   'join.admin': (user, r) => active(user) && isAdminOf(user, r?.department_id),
   'join.admin_any': (user) => active(user) && hasRole(user, ['super_admin', 'dept_admin']),

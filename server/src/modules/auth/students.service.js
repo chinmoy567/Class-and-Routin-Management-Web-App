@@ -1,3 +1,4 @@
+import { hashPassword, generateTemporaryPassword } from './password.js';
 // Spec 09: what other modules may ask about student accounts. Never returns email or phone.
 import { User, UserRole } from './auth.model.js';
 import { clock } from '../../lib/time.js';
@@ -227,4 +228,112 @@ export async function studentCandidates(userIds, semesterId) {
       },
     ]),
   );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Spec 18: the student management screens. Nothing here returns an email address or a phone.
+// ---------------------------------------------------------------------------------------------
+
+/** ADM-12: ids of students whose name contains `q` (case-insensitive). */
+export async function studentIdsByName(q, limit = 50) {
+  const rows = await User.find({
+    kind: 'student',
+    full_name: { $regex: escapeRegex(q), $options: 'i' },
+  })
+    .select('_id')
+    .limit(limit)
+    .lean();
+  return rows.map((r) => String(r._id));
+}
+
+/** ADM-12, ADM-13: ids of students whose department is one of `departmentIds`. */
+export async function studentIdsOfDepartments(departmentIds) {
+  const rows = await User.find({ kind: 'student', department_id: { $in: departmentIds } })
+    .select('_id')
+    .lean();
+  return rows.map((r) => String(r._id));
+}
+
+/** The email status shown to admins: whether the address is verified or bouncing. Never the address. */
+export const emailStatusOf = (u) =>
+  u.email_bouncing ? 'bouncing' : u.email_verified_at ? 'verified' : 'unverified';
+
+/** ADM-12: name, photo, state and email status for the given students. */
+export async function studentAdminRows(userIds) {
+  const rows = await User.find({ _id: { $in: userIds }, kind: 'student' })
+    .select('full_name photo_file_id state department_id email_verified_at email_bouncing')
+    .sort({ full_name: 1 })
+    .lean();
+  return rows.map((u) => ({
+    id: String(u._id),
+    full_name: u.full_name,
+    photo_url: photoUrl(u),
+    state: u.state,
+    email_status: emailStatusOf(u),
+    department_id: u.department_id ? String(u.department_id) : null,
+    must_change_password: Boolean(u.must_change_password),
+  }));
+}
+
+/** ADM-13..ADM-15: what an admin action needs to know about one student. */
+export async function studentForAdmin(userId, session) {
+  const u = await User.findById(userId)
+    .select(
+      'kind state full_name department_id state_before_deactivation must_change_password email_verified_at',
+    )
+    .session(session ?? null)
+    .lean();
+  if (!u || u.kind !== 'student') return null;
+  return {
+    id: String(u._id),
+    state: u.state,
+    full_name: u.full_name,
+    department_id: u.department_id ? String(u.department_id) : null,
+    state_before_deactivation: u.state_before_deactivation ?? null,
+    must_change_password: Boolean(u.must_change_password),
+  };
+}
+
+/**
+ * First action wins (mongo-patterns): the state moves only while it is still one of `from`. Returns
+ * the document as it was before the change, or null when the state had already moved on.
+ */
+export function transitionStudentState(userId, { from, to, set = {}, unset = {} }, session) {
+  return User.findOneAndUpdate(
+    { _id: userId, kind: 'student', state: { $in: from } },
+    { $set: { ...set, state: to }, ...(Object.keys(unset).length && { $unset: unset }) },
+    { new: false, session, projection: { state: 1, state_before_deactivation: 1 } },
+  ).lean();
+}
+
+/** ADM-13: remember the state a deactivated account had, so reactivation can restore it. */
+export const setStateBeforeDeactivation = (userId, state, session) =>
+  User.updateOne({ _id: userId }, { $set: { state_before_deactivation: state } }, { session });
+
+/**
+ * ADM-15: a new temporary password. Only the argon2id hash is stored. The clear password is returned
+ * once, to the caller, and never written anywhere else.
+ */
+export async function issueTemporaryPassword(userId, session) {
+  const password = generateTemporaryPassword();
+  const res = await User.updateOne(
+    { _id: userId, kind: 'student', state: { $ne: 'deactivated' } },
+    {
+      $set: {
+        password_hash: await hashPassword(password),
+        password_changed_at: clock.now(),
+        must_change_password: true,
+      },
+    },
+    { session },
+  );
+  return res.matchedCount ? password : null;
+}
+
+// ADM-19: the names of the people in audit entries. Never an email or a phone.
+export async function userNames(userIds) {
+  const rows = await User.find({ _id: { $in: userIds } })
+    .select('full_name')
+    .lean();
+  return new Map(rows.map((u) => [String(u._id), u.full_name]));
 }

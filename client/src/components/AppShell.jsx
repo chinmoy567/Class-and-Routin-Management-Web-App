@@ -1,5 +1,10 @@
 import { NavLink, Outlet } from 'react-router';
 import {
+  Flag,
+  Gauge,
+  Scale,
+  ScrollText,
+  UserSearch,
   Building2,
   CalendarCog,
   CalendarDays,
@@ -31,6 +36,11 @@ const NAV_ITEMS = [
 ];
 
 const ADMIN_ITEMS = [
+  { to: '/admin', labelKey: 'nav.adminHome', icon: Gauge, end: true },
+  { to: '/admin/students', labelKey: 'nav.adminStudents', icon: UserSearch },
+  { to: '/admin/flags', labelKey: 'nav.adminFlags', icon: Flag },
+  { to: '/admin/appeals', labelKey: 'nav.adminAppeals', icon: Scale },
+  { to: '/admin/audit', labelKey: 'nav.adminAudit', icon: ScrollText },
   { to: '/admin/classrooms', labelKey: 'nav.adminClassrooms', icon: DoorOpen },
   { to: '/admin/teacher-registrations', labelKey: 'nav.adminRegistrations', icon: UserCheck },
   { to: '/admin/teachers', labelKey: 'nav.adminTeachers', icon: GraduationCap },

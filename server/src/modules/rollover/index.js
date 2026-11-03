@@ -8,3 +8,4 @@ export { defineJobs as defineRolloverJobs, REMINDER_JOB } from './reminders.jobs
 export { registerRolloverHook, resetRolloverHooks } from './hooks.js';
 export { listOverdueUnconfirmed } from './overdue.service.js';
 export { sendDueReminders } from './reminders.service.js';
+export { readinessFor } from './readiness.service.js';

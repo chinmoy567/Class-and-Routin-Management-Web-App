@@ -115,3 +115,25 @@ export function secondStepGate(req, _res, next) {
   }
   next();
 }
+
+// ADM-15: while a temporary password is in use, only these answer. Everything else waits until the
+// student has chosen a new password.
+const PASSWORD_CHANGE_ALLOWED = new Set([
+  '/api/health',
+  '/api/auth/csrf',
+  '/api/auth/logout',
+  '/api/auth/me',
+  '/api/me/password',
+]);
+
+/** ADM-15: a student who must change a temporary password gets 403 everywhere else. */
+export function passwordChangeGate(req, _res, next) {
+  if (req.user?.must_change_password && !PASSWORD_CHANGE_ALLOWED.has(req.path)) {
+    return next(
+      new AppError(403, 'STATE_NOT_ALLOWED', 'Choose a new password before continuing.', {
+        state: req.user.state,
+      }),
+    );
+  }
+  next();
+}

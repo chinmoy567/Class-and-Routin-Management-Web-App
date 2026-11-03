@@ -11,6 +11,11 @@ export {
   approvedUvIds,
   enrolmentsOfSection,
   acceptedUserIdsOf,
+  enrolledUserIdsOfDepartments,
+  userIdsByUvId,
+  currentEnrolmentsOf,
+  approvedClaimsOf,
+  departmentOfStudent,
 } from './enrolment.service.js';
 export { Enrolment } from './enrolment.model.js';
 export { UvClaim } from './uvclaim.model.js';

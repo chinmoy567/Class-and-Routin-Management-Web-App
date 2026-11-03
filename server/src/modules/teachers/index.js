@@ -40,3 +40,4 @@ registerDigestProvider({
   labelKey: 'digest.teacher_registrations',
   count: countPendingRegistrations,
 });
+export { listRegistrations, decide as decideRegistration } from './registration.service.js';

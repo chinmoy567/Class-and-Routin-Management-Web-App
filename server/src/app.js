@@ -20,6 +20,7 @@ import {
   requireAuth,
   enforceSessionLifetime,
   secondStepGate,
+  passwordChangeGate,
 } from './modules/auth/index.js';
 import {
   departmentsAdminRouter,
@@ -36,6 +37,7 @@ import { routineRouter, myRoutineRouter } from './modules/routine/index.js';
 import { calendarRouter } from './modules/calendar/index.js';
 import { rolloverAdminRouter, rolloverMeRouter } from './modules/rollover/index.js';
 import { dashboardRouter, rosterRouter } from './modules/dashboard/index.js';
+import { adminRouter } from './modules/admin/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
 // queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
@@ -101,6 +103,7 @@ export function createApp(
   app.use(loadUser); // AUTH-24: state and roles are read fresh on every request
   app.use(enforceSessionLifetime);
   app.use(secondStepGate);
+  app.use(passwordChangeGate);
 
   app.get('/api/health', async (_req, res) => {
     try {
@@ -128,6 +131,7 @@ export function createApp(
   app.use('/api/admin', requireAuth, teachersAdminRouter);
   app.use('/api/admin', requireAuth, representativesRouter);
   app.use('/api/admin', requireAuth, rolloverAdminRouter);
+  app.use('/api/admin', requireAuth, adminRouter);
   app.use('/api/me', rolloverMeRouter);
   app.use('/api', joinRouter);
   app.use('/api', routineRouter);

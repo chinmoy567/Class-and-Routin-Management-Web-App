@@ -86,3 +86,4 @@ export {
 } from './section.brief.js';
 export { sectionCoursesFor, sectionRoutineFor } from './my-routine.service.js';
 export { clearAll as clearRoutineCaches } from './routine-cache.js';
+export { routineProblemsFor } from './problems.service.js';

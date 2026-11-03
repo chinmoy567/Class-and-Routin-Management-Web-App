@@ -126,3 +126,64 @@ export async function acceptedUserIdsOf(userIds, semesterId) {
     .lean();
   return new Set(rows.map((r) => String(r.user_id)));
 }
+
+// ---------------------------------------------------------------------------------------------
+// Spec 18: read-only lookups for the admin student screens. Nothing here returns contact details.
+// ---------------------------------------------------------------------------------------------
+
+/** ADM-12: students with any enrolment (request or membership) in one of the departments. */
+export async function enrolledUserIdsOfDepartments(departmentIds) {
+  const ids = await Enrolment.distinct('user_id', { department_id: { $in: departmentIds } });
+  return ids.map(String);
+}
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => `\\${c}`);
+
+/** ADM-12: students whose UV ID (leading zeros ignored, spaces and dashes removed) contains the digits. */
+export async function userIdsByUvId(q) {
+  const digits = String(q).replace(/[\s-]/g, '').replace(/^0+/, '');
+  if (!/^\d{2,20}$/.test(digits)) return [];
+  const rows = await UvClaim.find({ uv_id_norm: { $regex: escapeRegex(digits) } })
+    .select('user_id')
+    .limit(50)
+    .lean();
+  return rows.map((r) => String(r.user_id));
+}
+
+/**
+ * ADM-12, ADM-16: the student's enrolment for a semester, keyed by user id. An accepted enrolment
+ * wins over a pending request.
+ */
+export async function currentEnrolmentsOf(userIds, semesterId) {
+  const rows = await Enrolment.find({
+    user_id: { $in: userIds },
+    semester_id: semesterId,
+    status: { $in: ['accepted', 'pending'] },
+  })
+    .select('user_id section_id group_id status department_id')
+    .lean();
+  const byUser = new Map();
+  for (const r of rows) {
+    const key = String(r.user_id);
+    const seen = byUser.get(key);
+    if (!seen || (r.status === 'accepted' && seen.status !== 'accepted')) byUser.set(key, r);
+  }
+  return byUser;
+}
+
+/** ADM-16: each student's approved UV ID claim (id and text), keyed by user id. */
+export async function approvedClaimsOf(userIds) {
+  const rows = await UvClaim.find({ user_id: { $in: userIds }, status: 'approved' })
+    .select('user_id uv_id_text')
+    .lean();
+  return new Map(rows.map((r) => [String(r.user_id), { id: String(r._id), uv_id: r.uv_id_text }]));
+}
+
+// ADM-13: the department a student belongs to, from their latest enrolment, when the account has none.
+export async function departmentOfStudent(userId) {
+  const row = await Enrolment.findOne({ user_id: userId, department_id: { $exists: true } })
+    .sort({ created_at: -1 })
+    .select('department_id')
+    .lean();
+  return row?.department_id ? String(row.department_id) : null;
+}

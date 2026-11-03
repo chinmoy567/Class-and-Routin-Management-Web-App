@@ -36,6 +36,7 @@ export {
 } from './auth.service.js';
 export {
   endAllSessions,
+  passwordChangeGate,
   ensureSessionIndex,
   enforceSessionLifetime,
   secondStepGate,
@@ -61,4 +62,13 @@ export {
   graduateStudent,
   unconfirmedStudentIds,
   studentCandidates,
+  studentIdsByName,
+  studentIdsOfDepartments,
+  studentAdminRows,
+  studentForAdmin,
+  transitionStudentState,
+  setStateBeforeDeactivation,
+  issueTemporaryPassword,
+  emailStatusOf,
+  userNames,
 } from './students.service.js';

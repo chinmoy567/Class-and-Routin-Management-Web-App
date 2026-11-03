@@ -46,6 +46,10 @@ const userSchema = new Schema(
     not_enrolled_semester_id: { type: Schema.Types.ObjectId },
     // ROL-09: when the student completed the degree.
     graduated_at: { type: Date },
+    // ADM-13: the state an account had before it was deactivated, so reactivation can restore it.
+    state_before_deactivation: { type: String, enum: ACCOUNT_STATES },
+    // ADM-15: a temporary password was issued; the student must choose their own at next sign-in.
+    must_change_password: { type: Boolean, default: false },
     // JR-08: rejected UV ID claims since the last block, and when a block ends.
     claim_rejections: {
       type: new Schema(

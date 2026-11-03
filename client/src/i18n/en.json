@@ -21,7 +21,12 @@
     "adminRepresentatives": "CR / DCR",
     "routine": "My Routine",
     "freeRooms": "Free rooms",
-    "adminRollover": "Rollover"
+    "adminRollover": "Rollover",
+    "adminHome": "Admin home",
+    "adminStudents": "Students",
+    "adminFlags": "Flags",
+    "adminAppeals": "Appeals",
+    "adminAudit": "Audit log"
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -360,6 +365,11 @@
       "next": "New password",
       "submit": "Change password",
       "done": "Your password was changed. Other devices were signed out."
+    },
+    "forceChange": {
+      "title": "Choose a new password",
+      "intro": "An administrator set a temporary password for your account. Choose your own password to continue.",
+      "submit": "Save new password"
     }
   },
   "admin": {
@@ -479,6 +489,145 @@
         "department_id": "Choose an active department.",
         "department_ids": "Choose active departments other than the owner."
       }
+    },
+    "confirm": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "dashboard": {
+      "title": "Admin home",
+      "department": "Department",
+      "allDepartments": "All departments",
+      "nothing": "Nothing waiting.",
+      "viewAll": "Open",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectReason": "Reason for rejecting",
+      "rejectReasonError": "Give a reason of 5 to 500 characters.",
+      "notReleased": "Room requests arrive in a later release.",
+      "cards": {
+        "teacherRegistrations": "Teacher registrations waiting",
+        "idClaims": "ID claims that need the admin",
+        "flags": "Reports from CR and DCR",
+        "rejections": "Rejected requests and appeals",
+        "routineProblems": "Routine problems",
+        "semester": "Current semester",
+        "missingAdmin": "Departments without an active admin",
+        "unconfirmed": "Unconfirmed students (14+ days)",
+        "recent": "Recent activity"
+      },
+      "semester": {
+        "current": "Current: {name} ({status})",
+        "none": "No current semester.",
+        "draft": "Draft: {name}",
+        "ready": "Ready",
+        "notReady": "Not ready",
+        "makeCurrent": "Make current",
+        "readiness": "Readiness checklist"
+      },
+      "superWarning": "Fewer than two super admins exist. Appoint a backup super admin.",
+      "itemKinds": {
+        "escalated": "Escalated",
+        "claim": "CR/DCR claim",
+        "appeal": "Appeal open",
+        "rejected": "Rejected",
+        "issue": "Import issue",
+        "cross_department": "Duplicate with another department",
+        "created_by_other": "Section created by {department} import"
+      },
+      "duplicateClaim": "Duplicate pending claim"
+    },
+    "students": {
+      "title": "Students",
+      "searchLabel": "Search by name or UV ID",
+      "searchHint": "Type at least two characters.",
+      "none": "No students match.",
+      "emailStatus": {
+        "verified": "Email verified",
+        "unverified": "Email not verified",
+        "bouncing": "Email bouncing"
+      },
+      "section": "Section: {section}",
+      "group": "Group: {group}",
+      "uvId": "UV ID: {uvId}",
+      "state": "State: {state}",
+      "states": {
+        "email_unverified": "Email not verified",
+        "claim_pending": "Waiting for approval",
+        "active": "Active",
+        "unconfirmed": "Unconfirmed",
+        "graduated": "Graduated",
+        "deactivated": "Deactivated",
+        "pending": "Pending"
+      },
+      "actions": {
+        "deactivate": "Deactivate",
+        "reactivate": "Reactivate",
+        "graduate": "Mark graduated",
+        "ungraduate": "Undo graduation",
+        "tempPassword": "Temporary password",
+        "setGroup": "Set group",
+        "revokeClaim": "Revoke UV ID"
+      },
+      "reason": "Reason",
+      "reasonError": "Give a reason of 5 to 500 characters.",
+      "confirmDeactivate": "Deactivate {name}? Their sessions end and they cannot sign in until reactivated.",
+      "confirmRevoke": "Revoke the UV ID of {name}? The account goes back to waiting for approval.",
+      "revokeReason": "Reason for revoking",
+      "tempTitle": "Temporary password for {name}",
+      "tempShown": "Copy this password now. It is shown once and cannot be seen again. The student must choose a new password at their next sign-in.",
+      "tempCopy": "Copy",
+      "tempCopied": "Copied",
+      "tempClose": "Done",
+      "groupLabel": "Sessional group",
+      "groupNone": "No group",
+      "groupSave": "Save group",
+      "done": "Saved."
+    },
+    "flags": {
+      "title": "Flags",
+      "tabs": {
+        "open": "Open",
+        "fixed": "Fixed",
+        "rejected": "Rejected"
+      },
+      "none": "No flags here.",
+      "raisedBy": "Raised by {name} on {date}",
+      "student": "Student: {name}",
+      "replyLabel": "Reply to the CR/DCR",
+      "replyError": "Write a reply of 1 to 1,000 characters.",
+      "markFixed": "Mark fixed",
+      "markRejected": "Mark rejected",
+      "reply": "Reply: {reply}",
+      "done": "Recorded."
+    },
+    "appeals": {
+      "title": "Rejected requests and appeals",
+      "none": "No rejected requests or appeals.",
+      "appealOpen": "Appeal open",
+      "uphold": "Uphold the rejection",
+      "reverse": "Accept the request",
+      "reason": "Reason given: {reason}",
+      "done": "Decision saved."
+    },
+    "audit": {
+      "title": "Audit log",
+      "from": "From",
+      "to": "To",
+      "action": "Action (or a family ending with a dot)",
+      "actor": "Actor ID",
+      "target": "Target ID",
+      "apply": "Apply filters",
+      "more": "Load more",
+      "none": "No entries match.",
+      "readOnly": "The audit log is read-only.",
+      "columns": {
+        "when": "When",
+        "who": "Who",
+        "action": "Action",
+        "target": "Target"
+      },
+      "invalid": "Check the dates and IDs."
     }
   },
   "semester": {

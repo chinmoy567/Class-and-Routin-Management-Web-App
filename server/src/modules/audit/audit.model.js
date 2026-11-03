@@ -21,6 +21,8 @@ const auditLogSchema = new Schema(
 auditLogSchema.index({ at: -1 });
 auditLogSchema.index({ scope_department_id: 1, at: -1 });
 auditLogSchema.index({ target_type: 1, target_id: 1, at: -1 });
+// ADM-19: a person's own actions, newest first.
+auditLogSchema.index({ actor_id: 1, at: -1 });
 
 // Append-only guard (mongo-patterns §7). The database role is the real guarantee (spec 23).
 const forbid = function () {

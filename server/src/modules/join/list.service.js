@@ -101,7 +101,12 @@ function scopeDepartments(actor, departmentId) {
 }
 
 /** Admin cards: escalated requests, rejected requests, open appeals, CR/DCR claims. No email. */
-export async function listForAdmin(actor, { department_id, view }) {
+export async function listForAdmin(
+  actor,
+  { department_id, view },
+  { limit = LIMIT, newestFirst = false } = {},
+) {
+  const dir = newestFirst ? -1 : 1;
   assertCan(actor, 'join.admin_any');
   const depts = scopeDepartments(actor, department_id);
   const deptFilter = depts ? { department_id: { $in: depts } } : {};
@@ -112,8 +117,8 @@ export async function listForAdmin(actor, { department_id, view }) {
       _id: { $nin: withRequest },
       ...deptFilter,
     })
-      .sort({ created_at: 1 })
-      .limit(LIMIT)
+      .sort({ created_at: dir })
+      .limit(limit)
       .lean();
     const people = await studentSummaries(claims.map((c) => c.user_id));
     const dups = await duplicateCounts(claims);
@@ -132,8 +137,8 @@ export async function listForAdmin(actor, { department_id, view }) {
     appeals: { status: 'rejected', 'appeal.status': 'open' },
   };
   const found = await Enrolment.find({ ...filters[view], ...deptFilter })
-    .sort({ created_at: 1 })
-    .limit(LIMIT)
+    .sort({ created_at: dir })
+    .limit(limit)
     .lean();
   return rows(found, { withEmail: false });
 }

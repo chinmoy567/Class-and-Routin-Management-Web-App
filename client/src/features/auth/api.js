@@ -10,6 +10,7 @@ export const NEXT_PATHS = {
   'waiting-approval': '/waiting-approval',
   'teacher-rejected': '/teacher-rejected',
   'semester-update': '/semester-update',
+  'change-password': '/change-password',
   dashboard: '/',
 };
 export const pathForNext = (next) => NEXT_PATHS[next] ?? '/';

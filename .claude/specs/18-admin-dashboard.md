@@ -1,6 +1,6 @@
 # 18: Admin dashboard
 
-R1 · Status: Draft · Depends on: 03–17 · PRD: Admin dashboard and controls, Core features (F5, F5a), CR/DCR dashboard (Checks on CR power), Student ID claim (revocation) · Diagrams: 01-use-case, 24-sitemap
+R1 · Status: In progress · Depends on: 03–17 · PRD: Admin dashboard and controls, Core features (F5, F5a), CR/DCR dashboard (Checks on CR power), Student ID claim (revocation) · Diagrams: 01-use-case, 24-sitemap
 
 ## Goal
 
@@ -96,10 +96,10 @@ Admin home (cards), Students page (search + actions), Flags page, Appeals and re
 
 ## Tasks
 
-- [ ] Dashboard aggregation service (one scoped query per card)
-- [ ] Student management endpoints + session end + audit
-- [ ] Temporary password + forced change in `/me` `next`
-- [ ] Flags resolve endpoint
-- [ ] Audit log query with scope filter + paging
-- [ ] Admin pages
-- [ ] Tests (scope for every endpoint)
+- [x] Dashboard aggregation service (one scoped query per card)
+- [x] Student management endpoints + session end + audit
+- [x] Temporary password + forced change in `/me` `next`
+- [x] Flags resolve endpoint
+- [x] Audit log query with scope filter + paging
+- [x] Admin pages
+- [x] Tests (scope for every endpoint)

@@ -37,6 +37,12 @@ import { FreeRoomsPage } from '@/routes/FreeRoomsPage.jsx';
 import { RolloverPage } from '@/routes/admin/RolloverPage.jsx';
 import { SemesterUpdatePage } from '@/routes/SemesterUpdatePage.jsx';
 import { CrDashboardPage } from '@/routes/CrDashboardPage.jsx';
+import { AdminDashboardPage } from '@/routes/admin/AdminDashboardPage.jsx';
+import { AdminStudentsPage } from '@/routes/admin/AdminStudentsPage.jsx';
+import { AdminFlagsPage } from '@/routes/admin/AdminFlagsPage.jsx';
+import { AdminAppealsPage } from '@/routes/admin/AdminAppealsPage.jsx';
+import { AdminAuditPage } from '@/routes/admin/AdminAuditPage.jsx';
+import { ForcedPasswordChangePage } from '@/routes/ForcedPasswordChangePage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -64,6 +70,7 @@ export function AppRoutes() {
           <Route path="/waiting-approval" element={<WaitingPage />} />
           <Route path="/teacher-rejected" element={<TeacherRejectedPage />} />
           <Route path="/semester-update" element={<SemesterUpdatePage />} />
+          <Route path="/change-password" element={<ForcedPasswordChangePage />} />
         </Route>
       </Route>
 
@@ -85,6 +92,11 @@ export function AppRoutes() {
             <Route path="/admin/routine-edit" element={<RoutineEditPage />} />
             <Route path="/admin/representatives" element={<RepresentativesPage />} />
             <Route path="/admin/rollover" element={<RolloverPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/students" element={<AdminStudentsPage />} />
+            <Route path="/admin/flags" element={<AdminFlagsPage />} />
+            <Route path="/admin/appeals" element={<AdminAppealsPage />} />
+            <Route path="/admin/audit" element={<AdminAuditPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>
             <Route path="/admin/departments" element={<DepartmentsPage />} />

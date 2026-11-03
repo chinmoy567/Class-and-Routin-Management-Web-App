@@ -289,7 +289,16 @@ describe('health and harness', () => {
   it('FND-16 the request user carries _id, kind, state, chat_suspended_until and in-effect roles', async () => {
     const user = await makeUser({ kind: 'teacher', state: 'pending' });
     expect(Object.keys(user).sort()).toEqual(
-      ['_id', 'chat_suspended_until', 'department_id', 'email', 'kind', 'roles', 'state'].sort(),
+      [
+        '_id',
+        'chat_suspended_until',
+        'department_id',
+        'email',
+        'kind',
+        'must_change_password',
+        'roles',
+        'state',
+      ].sort(),
     );
     expect(user.kind).toBe('teacher');
     expect(user.state).toBe('pending');

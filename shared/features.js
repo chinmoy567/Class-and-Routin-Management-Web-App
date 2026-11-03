@@ -30,6 +30,9 @@ export const FEATURE_RELEASE = Object.freeze({
   // CR/DCR dashboard (spec 17)
   'cr.dashboard': 'R1',
   'cr.room_requests': 'R2',
+  // Admin dashboard (spec 18)
+  'admin.dashboard': 'R1',
+  'admin.room_requests': 'R2',
   // Shared
   'dashboard.representative_message': 'R3',
 });

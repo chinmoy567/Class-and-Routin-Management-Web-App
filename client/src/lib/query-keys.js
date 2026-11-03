@@ -48,4 +48,9 @@ export const qk = {
   sectionRoster: (sectionId) => ['sections', sectionId, 'roster'],
   crOverview: (sectionId) => ['cr', sectionId, 'overview'],
   crRoutine: (sectionId) => ['cr', sectionId, 'routine'],
+  adminDashboard: (departmentId) => ['admin', 'dashboard', departmentId],
+  adminStudents: (q, departmentId) => ['admin', 'students', q, departmentId],
+  adminFlags: (status, departmentId) => ['admin', 'flags', status, departmentId],
+  adminJoinList: (view, departmentId) => ['admin', 'join-list', view, departmentId],
+  adminAudit: (params) => ['admin', 'audit', params],
 };

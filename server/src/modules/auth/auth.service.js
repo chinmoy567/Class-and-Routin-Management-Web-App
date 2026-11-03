@@ -62,6 +62,7 @@ export async function loadRequestUser(userId) {
     state: user.state,
     chat_suspended_until: user.chat_suspended_until ?? null,
     department_id: user.department_id ?? null,
+    must_change_password: Boolean(user.must_change_password),
     roles: roles.map(({ role, department_id, section_id, semester_id }) => ({
       role,
       ...(department_id && { department_id }),
@@ -335,7 +336,7 @@ export async function confirmPasswordReset({ token, password }) {
       throw new AppError(400, 'TOKEN_INVALID', 'This link has expired or was already used.');
     await User.updateOne(
       { _id: used.user_id },
-      { $set: { password_hash, password_changed_at: clock.now() } },
+      { $set: { password_hash, password_changed_at: clock.now(), must_change_password: false } },
       { session },
     );
     await cancelTokens(used.user_id, 'reset_password', { session });
@@ -367,7 +368,13 @@ export async function changePassword(actor, sessionId, { current_password, new_p
   }
   await User.updateOne(
     { _id: actor._id },
-    { $set: { password_hash: await hashPassword(new_password), password_changed_at: clock.now() } },
+    {
+      $set: {
+        password_hash: await hashPassword(new_password),
+        password_changed_at: clock.now(),
+        must_change_password: false,
+      },
+    },
   );
   await endAllSessions(actor._id, { exceptSid: sessionId });
   await sendPasswordChanged(actor._id);
