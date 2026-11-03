@@ -4,6 +4,7 @@ import {
   clearDb,
   clearOutbox,
   connectTestDb,
+  drainMail,
   disconnectTestDb,
   loginAs,
   startTestMail,
@@ -11,13 +12,11 @@ import {
 } from '../../../../test/harness.js';
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { setEmitter } from '../../../lib/events.js';
+import { renderTemplate } from '../../notifications/templates/index.js';
 import { Semester } from '../../organisation/index.js';
 import { list as auditList } from '../../audit/index.js';
-import {
-  RoutineSlot,
-  Section,
-  resetRoutineHooks,
-} from '../../routine/index.js';
+import { RoutineSlot, Section, resetRoutineHooks } from '../../routine/index.js';
+import { registerCalendarAudienceProvider, resetCalendarAudienceProviders } from '../hooks.js';
 import { CalendarEvent, ClassCancellation, resetBookingAffectedProviders } from '../index.js';
 
 let app;
@@ -36,6 +35,7 @@ beforeEach(async () => {
 });
 afterEach(() => {
   resetRoutineHooks();
+  resetCalendarAudienceProviders();
   resetBookingAffectedProviders();
   setEmitter(null);
 });
@@ -52,16 +52,10 @@ const asDeptAdmin = async (dept) =>
   );
 
 const asStudent = async (dept) =>
-  loginAs(
-    await makeUser({ kind: 'student', state: 'active', departmentId: dept._id }),
-    app,
-  );
+  loginAs(await makeUser({ kind: 'student', state: 'active', departmentId: dept._id }), app);
 
 const asTeacher = async (dept) =>
-  loginAs(
-    await makeUser({ kind: 'teacher', state: 'active', departmentId: dept._id }),
-    app,
-  );
+  loginAs(await makeUser({ kind: 'teacher', state: 'active', departmentId: dept._id }), app);
 
 async function makeSemester({ status = 'current', start = '2027-04-04', end = '2027-08-04' } = {}) {
   const sup = await asSuper();
@@ -79,7 +73,12 @@ async function makeSemester({ status = 'current', start = '2027-04-04', end = '2
 async function makeSlot(dept, sem, { day_of_week = 1, start_min = 540, end_min = 600 } = {}) {
   const { Room } = await import('../../rooms/rooms.model.js');
   const code = `R${Date.now()}`;
-  const room = await Room.create({ code, code_norm: code.toUpperCase(), type: 'classroom', owner_department_id: dept._id });
+  const room = await Room.create({
+    code,
+    code_norm: code.toUpperCase(),
+    type: 'classroom',
+    owner_department_id: dept._id,
+  });
   const section = await Section.create({
     semester_id: sem.id,
     department_id: dept._id,
@@ -133,7 +132,9 @@ describe('CAL-02 permissions', () => {
   it('CAL-02 dept admin can create a dept-scoped event for their department', async () => {
     const cse = await createDepartment();
     const agent = await asDeptAdmin(cse);
-    const res = await agent.post('/api/calendar-events').send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }));
+    const res = await agent
+      .post('/api/calendar-events')
+      .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }));
     expect(res.status).toBe(201);
   });
 
@@ -141,7 +142,9 @@ describe('CAL-02 permissions', () => {
     const cse = await createDepartment();
     const eee = await createDepartment();
     const agent = await asDeptAdmin(cse);
-    const res = await agent.post('/api/calendar-events').send(baseEvent(eee.id, { kind: 'dept_event', label: 'EEE FEST' }));
+    const res = await agent
+      .post('/api/calendar-events')
+      .send(baseEvent(eee.id, { kind: 'dept_event', label: 'EEE FEST' }));
     expect(res.status).toBe(403);
   });
 
@@ -165,14 +168,18 @@ describe('CAL-02 permissions', () => {
 describe('CAL-01 validation', () => {
   it('CAL-01 early_closing requires cutoff_min', async () => {
     const sup = await asSuper();
-    const res = await sup.post('/api/calendar-events').send(baseEvent('university', { kind: 'early_closing' }));
+    const res = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'early_closing' }));
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('CAL-01 holiday must not have cutoff_min', async () => {
     const sup = await asSuper();
-    const res = await sup.post('/api/calendar-events').send(baseEvent('university', { kind: 'holiday', cutoff_min: 720 }));
+    const res = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'holiday', cutoff_min: 720 }));
     expect(res.status).toBe(400);
   });
 
@@ -190,15 +197,21 @@ describe('CAL-01 validation', () => {
 
   it('CAL-01 label must not be empty or exceed 80 chars', async () => {
     const sup = await asSuper();
-    const empty = await sup.post('/api/calendar-events').send(baseEvent('university', { label: '' }));
+    const empty = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { label: '' }));
     expect(empty.status).toBe(400);
-    const long = await sup.post('/api/calendar-events').send(baseEvent('university', { label: 'x'.repeat(81) }));
+    const long = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { label: 'x'.repeat(81) }));
     expect(long.status).toBe(400);
   });
 
   it('CAL-03 dept_event must have department scope, not university', async () => {
     const sup = await asSuper();
-    const res = await sup.post('/api/calendar-events').send(baseEvent('university', { kind: 'dept_event', label: 'Fest' }));
+    const res = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'dept_event', label: 'Fest' }));
     expect(res.status).toBe(400);
   });
 });
@@ -208,9 +221,13 @@ describe('CAL-01 validation', () => {
 describe('CAL-04 multiple overlapping events', () => {
   it('CAL-04 can create overlapping events', async () => {
     const sup = await asSuper();
-    const r1 = await sup.post('/api/calendar-events').send(baseEvent('university', { kind: 'holiday', label: 'H1' }));
+    const r1 = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'holiday', label: 'H1' }));
     expect(r1.status).toBe(201);
-    const r2 = await sup.post('/api/calendar-events').send(baseEvent('university', { kind: 'prep_leave', label: 'P1' }));
+    const r2 = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'prep_leave', label: 'P1' }));
     expect(r2.status).toBe(201);
     expect(await CalendarEvent.countDocuments()).toBe(2);
   });
@@ -221,8 +238,11 @@ describe('CAL-04 multiple overlapping events', () => {
 describe('CAL-05 audit', () => {
   it('CAL-05 create, update and delete are audited', async () => {
     const sup = await asSuper();
-    const created = (await sup.post('/api/calendar-events').send(baseEvent('university'))).body.data;
-    const updated = await sup.patch(`/api/calendar-events/${created.id}`).send({ label: 'New Label' });
+    const created = (await sup.post('/api/calendar-events').send(baseEvent('university'))).body
+      .data;
+    const updated = await sup
+      .patch(`/api/calendar-events/${created.id}`)
+      .send({ label: 'New Label' });
     expect(updated.status).toBe(200);
     await sup.delete(`/api/calendar-events/${created.id}`);
     const entries = await auditList({});
@@ -252,7 +272,9 @@ describe('CAL-13 affected bookings confirmation', () => {
     expect(r1.body.saved).toBe(false);
     expect(r1.body.affected_bookings).toHaveLength(1);
 
-    const r2 = await sup.post('/api/calendar-events').send(baseEvent('university', { confirm: true }));
+    const r2 = await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { confirm: true }));
     expect(r2.status).toBe(201);
   });
 });
@@ -360,6 +382,35 @@ describe('CAL-10 single-class cancellation', () => {
   });
 });
 
+// ── EML-04 cancellation emails ───────────────────────────────────────────────
+
+describe('EML-04 cancellation emails', () => {
+  it('EML-04 a class cancelled, restored and cancelled again is emailed each time', async () => {
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot } = await makeSlot(cse, sem, { day_of_week: 1 });
+    const student = await makeUser({ kind: 'student', state: 'active', departmentId: cse._id });
+    registerCalendarAudienceProvider(async () => [String(student._id)]);
+    const agent = await asDeptAdmin(cse);
+    const url = `/api/slots/${slot._id}/cancellations`;
+
+    expect((await agent.post(url).send({ date: '2027-06-07', reason: 'sick' })).status).toBe(201);
+    expect((await agent.delete(`${url}/2027-06-07`)).status).toBeLessThan(300);
+    // Cancelling again after the undo must be emailed too, not dropped as a duplicate.
+    expect((await agent.post(url).send({ date: '2027-06-07', reason: 'sick again' })).status).toBe(
+      201,
+    );
+
+    const subjects = (await drainMail())
+      .filter((m) => m.to === student.email)
+      .map((m) => m.subject)
+      .sort();
+    const cancelled = renderTemplate('class_cancelled', { course_code: 'x', date: 'x' }).subject;
+    const restored = renderTemplate('class_restored', { course_code: 'x', date: 'x' }).subject;
+    expect(subjects).toEqual([cancelled, cancelled, restored].sort());
+  });
+});
+
 // ── CAL-12 undo cancellation ─────────────────────────────────────────────────
 
 describe('CAL-12 undo cancellation', () => {
@@ -409,19 +460,27 @@ describe('CAL-02 edit and delete', () => {
     const cse = await createDepartment();
     const sup = await asSuper();
 
-    const ev = (await sup.post('/api/calendar-events').send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))).body.data;
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
     const res = await sup.patch(`/api/calendar-events/${ev.id}`).send({ label: 'Updated' });
     expect(res.status).toBe(200);
     expect(res.body.data.label).toBe('Updated');
   });
 
-  it('CAL-02 dept admin cannot edit another department\'s event', async () => {
+  it("CAL-02 dept admin cannot edit another department's event", async () => {
     const cse = await createDepartment();
     const eee = await createDepartment();
     const sup = await asSuper();
     const eeeAdmin = await asDeptAdmin(eee);
 
-    const ev = (await sup.post('/api/calendar-events').send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))).body.data;
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
     const res = await eeeAdmin.patch(`/api/calendar-events/${ev.id}`).send({ label: 'Hacked' });
     expect(res.status).toBe(403);
   });
@@ -443,8 +502,12 @@ describe('CAL-02 list events', () => {
     const eee = await createDepartment();
     const sup = await asSuper();
     await sup.post('/api/calendar-events').send(baseEvent('university'));
-    await sup.post('/api/calendar-events').send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }));
-    await sup.post('/api/calendar-events').send(baseEvent(eee.id, { kind: 'dept_event', label: 'EEE FEST' }));
+    await sup
+      .post('/api/calendar-events')
+      .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }));
+    await sup
+      .post('/api/calendar-events')
+      .send(baseEvent(eee.id, { kind: 'dept_event', label: 'EEE FEST' }));
 
     const student = await asStudent(cse);
     const res = await student.get('/api/calendar-events');

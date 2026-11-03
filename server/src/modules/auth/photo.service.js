@@ -71,7 +71,7 @@ export async function deletePhoto(actor) {
       new_value: { removed: true },
       session,
     });
-    afterCommit(async () => {
+    await afterCommit(async () => {
       await deletePhotoFile(before?.photo_file_id);
       await deletePhotoFile(before?.pending_photo_file_id);
     });
@@ -100,7 +100,7 @@ export async function scanPhoto({ fileId, userId }) {
         { $unset: { pending_photo_file_id: 1 }, $set: { photo_scan_failed_at: clock.now() } },
         { session },
       );
-      if (changed.modifiedCount) afterCommit(() => deletePhotoFile(fileId));
+      if (changed.modifiedCount) await afterCommit(() => deletePhotoFile(fileId));
     });
     return;
   }
@@ -124,7 +124,7 @@ export async function scanPhoto({ fileId, userId }) {
       new_value: { removed: false },
       session,
     });
-    afterCommit(async () => {
+    await afterCommit(async () => {
       await setPhotoScanStatus(fileId, 'clean');
       await deletePhotoFile(before.photo_file_id);
     });

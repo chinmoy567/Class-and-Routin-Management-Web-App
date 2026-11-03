@@ -1,6 +1,6 @@
 # 15: Transactional email
 
-R1 · Status: Draft · Depends on: 00 (built alongside 01 onwards) · PRD: Authentication & onboarding (Required university email: emails, Batching, Link and code lifetimes), Admin dashboard and controls (Emails to admins), Non-functional requirements (Background jobs) · Diagrams: 03-system-context
+R1 · Status: In progress · Depends on: 00 (built alongside 01 onwards) · PRD: Authentication & onboarding (Required university email: emails, Batching, Link and code lifetimes), Admin dashboard and controls (Emails to admins), Non-functional requirements (Background jobs) · Diagrams: 03-system-context
 
 ## Goal
 
@@ -96,10 +96,10 @@ Not user-facing, except the bounce webhook, which is authenticated with a shared
 
 ## Tasks
 
-- [ ] Template renderer + all R1 templates (text + HTML) + snapshot tests
-- [ ] `email.send` job with decrypt-at-send, dedupe, retry, bounce on 5xx
-- [ ] Batching (`email_batch`, flush job)
-- [ ] Admin digest job (scoped queries per admin)
-- [ ] Bounce webhook
-- [ ] Dev outbox page
-- [ ] Tests
+- [x] Template renderer + all R1 templates (text + HTML) + snapshot tests
+- [x] `email.send` job with decrypt-at-send, dedupe, retry, bounce on 5xx
+- [x] Batching (`email_batch`, flush job)
+- [x] Admin digest job (scoped queries per admin). Sources so far: teacher registrations, escalated ID claims. Room requests (19), CR/DCR flags (17) and appeals (22) add providers when built
+- [x] Bounce webhook
+- [x] Dev outbox page
+- [x] Tests (server suite 744 passing). Open: "bouncing" in admin user lists waits for the admin user list (spec 18)

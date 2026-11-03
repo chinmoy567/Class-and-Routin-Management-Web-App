@@ -75,3 +75,9 @@ export async function withdrawPendingOfSemester(semesterId, session) {
   return res.modifiedCount;
 }
 
+/** EML-08: escalated join requests still waiting, in scope (counts only), for the admin digest. */
+export async function countEscalatedPending({ departmentIds }) {
+  const filter = { status: 'pending', escalated_at: { $exists: true } };
+  if (departmentIds) filter.department_id = { $in: departmentIds };
+  return Enrolment.countDocuments(filter);
+}

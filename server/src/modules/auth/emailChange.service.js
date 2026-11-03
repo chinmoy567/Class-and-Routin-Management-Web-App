@@ -43,7 +43,7 @@ export async function requestEmailChange(actor, newEmail) {
       payload: { email_enc: encrypt(newEmail), email_hmac: hmac },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_address: newEmail,
         template: 'email_change_confirm',
@@ -89,7 +89,7 @@ export async function confirmEmailChange(token) {
         target: { type: 'user', id: user._id },
         session,
       });
-      afterCommit(() =>
+      await afterCommit(() =>
         enqueue({
           to_address: oldAddress,
           template: 'email_changed_notice',

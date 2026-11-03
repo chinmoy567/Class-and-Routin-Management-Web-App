@@ -6,12 +6,15 @@ import {
   connectTestDb,
   disconnectTestDb,
   drainMail,
+  fixClock,
+  resetClock,
   loginAs,
   startTestMail,
   stopTestMail,
 } from '../../../../test/harness.js';
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { setScanner } from '../../../lib/clamav.js';
+import { clock } from '../../../lib/time.js';
 import { setEmitter } from '../../../lib/events.js';
 import { Semester } from '../../organisation/index.js';
 import { Teacher } from '../../teachers/index.js';
@@ -520,10 +523,21 @@ describe('side effects (EDT-08)', () => {
     expect(
       (await add(w.cseAdmin, body(w, { day_of_week: 2, course_code: 'CSE-303' }))).status,
     ).toBe(201);
+    // EML-06 acceptance: a third hand edit within the hour joins the same batch.
+    expect(
+      (await add(w.cseAdmin, body(w, { day_of_week: 3, course_code: 'CSE-305' }))).status,
+    ).toBe(201);
     expect(sent).toContainEqual([`section:${w.cseSection._id}`, 'routine.changed']);
     expect(sent).toContainEqual([`user:${teacherUser._id}`, 'routine.changed']);
-    const mails = (await drainMail()).filter((m) => m.subject.includes('routine'));
-    for (const s of students) expect(mails.filter((m) => m.to === s.email)).toHaveLength(1);
+    // EML-06: nothing is sent straight after the edits; the batch waits an hour from the first one.
+    expect((await drainMail()).filter((m) => m.subject.includes('routine'))).toHaveLength(0);
+    fixClock(new Date(clock.now().getTime() + 61 * 60 * 1000));
+    try {
+      const mails = (await drainMail()).filter((m) => m.subject.includes('routine'));
+      for (const s of students) expect(mails.filter((m) => m.to === s.email)).toHaveLength(1);
+    } finally {
+      resetClock();
+    }
   });
 
   it('EDT-08 a draft semester emits events but sends no email', async () => {

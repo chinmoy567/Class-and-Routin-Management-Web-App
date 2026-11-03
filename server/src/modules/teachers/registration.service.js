@@ -182,7 +182,7 @@ export async function decide(actor, id, body) {
       },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: reg.user_id,
         template: approve ? 'teacher_approved' : 'teacher_rejected',
@@ -229,4 +229,11 @@ export async function applyAgain(actor, { department_id, short_code }) {
     if (err?.code === 11000) throw waiting();
     throw err;
   }
+}
+
+/** EML-08: pending teacher registrations in scope (counts only), for the admin digest. */
+export async function countPendingRegistrations({ departmentIds }) {
+  const filter = { status: 'pending' };
+  if (departmentIds) filter.department_id = { $in: departmentIds };
+  return TeacherRegistration.countDocuments(filter);
 }

@@ -6,7 +6,7 @@
     },
     "routine_changed": {
       "subject": "Your class routine changed",
-      "body": "Hello,\n\nThe class routine for {semester} changed. Open the app to see the latest routine."
+      "body": "Hello,\n\nThe class routine for {semester} changed:\n{changes}\n\nOpen the app to see the latest routine:\n{link}"
     },
     "test": {
       "subject": "Test email",
@@ -88,9 +88,37 @@
       "subject": "A UV ID claim needs your attention",
       "body": "Hello,\n\nThe UV ID {uv_id} is involved in a claim problem for {section}: {detail}\n\nReview it here:\n{link}"
     },
-    "no_active_admin": {
+    "department_without_admin": {
       "subject": "A department has no active admin",
       "body": "Hello,\n\nThe department {department} has no active department admin. You can act for it, or appoint a new admin here:\n{link}"
+    },
+    "class_cancelled": {
+      "subject": "A class was cancelled",
+      "body": "Hello,\n\n{course_code} on {date} has been cancelled. Your routine and the room for that time are updated.\n\nOpen the app to see your routine:\n{link}"
+    },
+    "class_restored": {
+      "subject": "A cancelled class is back on",
+      "body": "Hello,\n\n{course_code} on {date} is back on.\n\nOpen the app to see your routine:\n{link}"
+    },
+    "room_request_result": {
+      "subject": "Your room request has been decided",
+      "body": "Hello,\n\nYour room request for {room} on {date} has been decided. Open the app to see the result:\n{link}"
+    },
+    "booking_cancelled": {
+      "subject": "A room booking was cancelled",
+      "body": "Hello,\n\nThe booking for {room} on {date} has been cancelled.\n\nOpen the app to see the latest routine:\n{link}"
+    },
+    "request_expired": {
+      "subject": "Your room request expired",
+      "body": "Hello,\n\nYour room request for {room} on {date} expired before a decision was made.\n\nOpen the app to request again:\n{link}"
+    },
+    "admin_digest": {
+      "subject": "Items waiting for you",
+      "body": "Hello,\n\nThese items are waiting for you:\n{items}\n\nOpen the app to act on them:\n{link}"
     }
+  },
+  "digest": {
+    "teacher_registrations": "Teacher registrations waiting",
+    "escalated_id_claims": "Escalated ID claims waiting"
   }
 }

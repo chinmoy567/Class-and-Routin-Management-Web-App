@@ -1,0 +1,284 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`email templates (EML-03) > EML-03 the rendered catalogue does not change (snapshot of every template) 1`] = `
+{
+  "admin_digest": {
+    "html": "<p>Hello,</p><p>These items are waiting for you:<br>- Teacher registrations waiting: 2</p><p>Open the app to act on them:<br>http://localhost:5173</p>",
+    "subject": "Items waiting for you",
+    "text": "Hello,
+
+These items are waiting for you:
+- Teacher registrations waiting: 2
+
+Open the app to act on them:
+http://localhost:5173",
+  },
+  "admin_password_reset": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>A super admin started a password reset for your account. Open this link to choose a new password. It works once and lasts 1 hour:<br>http://localhost:5173</p><p>You were signed out everywhere.</p>",
+    "subject": "A super admin reset your password",
+    "text": "Hello Ayesha Rahman,
+
+A super admin started a password reset for your account. Open this link to choose a new password. It works once and lasts 1 hour:
+http://localhost:5173
+
+You were signed out everywhere.",
+  },
+  "admin_role_changed": {
+    "html": "<p>Hello,</p><p>Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue; admin accounts always use the second step.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Your admin access changed",
+    "text": "Hello,
+
+Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue; admin accounts always use the second step.
+
+Open the app: http://localhost:5173",
+  },
+  "admin_second_step_reset": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>A super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Your second step was reset",
+    "text": "Hello Ayesha Rahman,
+
+A super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again.
+
+Open the app: http://localhost:5173",
+  },
+  "already_registered": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Someone used this email address to sign up, but you already have an account. Sign in here:<br>sample-signin_link</p><p>Forgot your password? Reset it here:<br>sample-reset_link</p><p>If this was not you, you can ignore this email.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "You already have an account",
+    "text": "Hello Ayesha Rahman,
+
+Someone used this email address to sign up, but you already have an account. Sign in here:
+sample-signin_link
+
+Forgot your password? Reset it here:
+sample-reset_link
+
+If this was not you, you can ignore this email.
+
+Open the app: http://localhost:5173",
+  },
+  "booking_cancelled": {
+    "html": "<p>Hello,</p><p>The booking for Room 312 on 8 Nov 2026 has been cancelled.</p><p>Open the app to see the latest routine:<br>http://localhost:5173</p>",
+    "subject": "A room booking was cancelled",
+    "text": "Hello,
+
+The booking for Room 312 on 8 Nov 2026 has been cancelled.
+
+Open the app to see the latest routine:
+http://localhost:5173",
+  },
+  "class_cancelled": {
+    "html": "<p>Hello,</p><p>CSE 301 on 8 Nov 2026 has been cancelled. Your routine and the room for that time are updated.</p><p>Open the app to see your routine:<br>http://localhost:5173</p>",
+    "subject": "A class was cancelled",
+    "text": "Hello,
+
+CSE 301 on 8 Nov 2026 has been cancelled. Your routine and the room for that time are updated.
+
+Open the app to see your routine:
+http://localhost:5173",
+  },
+  "class_restored": {
+    "html": "<p>Hello,</p><p>CSE 301 on 8 Nov 2026 is back on.</p><p>Open the app to see your routine:<br>http://localhost:5173</p>",
+    "subject": "A cancelled class is back on",
+    "text": "Hello,
+
+CSE 301 on 8 Nov 2026 is back on.
+
+Open the app to see your routine:
+http://localhost:5173",
+  },
+  "department_without_admin": {
+    "html": "<p>Hello,</p><p>The department Computer Science has no active department admin. You can act for it, or appoint a new admin here:<br>http://localhost:5173</p>",
+    "subject": "A department has no active admin",
+    "text": "Hello,
+
+The department Computer Science has no active department admin. You can act for it, or appoint a new admin here:
+http://localhost:5173",
+  },
+  "email_change_confirm": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Open this link to make this your new email address. It works once and lasts 24 hours:<br>http://localhost:5173</p><p>Until then your old address stays in use. If you did not ask for this, ignore this email.</p>",
+    "subject": "Confirm your new email address",
+    "text": "Hello Ayesha Rahman,
+
+Open this link to make this your new email address. It works once and lasts 24 hours:
+http://localhost:5173
+
+Until then your old address stays in use. If you did not ask for this, ignore this email.",
+  },
+  "email_changed_notice": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>The email address on your account was changed. From now on you sign in with the new address.</p><p>If this was not you, contact your department admin.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Your email address was changed",
+    "text": "Hello Ayesha Rahman,
+
+The email address on your account was changed. From now on you sign in with the new address.
+
+If this was not you, contact your department admin.
+
+Open the app: http://localhost:5173",
+  },
+  "failed_logins": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>There were many failed attempts to sign in to your account in the last hour. Your account is not locked. If this was not you, consider changing your password:<br>sample-reset_link</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Many failed sign-in attempts on your account",
+    "text": "Hello Ayesha Rahman,
+
+There were many failed attempts to sign in to your account in the last hour. Your account is not locked. If this was not you, consider changing your password:
+sample-reset_link
+
+Open the app: http://localhost:5173",
+  },
+  "group_changed": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your lab group in sample-section is now sample-group. Sign in to see your routine:<br>http://localhost:5173</p>",
+    "subject": "Your lab group changed",
+    "text": "Hello Ayesha Rahman,
+
+Your lab group in sample-section is now sample-group. Sign in to see your routine:
+http://localhost:5173",
+  },
+  "join_accepted": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your join request for sample-section (Fall 2026) was accepted. Sign in to see your routine:<br>http://localhost:5173</p>",
+    "subject": "You joined sample-section",
+    "text": "Hello Ayesha Rahman,
+
+Your join request for sample-section (Fall 2026) was accepted. Sign in to see your routine:
+http://localhost:5173",
+  },
+  "join_rejected": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your join request for sample-section (Fall 2026) was not accepted. Reason:<br>sample-reason</p><p>Sign in to send a new request or to appeal:<br>http://localhost:5173</p>",
+    "subject": "Your join request was not accepted",
+    "text": "Hello Ayesha Rahman,
+
+Your join request for sample-section (Fall 2026) was not accepted. Reason:
+sample-reason
+
+Sign in to send a new request or to appeal:
+http://localhost:5173",
+  },
+  "password_changed": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your password was just changed and you were signed out everywhere else. If this was not you, reset your password now:<br>sample-reset_link</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Your password was changed",
+    "text": "Hello Ayesha Rahman,
+
+Your password was just changed and you were signed out everywhere else. If this was not you, reset your password now:
+sample-reset_link
+
+Open the app: http://localhost:5173",
+  },
+  "request_expired": {
+    "html": "<p>Hello,</p><p>Your room request for Room 312 on 8 Nov 2026 expired before a decision was made.</p><p>Open the app to request again:<br>http://localhost:5173</p>",
+    "subject": "Your room request expired",
+    "text": "Hello,
+
+Your room request for Room 312 on 8 Nov 2026 expired before a decision was made.
+
+Open the app to request again:
+http://localhost:5173",
+  },
+  "reset_password": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Open this link to choose a new password. It works once and lasts 1 hour:<br>http://localhost:5173</p><p>If you did not ask for this, ignore this email.</p>",
+    "subject": "Reset your password",
+    "text": "Hello Ayesha Rahman,
+
+Open this link to choose a new password. It works once and lasts 1 hour:
+http://localhost:5173
+
+If you did not ask for this, ignore this email.",
+  },
+  "role_assigned": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your department admin made you sample-role of sample-section for Fall 2026. Sign in to see it:<br>http://localhost:5173</p>",
+    "subject": "You are now sample-role of sample-section",
+    "text": "Hello Ayesha Rahman,
+
+Your department admin made you sample-role of sample-section for Fall 2026. Sign in to see it:
+http://localhost:5173",
+  },
+  "role_removed": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your department admin removed your sample-role role for sample-section (Fall 2026). Your place in the section stays.<br>http://localhost:5173</p>",
+    "subject": "Your sample-role role was removed",
+    "text": "Hello Ayesha Rahman,
+
+Your department admin removed your sample-role role for sample-section (Fall 2026). Your place in the section stays.
+http://localhost:5173",
+  },
+  "room_request_result": {
+    "html": "<p>Hello,</p><p>Your room request for Room 312 on 8 Nov 2026 has been decided. Open the app to see the result:<br>http://localhost:5173</p>",
+    "subject": "Your room request has been decided",
+    "text": "Hello,
+
+Your room request for Room 312 on 8 Nov 2026 has been decided. Open the app to see the result:
+http://localhost:5173",
+  },
+  "routine_changed": {
+    "html": "<p>Hello,</p><p>The class routine for Fall 2026 changed:<br>3-II-A (Sun, Tue): CSE 301, CSE 305</p><p>Open the app to see the latest routine:<br>http://localhost:5173</p>",
+    "subject": "Your class routine changed",
+    "text": "Hello,
+
+The class routine for Fall 2026 changed:
+3-II-A (Sun, Tue): CSE 301, CSE 305
+
+Open the app to see the latest routine:
+http://localhost:5173",
+  },
+  "second_step_code": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your sign-in code is sample-code. It works once and lasts 10 minutes. If you did not try to sign in, change your password.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Your sign-in code",
+    "text": "Hello Ayesha Rahman,
+
+Your sign-in code is sample-code. It works once and lasts 10 minutes. If you did not try to sign in, change your password.
+
+Open the app: http://localhost:5173",
+  },
+  "semester_update_reminder": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>The semester Fall 2026 has started. Please complete your semester update so your section and routine are right. Open the app to continue:<br>http://localhost:5173</p>",
+    "subject": "Please complete your semester update",
+    "text": "Hello Ayesha Rahman,
+
+The semester Fall 2026 has started. Please complete your semester update so your section and routine are right. Open the app to continue:
+http://localhost:5173",
+  },
+  "teacher_approved": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your department admin approved your account. Sign in here:<br>http://localhost:5173</p>",
+    "subject": "Your teacher account was approved",
+    "text": "Hello Ayesha Rahman,
+
+Your department admin approved your account. Sign in here:
+http://localhost:5173",
+  },
+  "teacher_rejected": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Your department admin did not approve your registration. Reason:<br>sample-reason</p><p>Sign in to correct your department or short code and apply again:<br>http://localhost:5173</p>",
+    "subject": "Your teacher registration was not approved",
+    "text": "Hello Ayesha Rahman,
+
+Your department admin did not approve your registration. Reason:
+sample-reason
+
+Sign in to correct your department or short code and apply again:
+http://localhost:5173",
+  },
+  "test": {
+    "html": "<p>This is a test email for Ayesha Rahman.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Test email",
+    "text": "This is a test email for Ayesha Rahman.
+
+Open the app: http://localhost:5173",
+  },
+  "uv_id_conflict": {
+    "html": "<p>Hello,</p><p>The UV ID sample-uv_id is involved in a claim problem for sample-section: sample-detail</p><p>Review it here:<br>http://localhost:5173</p>",
+    "subject": "A UV ID claim needs your attention",
+    "text": "Hello,
+
+The UV ID sample-uv_id is involved in a claim problem for sample-section: sample-detail
+
+Review it here:
+http://localhost:5173",
+  },
+  "verify_email": {
+    "html": "<p>Hello Ayesha Rahman,</p><p>Open this link to confirm your email address. It works once and lasts 24 hours:<br>http://localhost:5173</p><p>If you did not sign up, ignore this email.</p>",
+    "subject": "Confirm your email address",
+    "text": "Hello Ayesha Rahman,
+
+Open this link to confirm your email address. It works once and lasts 24 hours:
+http://localhost:5173
+
+If you did not sign up, ignore this email.",
+  },
+}
+`;

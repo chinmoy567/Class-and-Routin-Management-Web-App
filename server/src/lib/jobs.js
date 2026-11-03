@@ -42,8 +42,8 @@ export function withRetry(
  */
 export async function startJobs({ url, registrars = [], processEvery = '5 seconds', retry = {} }) {
   agenda = new Agenda({ db: { address: url, collection: 'agendaJobs' }, processEvery });
-  const define = (name, handler, options = {}) =>
-    agenda.define(name, options, withRetry(handler, retry));
+  const define = (name, handler, { retry: jobRetry, ...options } = {}) =>
+    agenda.define(name, options, withRetry(handler, { ...retry, ...jobRetry }));
   for (const register of registrars) register(define);
   await agenda.start();
   return agenda;

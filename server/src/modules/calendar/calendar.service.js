@@ -62,7 +62,10 @@ export async function listCalendarEvents(actor, { from, to, department_id } = {}
   if (!actor.roles?.some((r) => ['super_admin', 'dept_admin'].includes(r.role))) {
     // Regular users see university events + their own department's events.
     const deptId = actor.department_id ? String(actor.department_id) : null;
-    filter.$or = [{ scope_department_id: null }, ...(deptId ? [{ scope_department_id: deptId }] : [])];
+    filter.$or = [
+      { scope_department_id: null },
+      ...(deptId ? [{ scope_department_id: deptId }] : []),
+    ];
   } else if (department_id) {
     filter.$or = [{ scope_department_id: null }, { scope_department_id: department_id }];
   }
@@ -250,7 +253,7 @@ export async function cancelClass(actor, slotId, { date, reason }) {
     new_value: { date, reason },
   });
 
-  await notifyCancellationChange(slot, date, 'cancelled');
+  await notifyCancellationChange(slot, date, 'cancelled', cancellation._id);
   return cancellation.toObject();
 }
 
@@ -283,17 +286,17 @@ export async function undoCancelClass(actor, slotId, date) {
     old_value: { date, reason: cancellation.reason },
   });
 
-  await notifyCancellationChange(slot, date, 'restored');
+  await notifyCancellationChange(slot, date, 'restored', cancellation._id);
 }
 
 /** CAL-11, CAL-12: emit routine.changed and email affected users. */
-async function notifyCancellationChange(slot, date, verb) {
+async function notifyCancellationChange(slot, date, verb, cancellationId) {
   const sectionId = String(slot.section_id);
   emitAfterCommit(`section:${sectionId}`, SOCKET_EVENTS.ROUTINE_CHANGED, {
     section_id: sectionId,
   });
 
-  afterCommit(async () => {
+  await afterCommit(async () => {
     // Teachers on the slot
     const links = await RoutineSlotTeacher.find({ slot_id: slot._id }).lean();
     const teacherUserIds = await linkedUserIds(links.map((l) => l.teacher_id));
@@ -305,9 +308,10 @@ async function notifyCancellationChange(slot, date, verb) {
     for (const uid of allUsers) {
       await enqueue({
         to_user_id: uid,
-        template: verb === 'cancelled' ? 'class_cancelled' : 'class_cancellation_undone',
+        template: verb === 'cancelled' ? 'class_cancelled' : 'class_restored',
         data: { date, course_code: slot.course_code },
-        dedupe_key: `class_cancel:${slot._id}:${date}:${verb}:${uid}`,
+        // EML-04: keyed on this cancellation, so cancelling again after an undo is still emailed.
+        dedupe_key: `class_cancel:${cancellationId}:${verb}:${uid}`,
       });
     }
   });

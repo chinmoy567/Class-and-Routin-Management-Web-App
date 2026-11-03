@@ -312,7 +312,7 @@ export async function submitOwnClaim(actor, { uv_id }) {
       new_value: { own_claim: true },
       session,
     });
-    afterCommit(() => notifyAdminsOfClaim(section, uv));
+    await afterCommit(() => notifyAdminsOfClaim(section, uv));
     return row;
   });
   return { id: String(claim._id), status: 'pending' };

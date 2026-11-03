@@ -6,7 +6,7 @@ import { getAgenda, startJobs } from './lib/jobs.js';
 import { initSocket } from './lib/socket.js';
 import { MongoRateLimitStore } from './lib/rateLimitStore.js';
 import { createApp, createSessionMiddleware } from './app.js';
-import { defineMailJobs } from './modules/notifications/index.js';
+import { defineMailJobs, DIGEST_JOB } from './modules/notifications/index.js';
 import {
   COVERAGE_JOB,
   defineAdminRoleJobs,
@@ -42,7 +42,13 @@ async function main() {
   await ensurePhotoIndex();
   await startJobs({
     url: config.MONGO_URL,
-    registrars: [defineMailJobs, defineAuthJobs, defineAdminRoleJobs, defineJoinJobs, defineRolloverJobs],
+    registrars: [
+      defineMailJobs,
+      defineAuthJobs,
+      defineAdminRoleJobs,
+      defineJoinJobs,
+      defineRolloverJobs,
+    ],
   });
   // DEP-12: the hourly safety net; role changes also run the check straight away.
   await getAgenda().every('1 hour', COVERAGE_JOB, {}, { timezone: 'UTC' });
@@ -52,6 +58,9 @@ async function main() {
 
   // ROL-13: the semester update reminders, every day at 09:00 Dhaka time.
   await getAgenda().every('0 9 * * *', REMINDER_JOB, {}, { timezone: 'Asia/Dhaka' });
+
+  // EML-08: the admin digest, at 08:00 and 17:00 Dhaka time.
+  await getAgenda().every('0 8,17 * * *', DIGEST_JOB, {}, { timezone: 'Asia/Dhaka' });
 
   const sessionMiddleware = createSessionMiddleware(config);
   const app = createApp(config, { sessionMiddleware });

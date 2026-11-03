@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../../lib/logger.js';
+import { getConfig } from '../../config.js';
 
 const outbox = [];
 export const getOutbox = () => outbox;
@@ -26,4 +27,18 @@ export function createTransport(config) {
       logger.info({ subject: message.subject }, 'email written to outbox');
     },
   };
+}
+
+// Tests only: replace the sender, for example to make a transport fail on purpose (EML-01).
+let sendOverride = null;
+export const setSendOverride = (fn) => {
+  sendOverride = fn;
+};
+
+/** EML-02: every email leaves from the one system sender, MAIL_FROM. */
+export async function deliver(message) {
+  const config = getConfig();
+  const full = { from: config.MAIL_FROM, ...message };
+  if (sendOverride) return sendOverride(full);
+  return createTransport(config).send(full);
 }

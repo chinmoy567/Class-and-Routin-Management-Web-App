@@ -18,6 +18,7 @@ export {
   findDepartmentsWithoutActiveAdmin,
   runCoverageCheck,
   listAdmins,
+  listAdminScopes,
 } from './adminRoles.service.js';
 export { meProfileRouter, usersRouter, adminUsersRouter } from './profile.routes.js';
 export { registerProfileExtras, registerRepresentativeProvider } from './profile.service.js';
@@ -27,6 +28,9 @@ export {
   registerTeacherVerifiedHook,
   loadRequestUser,
   getEmailAddress,
+  getMailRecipient,
+  findUserIdByEmail,
+  markEmailBouncing,
   seedSuperAdmin,
   toPublicUser,
 } from './auth.service.js';

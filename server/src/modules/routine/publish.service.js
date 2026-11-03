@@ -12,7 +12,8 @@ import { emitAfterCommit } from '../../lib/events.js';
 import { AppError } from '../../lib/errors.js';
 import { clock } from '../../lib/time.js';
 import { record } from '../audit/index.js';
-import { enqueue } from '../notifications/index.js';
+import { addToBatch } from '../notifications/index.js';
+import { describeSections } from './changeSummary.service.js';
 import { getSemester } from '../organisation/index.js';
 import { directoryFor, linkedUserIds, upsertFromImport } from '../teachers/index.js';
 
@@ -31,10 +32,10 @@ export function resetRoutineHooks() {
 
 /**
  * EDT-08, IMP-28: after a change to published slots. Call inside the transaction: the events
- * and the follow-up work run after the commit. `dedupeKey(userId)` makes the email batched.
+ * and the follow-up work run after the commit. `flushNow` sends the batched email at once (a publish); hand edits wait an hour (EML-06).
  * A draft semester gets events but no email.
  */
-export async function notifyRoutineChange({ semester, sectionIds, teacherIds, dedupeKey }) {
+export async function notifyRoutineChange({ semester, sectionIds, teacherIds, flushNow = false }) {
   const userIds = new Set(await linkedUserIds(teacherIds));
   for (const sid of sectionIds) {
     emitAfterCommit(`section:${sid}`, SOCKET_EVENTS.ROUTINE_CHANGED, { section_id: sid });
@@ -42,18 +43,21 @@ export async function notifyRoutineChange({ semester, sectionIds, teacherIds, de
   for (const uid of userIds) {
     emitAfterCommit(`user:${uid}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
   }
-  afterCommit(async () => {
+  await afterCommit(async () => {
     for (const fn of changeListeners) await fn({ sectionIds, userIds: [...userIds] });
-    if (semester.status !== 'current') return;
+    if (semester.status !== 'current') return; // EML-07: a draft semester sends no email
     const audience = new Set(userIds);
     for (const fn of audienceProviders)
       for (const u of await fn(sectionIds)) audience.add(String(u));
+    // EML-06: one batched email per person. A publish sends at once; hand edits wait an hour.
+    const changes = await describeSections(sectionIds, semester._id);
     for (const uid of audience) {
-      await enqueue({
-        to_user_id: uid,
-        template: 'routine_changed',
-        data: { semester: semester.name },
-        dedupe_key: dedupeKey(uid),
+      await addToBatch({
+        userId: uid,
+        kind: 'routine_changed',
+        item: changes.join('\n'),
+        semesterName: semester.name,
+        flushNow,
       });
     }
   });
@@ -265,7 +269,7 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
       semester,
       sectionIds: sectionList,
       teacherIds: [...touchedTeachers],
-      dedupeKey: (uid) => `routine:${imp._id}:${uid}`,
+      flushNow: true,
     });
     return { ...counts, sections: sectionList.length };
   });

@@ -107,7 +107,7 @@ export async function sendEmailCode(req) {
       code,
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: user._id,
         template: 'second_step_code',

@@ -63,6 +63,34 @@ async function activeSuperAdminUserIds(session) {
 // ---------------------------------------------------------------------------------------------
 
 /** DEP-07: the admin accounts with their active roles, and whether the "two super admins" rule is met. */
+/**
+ * EML-08: the active admins and their scope, for the digest job (no actor: it is a system job).
+ * Returns [{ user_id, departmentIds: null | [id] }]. null means every department (super admin).
+ */
+export async function listAdminScopes() {
+  const roles = await UserRole.find({ role: { $in: ['super_admin', 'dept_admin'] }, ...ACTIVE })
+    .select('user_id role department_id')
+    .lean();
+  // A deactivated or suspended admin cannot sign in, so they get no digest either.
+  const activeIds = new Set(
+    (
+      await User.find({ _id: { $in: roles.map((r) => r.user_id) }, state: 'active' })
+        .select('_id')
+        .lean()
+    ).map((u) => String(u._id)),
+  );
+  const byUser = new Map();
+  for (const r of roles.filter((x) => activeIds.has(String(x.user_id)))) {
+    const key = String(r.user_id);
+    const scope = byUser.get(key) ?? { user_id: key, departmentIds: [] };
+    if (r.role === 'super_admin') scope.departmentIds = null;
+    else if (scope.departmentIds !== null && r.department_id)
+      scope.departmentIds.push(String(r.department_id));
+    byUser.set(key, scope);
+  }
+  return [...byUser.values()];
+}
+
 export async function listAdmins(actor) {
   assertCan(actor, 'admin_role.manage');
   const roles = await UserRole.find({ role: { $in: ['super_admin', 'dept_admin'] }, ...ACTIVE })
@@ -269,7 +297,7 @@ export async function resetAdminPassword(actor, userId) {
       target: { type: 'user', id: target._id },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: target._id,
         template: 'admin_password_reset',
@@ -298,7 +326,7 @@ export async function resetAdminSecondStep(actor, userId) {
       target: { type: 'user', id: target._id },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: target._id,
         template: 'admin_second_step_reset',
@@ -349,7 +377,7 @@ export async function runCoverageCheck() {
     for (const userId of superAdmins) {
       await enqueue({
         to_user_id: userId,
-        template: 'no_active_admin',
+        template: 'department_without_admin',
         data: {
           department: `${d.code} ${d.name}`,
           link: `${getConfig().APP_URL}/admin/admins`,

@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import dns from 'node:dns';
 import mongoose from 'mongoose';
+import { logger } from './logger.js';
 
 const txStore = new AsyncLocalStorage();
 
@@ -66,6 +67,17 @@ export const inTransaction = () => Boolean(txStore.getStore());
 /** Run `cb` after the surrounding transaction commits, or immediately outside a transaction. */
 export function afterCommit(cb) {
   const store = txStore.getStore();
-  if (store) store.add(cb);
-  else return cb();
+  if (store) {
+    store.add(cb);
+    return undefined;
+  }
+  // No transaction: the step runs now. Callers await it, so it is done before the answer goes out.
+  // A failure is logged, not thrown: the change has already been made.
+  const failed = (err) => logger.error({ err }, 'after-commit step failed');
+  try {
+    return Promise.resolve(cb()).catch(failed); // a sync step runs right now, as before
+  } catch (err) {
+    failed(err);
+    return Promise.resolve();
+  }
 }

@@ -28,9 +28,12 @@ export async function resend(req, res) {
 }
 
 export async function login(req, res) {
-  const { requestUser, secondStepPending, next } = await service.logIn(req.body, { ip: req.ip });
+  const { requestUser, secondStepPending, next, email_action_required } = await service.logIn(
+    req.body,
+    { ip: req.ip },
+  );
   await establishSession(req, requestUser, { secondStepPending });
-  res.json({ data: { next } });
+  res.json({ data: { next, email_action_required } });
 }
 
 export async function logout(req, res) {

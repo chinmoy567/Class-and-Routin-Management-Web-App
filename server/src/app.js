@@ -5,6 +5,7 @@ import MongoStore from 'connect-mongo';
 import mongoose from 'mongoose';
 import { rateLimit } from 'express-rate-limit';
 import { requestLogger } from './lib/logger.js';
+import { emailWebhookRouter, devOutboxRouter } from './modules/notifications/index.js';
 import { errorMiddleware, notFoundHandler, AppError } from './lib/errors.js';
 import { csrfProtection } from './lib/csrf.js';
 import { MongoRateLimitStore } from './lib/rateLimitStore.js';
@@ -94,6 +95,7 @@ export function createApp(
 
   app.use(sessionMiddleware ?? createSessionMiddleware(config));
   if (mountBefore) mountBefore(app); // test-only hook, runs before CSRF
+  app.use('/api/webhooks', emailWebhookRouter); // EML-09: the provider cannot send a CSRF token
   app.use(csrfProtection);
   app.use(loadUser); // AUTH-24: state and roles are read fresh on every request
   app.use(enforceSessionLifetime);
@@ -130,6 +132,8 @@ export function createApp(
   app.use('/api', routineRouter);
   app.use('/api', myRoutineRouter);
   app.use('/api', calendarRouter);
+  // EML-11: the dev outbox exists only in development.
+  if (config.NODE_ENV === 'development') app.use('/dev', devOutboxRouter);
   if (mountApi) mountApi(app);
 
   app.use(notFoundHandler);

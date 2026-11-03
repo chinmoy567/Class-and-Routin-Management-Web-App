@@ -131,7 +131,7 @@ export async function makeCurrent(actor, semesterId, { confirm_not_ready = [] } 
 
     // After commit only: hooks, caches and the day-0 reminder (ROL-04, ROL-13).
     const archivedId = counts.archived_semester_id ? String(counts.archived_semester_id) : null;
-    afterCommit(() => afterRollover({ archivedId, currentId: draft.id }));
+    await afterCommit(() => afterRollover({ archivedId, currentId: draft.id }));
     emitAfterCommit('everyone', SOCKET_EVENTS.ROUTINE_CHANGED, {});
     emitAfterCommit('everyone', SOCKET_EVENTS.CALENDAR_CHANGED, {});
     return counts;

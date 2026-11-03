@@ -123,7 +123,7 @@ export async function assignRole(actor, { sectionId, userId, role, via = 'manual
       },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: userId,
         template: 'role_assigned',
@@ -138,7 +138,7 @@ export async function assignRole(actor, { sectionId, userId, role, via = 'manual
     );
     if (current) {
       emitAfterCommit(`user:${userId}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
-      if (role === 'cr') afterCommit(() => runCrAssignedHooks(section));
+      if (role === 'cr') await afterCommit(() => runCrAssignedHooks(section));
     }
     return row;
   });

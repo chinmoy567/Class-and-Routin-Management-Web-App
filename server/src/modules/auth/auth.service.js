@@ -77,6 +77,30 @@ export async function getEmailAddress(userId) {
   return user?.email_enc ? decrypt(user.email_enc) : null;
 }
 
+/** EML-10: the address (for the mail queue only) and whether it has bounced. */
+export async function getMailRecipient(userId) {
+  const user = await User.findById(userId).select('+email_enc email_bouncing').lean();
+  if (!user?.email_enc) return null;
+  return {
+    userId: String(user._id),
+    address: decrypt(user.email_enc),
+    bouncing: !!user.email_bouncing,
+  };
+}
+
+/** EML-09: look up an account by address without ever storing or returning the address. */
+export async function findUserIdByEmail(email) {
+  const user = await User.findOne({ email_hmac: emailHmac(email) })
+    .select('_id')
+    .lean();
+  return user ? String(user._id) : null;
+}
+
+/** EML-09: a permanent bounce for this account. The user is asked to update the address at sign-in. */
+export async function markEmailBouncing(userId) {
+  await User.updateOne({ _id: userId }, { $set: { email_bouncing: true } });
+}
+
 /** AUTH-03, AUTH-29: only what the owner's own screens need. No email, phone or hashes. */
 export function toPublicUser(user) {
   return {
@@ -155,7 +179,7 @@ export async function signUp(input) {
         ttlMs: VERIFY_TTL_MS,
         session,
       });
-      afterCommit(() =>
+      await afterCommit(() =>
         enqueue({
           to_address: email,
           template: 'verify_email',
@@ -204,7 +228,7 @@ export async function resendVerification(email) {
       ttlMs: VERIFY_TTL_MS,
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_address: email,
         template: 'verify_email',
@@ -263,6 +287,8 @@ export async function logIn({ email, password, captcha }, { ip }) {
     requestUser,
     secondStepPending,
     next: await nextScreen({ user: requestUser, totpEnabled, secondStepPending }),
+    // EML-09: the sign-in says so too, so the client can ask for a new address straight away.
+    email_action_required: Boolean(user.email_bouncing),
   };
 }
 
@@ -290,7 +316,7 @@ export async function requestPasswordReset(email) {
       ttlMs: RESET_TTL_MS,
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_address: email,
         template: 'reset_password',

@@ -53,7 +53,7 @@ export async function removeRole(actor, roleId) {
       new_value: { ended: true, escalated_requests: escalated },
       session,
     });
-    afterCommit(() =>
+    await afterCommit(() =>
       enqueue({
         to_user_id: ended.user_id,
         template: 'role_removed',

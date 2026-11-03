@@ -10,7 +10,6 @@ import { formatTime } from './parse.js';
 import { assertCan } from '../../policy/index.js';
 import { withTransaction } from '../../lib/db.js';
 import { AppError, notFound } from '../../lib/errors.js';
-import { clock } from '../../lib/time.js';
 import { record } from '../audit/index.js';
 import { departmentNames, getSemester } from '../organisation/index.js';
 import { roomCodes } from '../rooms/index.js';
@@ -45,8 +44,6 @@ async function loadSection(id, semesterId) {
 }
 
 // EDT-08: one routine email per person per hour (institution hours are whole hours from UTC).
-const emailKey = (uid) => `routine:${uid}:${Math.floor(clock.now().getTime() / 3_600_000)}`;
-
 /** A slot as stored, for the audit entry and the response. */
 const viewOf = (s, roomCode) => ({
   id: s.id,
@@ -185,7 +182,6 @@ export async function createSlot(actor, body) {
       semester,
       sectionIds: [section.id],
       teacherIds: check.teacherIds,
-      dedupeKey: emailKey,
     });
     return { saved: true, slot: view };
   });
@@ -288,7 +284,6 @@ export async function updateSlot(actor, id, body) {
       semester,
       sectionIds: [...new Set([old.section_id, section.id])],
       teacherIds: [...new Set([...old.teacher_ids, ...check.teacherIds])],
-      dedupeKey: emailKey,
     });
     return { saved: true, slot: view };
   });
@@ -329,7 +324,6 @@ export async function deleteSlot(actor, id, body) {
       semester,
       sectionIds: [old.section_id],
       teacherIds: old.teacher_ids,
-      dedupeKey: emailKey,
     });
     return { saved: true };
   });

@@ -1,3 +1,5 @@
+import { registerDigestProvider } from '../notifications/index.js';
+import { countPendingRegistrations } from './registration.service.js';
 import { registerPolicies } from '../../policy/index.js';
 import { teachersPolicy } from './teachers.policy.js';
 import {
@@ -31,3 +33,10 @@ export {
   resetTeacherProviders,
 } from './directory.service.js';
 export { Teacher, TeacherRegistration } from './teachers.model.js';
+
+// EML-08: pending teacher registrations, for the admin digest.
+registerDigestProvider({
+  key: 'teacher_registrations',
+  labelKey: 'digest.teacher_registrations',
+  count: countPendingRegistrations,
+});

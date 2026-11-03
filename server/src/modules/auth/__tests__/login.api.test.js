@@ -64,7 +64,8 @@ describe('sign-in', () => {
     const user = await makeUser({ password: TEST_PASSWORD });
     const { agent, res } = await signIn(app, user.email, TEST_PASSWORD);
     expect(res.status).toBe(200);
-    expect(res.body.data).toEqual({ next: 'dashboard' });
+    // EML-09: the flag is part of every sign-in answer (false unless the address has bounced).
+    expect(res.body.data).toEqual({ next: 'dashboard', email_action_required: false });
     expect((await agent.get('/api/auth/me')).status).toBe(200);
   });
 

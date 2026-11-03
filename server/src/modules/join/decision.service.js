@@ -208,7 +208,7 @@ async function acceptCore(actor, e, section, { groupId, filter, extraSet = {}, a
         session,
       });
     }
-    afterCommit(() =>
+    await afterCommit(() =>
       afterAccept({
         e: row,
         section,
@@ -263,7 +263,7 @@ async function rejectCore(actor, e, section, { reason, filter, extraSet = {} }) 
       new_value: { reason },
       session,
     });
-    afterCommit(async () =>
+    await afterCommit(async () =>
       enqueue({
         to_user_id: String(row.user_id),
         template: 'join_rejected',
@@ -323,7 +323,7 @@ export async function changeGroup(actor, id, { group_id }) {
       session,
     });
     emitAfterCommit(`user:${e.user_id}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
-    afterCommit(async () =>
+    await afterCommit(async () =>
       enqueue({
         to_user_id: String(e.user_id),
         template: 'group_changed',
@@ -462,7 +462,7 @@ export async function decideOwnClaim(actor, id, body) {
         },
         session,
       });
-      afterCommit(async () => {
+      await afterCommit(async () => {
         const semester = await currentSemester();
         for (const r of rejected) {
           const s = await studentForJoin(r.user_id);

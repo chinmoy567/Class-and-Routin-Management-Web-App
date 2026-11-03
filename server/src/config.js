@@ -21,6 +21,8 @@ const schema = z.object({
   SMTP_PASS: z.string().default(''),
   MAIL_FROM: nonEmpty,
   APP_URL: z.string().url(),
+  // EML-09: shared secret the email provider sends with its bounce webhook. Unset = webhook refused.
+  EMAIL_WEBHOOK_SECRET: z.string().default(''),
   CLAMAV_HOST: nonEmpty,
   CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
   // Optional: comma-separated DNS servers for mongodb+srv lookups when the OS resolver can't do SRV

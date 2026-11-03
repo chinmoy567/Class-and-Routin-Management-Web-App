@@ -6,6 +6,7 @@ import { startJobs, stopJobs, getAgenda, withRetry } from '../lib/jobs.js';
 import { enqueue, defineMailJobs, getOutbox, clearOutbox } from '../modules/notifications/index.js';
 import { renderTemplate } from '../modules/notifications/templates/index.js';
 import { t } from '../i18n/index.js';
+import { getConfig } from '../config.js';
 
 const waitFor = async (fn, ms = 15_000) => {
   const end = Date.now() + ms;
@@ -112,7 +113,9 @@ describe('mail', () => {
     const mail = await waitFor(() => getOutbox()[0]);
     expect(mail.to).toBe('a@baiust.ac.bd');
     expect(mail.subject).toBe(t('email.test.subject'));
-    expect(mail.text).toBe('This is a test email for Rafi.');
+    expect(mail.text).toBe(
+      `This is a test email for Rafi.\n\nOpen the app: ${getConfig().APP_URL}`,
+    ); // EML-03
     expect(mail.html).toContain('<p>');
     expect(mail.from).toBe('no-reply@baiust.ac.bd');
   });
