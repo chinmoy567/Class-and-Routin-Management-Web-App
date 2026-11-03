@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatInTimeZone } from 'date-fns-tz';
 import { liveStatus } from '@crm/shared';
 import { qk } from '@/lib/query-keys';
 import { onEvent } from '@/lib/socket';
@@ -48,7 +49,14 @@ export function useRoutineSocket() {
 /** RTN-11: the live status for a routine, using server time plus the offset from the response. */
 function computeStatus(routineData, offsetMs) {
   if (!routineData) return null;
-  return liveStatus(routineData, Date.now() + offsetMs);
+  const instant = new Date(Date.now() + offsetMs);
+  // The clock in Asia/Dhaka, so a countdown can show how long is left (RTN-10).
+  const [h, m] = formatInTimeZone(instant, 'Asia/Dhaka', 'HH:mm').split(':').map(Number);
+  return {
+    ...liveStatus(routineData, instant.getTime()),
+    today: formatInTimeZone(instant, 'Asia/Dhaka', 'yyyy-MM-dd'),
+    now_min: h * 60 + m,
+  };
 }
 
 /**

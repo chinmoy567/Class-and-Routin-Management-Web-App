@@ -1,9 +1,13 @@
 import { useId } from 'react';
 import { Link } from 'react-router';
 import { t } from '@/lib/i18n';
+import { FreeRoomsFinder } from '@/features/rooms/components/FreeRoomsFinder.jsx';
 import { DashboardCard, CardMessage } from './DashboardCard.jsx';
 
-/** DSH-08, DSH-14: rooms free right now, view only. Teachers also get a link to pick a time. */
+/**
+ * DSH-08, DSH-14: rooms free right now, view only. Teachers also get the date and time picker of
+ * the free-room view, right on the dashboard.
+ */
 export function RoomsCard({ freeNow, isTeacher }) {
   const id = useId();
   return (
@@ -25,9 +29,15 @@ export function RoomsCard({ freeNow, isTeacher }) {
         ) : (
           <CardMessage>{t('dashboard.roomsNone')}</CardMessage>
         ))}
-      <Link to="/rooms/free" className="mt-3 inline-block text-sm underline">
-        {isTeacher ? t('dashboard.roomsPickTime') : t('dashboard.roomsSeeAll')}
-      </Link>
+      {isTeacher ? (
+        <div className="mt-4 flex flex-col gap-4">
+          <FreeRoomsFinder />
+        </div>
+      ) : (
+        <Link to="/rooms/free" className="mt-3 inline-block text-sm underline">
+          {t('dashboard.roomsSeeAll')}
+        </Link>
+      )}
     </DashboardCard>
   );
 }

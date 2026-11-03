@@ -28,6 +28,11 @@ export function SlotCell({ slot }) {
   return (
     <div className={cellClass}>
       <div className="font-medium">{slot.course_code}</div>
+      {(slot.section_label || slot.group) && (
+        <div className="text-muted-foreground">
+          {[slot.section_label, slot.group].filter(Boolean).join(' · ')}
+        </div>
+      )}
       {slot.room_code && <div className="text-muted-foreground">{slot.room_code}</div>}
       <div className="text-muted-foreground">{teachers}</div>
     </div>

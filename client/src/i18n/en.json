@@ -773,7 +773,10 @@
     "dayMon": "Mon",
     "dayTue": "Tue",
     "dayWed": "Wed",
-    "dayThu": "Thu"
+    "dayThu": "Thu",
+    "countdownNextOn": "Next class {course} on {day} at {time}",
+    "durationHm": "{h} h {m} min",
+    "durationM": "{m} min"
   },
   "freeRooms": {
     "title": "Free rooms",

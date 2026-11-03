@@ -7,24 +7,49 @@ const ACCENT = {
   teaching: 'bg-blue-100 dark:bg-blue-900/30',
 };
 
+/** RTN-10: "1 h 10 min" or "25 min" for a number of minutes. */
+export function durationText(minutes) {
+  const m = Math.max(0, Math.round(minutes));
+  const h = Math.floor(m / 60);
+  return h
+    ? t('routine.durationHm')
+        .replace('{h}', h)
+        .replace('{m}', m % 60)
+    : t('routine.durationM').replace('{m}', m);
+}
+
+/** The teacher names of a slot (both names for a shared lab), joined. */
+const teacherNames = (slot) =>
+  (slot.teachers ?? []).map((tc) => tc.full_name ?? tc.short_code).join(', ');
+
 /** The headline, sub-line and countdown for a live status (RTN-08 to RTN-13). */
 export function statusText(status) {
   if (!status) return null;
-  const { kind, slot, ends_at, next } = status;
+  const { kind, slot, ends_at: endsAt, next, now_min: nowMin, today } = status;
   let headline = '';
   let sub = '';
   if (kind === 'in_class' || kind === 'teaching') {
     headline = t(kind === 'in_class' ? 'routine.statusInClass' : 'routine.statusTeaching');
     if (slot) {
-      const endsTime = fmtMin(ends_at ?? slot.effective_end_min);
-      sub = `${slot.course_code} · ${slot.room_code ?? ''} · ${t('routine.countdownEndsIn').replace('{time}', endsTime)}`;
+      const end = endsAt ?? slot.effective_end_min;
+      const countdown = t('routine.countdownEndsIn').replace('{time}', durationText(end - nowMin));
+      sub = [slot.course_code, teacherNames(slot), slot.room_code, countdown]
+        .filter(Boolean)
+        .join(' · ');
     }
   } else if (kind === 'free') {
     headline = t('routine.statusFree');
     if (next?.slot) {
-      sub = t('routine.countdownNextIn')
-        .replace('{course}', next.slot.course_code ?? '')
-        .replace('{time}', fmtMin(next.slot.start_min));
+      const s = next.slot;
+      const when =
+        next.date === today
+          ? t('routine.countdownNextIn').replace('{time}', durationText(s.start_min - nowMin))
+          : t('routine.countdownNextOn')
+              .replace('{day}', next.date)
+              .replace('{time}', fmtMin(s.start_min));
+      sub = [when.replace('{course}', s.course_code ?? ''), teacherNames(s), s.room_code]
+        .filter(Boolean)
+        .join(' · ');
     }
   } else if (kind === 'event') {
     headline = t('routine.statusEvent').replace('{label}', status.label ?? '');

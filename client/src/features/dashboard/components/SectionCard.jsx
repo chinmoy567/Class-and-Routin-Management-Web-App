@@ -21,8 +21,11 @@ export function SectionCard({ section, representatives, courses }) {
       {representatives?.length ? (
         <ul className="mt-1 space-y-1 text-sm">
           {representatives.map((r) => (
-            <li key={`${r.role}-${r.user_id}`}>
-              {r.name} <span className="text-muted-foreground">({roleLabel(r.role)})</span>
+            <li key={`${r.role}-${r.user_id}`} className="flex items-center gap-2">
+              {r.photo && <img src={r.photo} alt="" className="size-6 rounded-full object-cover" />}
+              <span>
+                {r.name} <span className="text-muted-foreground">({roleLabel(r.role)})</span>
+              </span>
             </li>
           ))}
         </ul>

@@ -139,6 +139,19 @@ describe('DSH-01 to DSH-10 the student dashboard', () => {
     expect(screen.getByRole('heading', { name: t('dashboard.rooms') })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'CSE 2-I A' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: t('dashboard.reminders') })).toBeInTheDocument();
+
+    // The priority order on a phone: today, notices, rooms, then the section, then the reminders.
+    const order = ['dashboard.today', 'dashboard.notices', 'dashboard.rooms'].map((k) =>
+      screen.getByRole('heading', { name: t(k) }),
+    );
+    const section = screen.getByRole('heading', { name: 'CSE 2-I A' });
+    const reminders = screen.getByRole('heading', { name: t('dashboard.reminders') });
+    const chain = [...order, section, reminders];
+    for (let i = 1; i < chain.length; i++) {
+      expect(
+        chain[i - 1].compareDocumentPosition(chain[i]) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
   });
 
   it('DSH-02 with R3 not released there is no messages card on the page', async () => {
@@ -274,13 +287,36 @@ describe('DSH-11 to DSH-16 the teacher dashboard', () => {
     expect(calls.some((c) => c.url.includes('/roster'))).toBe(false);
   });
 
-  it('DSH-14 the teacher rooms card links to the page where a date and time can be picked', async () => {
-    mockApi(teacherRoutes());
+  it('DSH-14 the teacher rooms card has the date and time picker of the free-room view', async () => {
+    mockApi({
+      ...teacherRoutes(),
+      'GET /api/departments': ok([]),
+    });
     renderApp('/');
-    expect(await screen.findByRole('link', { name: t('dashboard.roomsPickTime') })).toHaveAttribute(
-      'href',
-      '/rooms/free',
+    expect(await screen.findByLabelText(new RegExp(`^${t('freeRooms.date')}`))).toBeInTheDocument();
+    expect(screen.getByLabelText(t('freeRooms.from'))).toBeInTheDocument();
+    expect(screen.getByLabelText(t('freeRooms.to'))).toBeInTheDocument();
+  });
+
+  it('DSH-12 a teacher week cell shows the section and the group, not only the course', async () => {
+    const withSection = {
+      ...classToday,
+      section_label: 'CSE 2-I A',
+      group: 'G1',
+      course_code: 'CSE-422',
+    };
+    mockApi(
+      teacherRoutes(
+        teacherDashboard(),
+        routine({
+          is_teacher: true,
+          week: [{ day_of_week: 2, slots: [withSection] }],
+          days: [{ date: TODAY, dayRule: { kind: 'normal' }, slots: [withSection] }],
+        }),
+      ),
     );
+    renderApp('/');
+    expect((await screen.findAllByText('CSE 2-I A · G1')).length).toBeGreaterThan(0);
   });
 });
 
