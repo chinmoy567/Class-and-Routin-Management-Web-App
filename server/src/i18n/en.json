@@ -119,6 +119,7 @@
   },
   "digest": {
     "teacher_registrations": "Teacher registrations waiting",
-    "escalated_id_claims": "Escalated ID claims waiting"
+    "escalated_id_claims": "Escalated ID claims waiting",
+    "open_flags": "Problems flagged by CR or DCR"
   }
 }

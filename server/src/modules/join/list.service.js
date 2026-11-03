@@ -137,3 +137,17 @@ export async function listForAdmin(actor, { department_id, view }) {
     .lean();
   return rows(found, { withEmail: false });
 }
+
+/** CRD-DSH-09: rejected and escalated requests of one section, read-only, without email. */
+export async function listSectionClosed(actor, sectionId) {
+  const section = await loadSectionOr404(sectionId);
+  authorise(actor, 'join.view', section);
+  const found = await Enrolment.find({
+    section_id: section.id,
+    $or: [{ status: 'rejected' }, { status: 'pending', escalated_at: { $exists: true } }],
+  })
+    .sort({ created_at: -1 })
+    .limit(LIMIT)
+    .lean();
+  return rows(found, { withEmail: false });
+}

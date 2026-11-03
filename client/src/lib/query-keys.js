@@ -46,4 +46,6 @@ export const qk = {
   semesterUpdate: () => ['me', 'semester-update'],
   dashboard: () => ['me', 'dashboard'],
   sectionRoster: (sectionId) => ['sections', sectionId, 'roster'],
+  crOverview: (sectionId) => ['cr', sectionId, 'overview'],
+  crRoutine: (sectionId) => ['cr', sectionId, 'routine'],
 };

@@ -27,6 +27,9 @@ export const FEATURE_RELEASE = Object.freeze({
   'dashboard.teacher.students_status': 'LATER',
   'dashboard.teacher.announcements': 'LATER',
   'dashboard.teacher.notifications': 'LATER',
+  // CR/DCR dashboard (spec 17)
+  'cr.dashboard': 'R1',
+  'cr.room_requests': 'R2',
   // Shared
   'dashboard.representative_message': 'R3',
 });

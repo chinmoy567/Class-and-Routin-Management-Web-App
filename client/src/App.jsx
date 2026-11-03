@@ -36,6 +36,7 @@ import { MyRoutinePage } from '@/routes/MyRoutinePage.jsx';
 import { FreeRoomsPage } from '@/routes/FreeRoomsPage.jsx';
 import { RolloverPage } from '@/routes/admin/RolloverPage.jsx';
 import { SemesterUpdatePage } from '@/routes/SemesterUpdatePage.jsx';
+import { CrDashboardPage } from '@/routes/CrDashboardPage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -75,6 +76,7 @@ export function AppRoutes() {
           <Route path="/account/password" element={<ChangePasswordPage />} />
           <Route path="/routine" element={<MyRoutinePage />} />
           <Route path="/rooms/free" element={<FreeRoomsPage />} />
+          <Route path="/cr/sections/:id" element={<CrDashboardPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
             <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />

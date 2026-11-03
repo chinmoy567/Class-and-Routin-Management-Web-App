@@ -224,7 +224,8 @@
     "TOO_LATE": "The class has already started. The cancellation cannot be undone.",
     "DATE_OUT_OF_RANGE": "Pick a date in this week or next week, inside the current semester.",
     "NOT_READY_UNCONFIRMED": "Some departments are not ready. Confirm to make the semester current anyway.",
-    "NOT_FINAL_TERM": "Only students who finished 4-II can choose this."
+    "NOT_FINAL_TERM": "Only students who finished 4-II can choose this.",
+    "FLAG_LIMIT": "You have raised the 5 flags allowed today. Try again tomorrow."
   },
   "auth": {
     "fields": {
@@ -914,5 +915,99 @@
     "rosterLoading": "Loading students…",
     "rosterError": "You cannot open this section's students.",
     "rosterEmpty": "No students have joined this section yet."
+  },
+  "cr": {
+    "roleCr": "CR",
+    "roleDcr": "DCR",
+    "roleAdmin": "an admin",
+    "sectionLine": "{semester} · You are {role}",
+    "counts": {
+      "pending": "Join requests",
+      "roster": "Students",
+      "unconfirmed": "Unconfirmed",
+      "flags": "Open flags"
+    },
+    "loading": "Loading the section…",
+    "notFound": "This section is not open to you. It may not be your section, or your role may have ended.",
+    "back": "Back to home",
+    "join": {
+      "heading": "Join requests",
+      "empty": "No pending requests.",
+      "accept": "Accept",
+      "acceptWithGroup": "Accept with group",
+      "reject": "Reject",
+      "rejectConfirm": "Confirm rejection",
+      "reasonLabel": "Reason for rejecting",
+      "reasonShort": "Give a reason of at least 5 characters.",
+      "groupFor": "Group for {name}",
+      "noGroup": "No group",
+      "readOnlyHeading": "Rejected and escalated (read only)",
+      "readOnlyEmpty": "Nothing here.",
+      "escalated": "Escalated to the admin",
+      "rejected": "Rejected"
+    },
+    "roster": {
+      "heading": "Roster",
+      "empty": "No students in this section yet.",
+      "uv": "UV ID {id}",
+      "noUv": "No UV ID yet",
+      "confirmed": "Confirmed for this semester",
+      "notConfirmed": "Not confirmed",
+      "groupFor": "Group for {name}"
+    },
+    "unconfirmed": {
+      "heading": "Unconfirmed students",
+      "hint": "Students who have not done this semester's update. One reminder a day for each student.",
+      "empty": "Nobody is waiting for the semester update.",
+      "applied": "Applied for this section",
+      "notApplied": "Not applied yet",
+      "remind": "Send reminder",
+      "remindFor": "Send reminder to {name}",
+      "notRemindable": "Waiting for join approval",
+      "sent": "Reminder sent to {name}."
+    },
+    "routine": {
+      "heading": "Routine and live status",
+      "loading": "Loading the routine…",
+      "sectionLive": "Section now",
+      "group": "Group {group}"
+    },
+    "rooms": {
+      "heading": "Free rooms"
+    },
+    "flags": {
+      "heading": "Flags to the admin",
+      "raise": "Flag a problem",
+      "empty": "No flags yet."
+    },
+    "flag": {
+      "title": "Flag a problem to the admin",
+      "category": "Category",
+      "student": "Student (optional)",
+      "noStudent": "No particular student",
+      "description": "What is wrong",
+      "descriptionHint": "10 to 1,000 characters.",
+      "submit": "Send flag",
+      "sent": "Flag sent to the admin.",
+      "raisedByMe": "raised by you",
+      "reply": "Admin reply: {reply}",
+      "categories": {
+        "wrong_section": "Student in the wrong section",
+        "wrong_group": "Student in the wrong group",
+        "missing_student": "A student is missing",
+        "routine_mistake": "Routine mistake",
+        "other": "Other"
+      },
+      "status": {
+        "open": "Open",
+        "fixed": "Fixed",
+        "rejected": "Rejected"
+      },
+      "errors": {
+        "category": "Choose a category.",
+        "short": "Describe the problem in at least 10 characters.",
+        "long": "Keep the description to 1,000 characters."
+      }
+    }
   }
 }

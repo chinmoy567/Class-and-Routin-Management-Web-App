@@ -54,7 +54,7 @@ export function SectionCard({ section, representatives, courses }) {
       )}
 
       {section.my_role && (
-        <Link to="/cr" className="mt-3 inline-block text-sm underline">
+        <Link to={`/cr/sections/${section.id}`} className="mt-3 inline-block text-sm underline">
           {t('dashboard.myRoleLink')}
         </Link>
       )}

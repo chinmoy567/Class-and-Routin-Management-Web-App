@@ -9,6 +9,8 @@ export {
   listAcceptedOfSection,
   countAcceptedBySection,
   approvedUvIds,
+  enrolmentsOfSection,
+  acceptedUserIdsOf,
 } from './enrolment.service.js';
 export { Enrolment } from './enrolment.model.js';
 export { UvClaim } from './uvclaim.model.js';

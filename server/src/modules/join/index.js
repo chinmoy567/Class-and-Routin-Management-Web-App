@@ -12,5 +12,6 @@ registerOpenJoinRequestCheck(hasOpenRequest);
 registerGroupUsage({ inUse: groupInUse });
 
 export { joinRouter } from './join.routes.js';
+export { listSectionRequests, listSectionClosed } from './list.service.js';
 export { defineJobs as defineJoinJobs, ESCALATE_JOB, escalateStaleRequests } from './join.jobs.js';
 export { registerJoinAcceptedHook, resetJoinAcceptedHooks } from './hooks.js';

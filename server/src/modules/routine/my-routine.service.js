@@ -303,6 +303,39 @@ export async function getMyRoutine(actor, { from, to }) {
     }
   }
 
+  return buildRoutinePayload({
+    semester,
+    slotsForDays,
+    fromDate,
+    toDate,
+    departmentId,
+    groupMissing,
+    isTeacher,
+  });
+}
+
+/**
+ * RTN-01, RTN-05, RTN-06: the payload the client renders for one set of slots (a student's, a
+ * teacher's, a whole section's or one group's). Every view uses these rules, so live status is the
+ * same everywhere (spec 17 CRD-DSH-06).
+ */
+export async function buildRoutinePayload({
+  semester,
+  slotsForDays,
+  fromDate,
+  toDate,
+  departmentId,
+  groupMissing = false,
+  isTeacher = false,
+}) {
+  const today = toInstitutionDate(clock.now());
+  const from = fromDate ?? today;
+  const to = toDate ?? addDays(today, 1);
+  const semesterShape = {
+    name: semester.name,
+    start_date: semester.start_date,
+    end_date: semester.end_date,
+  };
   // Build week pattern (slots by day_of_week, 0–4).
   const weekDays = [0, 1, 2, 3, 4];
   const week = weekDays.map((dow) => ({
@@ -315,22 +348,16 @@ export async function getMyRoutine(actor, { from, to }) {
   // Fetch calendar data per request (not cached).
   const slotIds = slotsForDays.map((s) => s.slot_id);
   const [events, cancellations] = await Promise.all([
-    departmentId ? getEventsForDepartment(departmentId, fromDate, toDate) : Promise.resolve([]),
+    departmentId ? getEventsForDepartment(departmentId, from, to) : Promise.resolve([]),
     slotIds.length
-      ? getCancellationsForSlots(slotIds, { from: fromDate, to: toDate })
+      ? getCancellationsForSlots(slotIds, { from: from, to: to })
       : Promise.resolve([]),
   ]);
 
-  const semesterShape = {
-    name: semester.name,
-    start_date: semester.start_date,
-    end_date: semester.end_date,
-  };
-
   const days = buildDays(
     slotsForDays,
-    fromDate,
-    toDate,
+    from,
+    to,
     events,
     cancellations,
     semesterShape,
@@ -356,6 +383,39 @@ export async function getMyRoutine(actor, { from, to }) {
     group_missing: groupMissing,
     is_teacher: isTeacher,
   };
+}
+
+/**
+ * Spec 17 (CRD-DSH-05, CRD-DSH-06): a section's routine and one routine per group, built with the
+ * same rules as a student's. The section view has every slot; a group view has the whole-section
+ * slots plus that group's own slots.
+ */
+export async function sectionRoutineFor({ semester, sectionId, departmentId, groups, from, to }) {
+  const semId = semester.id ?? String(semester._id);
+  const pattern = await sectionSlotPattern(semId, sectionId);
+  const section = await buildRoutinePayload({
+    semester,
+    slotsForDays: pattern,
+    fromDate: from,
+    toDate: to,
+    departmentId,
+  });
+  const byGroup = [];
+  for (const g of groups) {
+    const slots = pattern.filter((s) => !s.group_id || s.group_id === g.id);
+    byGroup.push({
+      id: g.id,
+      label: g.label,
+      routine: await buildRoutinePayload({
+        semester,
+        slotsForDays: slots,
+        fromDate: from,
+        toDate: to,
+        departmentId,
+      }),
+    });
+  }
+  return { section, groups: byGroup };
 }
 
 /**

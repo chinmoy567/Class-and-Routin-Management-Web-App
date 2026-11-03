@@ -60,4 +60,5 @@ export {
   clearNotEnrolled,
   graduateStudent,
   unconfirmedStudentIds,
+  studentCandidates,
 } from './students.service.js';

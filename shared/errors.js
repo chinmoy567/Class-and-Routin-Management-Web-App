@@ -40,6 +40,7 @@ export const ERROR_CODES = Object.freeze({
   DATE_OUT_OF_RANGE: { code: 'DATE_OUT_OF_RANGE', status: 400 },
   NOT_READY_UNCONFIRMED: { code: 'NOT_READY_UNCONFIRMED', status: 409 },
   NOT_FINAL_TERM: { code: 'NOT_FINAL_TERM', status: 409 },
+  FLAG_LIMIT: { code: 'FLAG_LIMIT', status: 429 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -83,3 +84,4 @@ export const TOO_LATE = 'TOO_LATE';
 export const DATE_OUT_OF_RANGE = 'DATE_OUT_OF_RANGE';
 export const NOT_READY_UNCONFIRMED = 'NOT_READY_UNCONFIRMED';
 export const NOT_FINAL_TERM = 'NOT_FINAL_TERM';
+export const FLAG_LIMIT = 'FLAG_LIMIT';

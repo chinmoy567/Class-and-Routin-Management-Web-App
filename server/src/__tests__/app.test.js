@@ -97,6 +97,7 @@ describe('errors and validation', () => {
         'FILE_INFECTED',
         'FILE_TOO_LARGE',
         'FILE_TYPE_NOT_ALLOWED',
+        'FLAG_LIMIT',
         'FORBIDDEN',
         'GROUP_IN_USE',
         'ROLE_LIMIT',

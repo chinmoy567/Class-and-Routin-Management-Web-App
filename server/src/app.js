@@ -30,7 +30,7 @@ import {
 } from './modules/organisation/index.js';
 import { roomsAdminRouter, roomsRouter } from './modules/rooms/index.js';
 import { teachersAdminRouter, teachersMeRouter } from './modules/teachers/index.js';
-import { representativesRouter } from './modules/representatives/index.js';
+import { representativesRouter, crRouter } from './modules/representatives/index.js';
 import { joinRouter } from './modules/join/index.js';
 import { routineRouter, myRoutineRouter } from './modules/routine/index.js';
 import { calendarRouter } from './modules/calendar/index.js';
@@ -135,6 +135,7 @@ export function createApp(
   app.use('/api', calendarRouter);
   app.use('/api', dashboardRouter);
   app.use('/api', rosterRouter);
+  app.use('/api', crRouter);
   // EML-11: the dev outbox exists only in development.
   if (config.NODE_ENV === 'development') app.use('/dev', devOutboxRouter);
   if (mountApi) mountApi(app);

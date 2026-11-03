@@ -207,3 +207,24 @@ export async function unconfirmedStudentIds(semesterId) {
   return rows.map((r) => String(r._id));
 }
 
+/**
+ * CRD-DSH-04: state, name, photo and "not enrolled this semester" for the given students, keyed by
+ * id. Never email or phone.
+ */
+export async function studentCandidates(userIds, semesterId) {
+  const rows = await User.find({ _id: { $in: userIds }, kind: 'student' })
+    .select('full_name photo_file_id state not_enrolled_semester_id')
+    .lean();
+  return new Map(
+    rows.map((u) => [
+      String(u._id),
+      {
+        id: String(u._id),
+        full_name: u.full_name,
+        photo_url: photoUrl(u),
+        state: u.state,
+        not_enrolled: String(u.not_enrolled_semester_id ?? '') === String(semesterId),
+      },
+    ]),
+  );
+}

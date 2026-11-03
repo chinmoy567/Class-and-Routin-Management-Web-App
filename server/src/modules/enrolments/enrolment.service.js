@@ -96,7 +96,8 @@ export async function countAcceptedBySection(sectionIds, semesterId) {
     .select('section_id')
     .lean();
   const counts = new Map();
-  for (const r of rows) counts.set(String(r.section_id), (counts.get(String(r.section_id)) ?? 0) + 1);
+  for (const r of rows)
+    counts.set(String(r.section_id), (counts.get(String(r.section_id)) ?? 0) + 1);
   return counts;
 }
 
@@ -106,4 +107,22 @@ export async function approvedUvIds(userIds) {
     .select('user_id uv_id_text')
     .lean();
   return new Map(rows.map((r) => [String(r.user_id), r.uv_id_text]));
+}
+
+/** CRD-DSH-04, CRD-DSH-09: a section's enrolments of one status in one semester, oldest first. */
+export const enrolmentsOfSection = (sectionId, semesterId, status) =>
+  Enrolment.find({ section_id: sectionId, semester_id: semesterId, status })
+    .sort({ created_at: 1 })
+    .lean();
+
+/** CRD-DSH-04: the given users who already have an accepted enrolment this semester (any section). */
+export async function acceptedUserIdsOf(userIds, semesterId) {
+  const rows = await Enrolment.find({
+    user_id: { $in: userIds },
+    semester_id: semesterId,
+    status: 'accepted',
+  })
+    .select('user_id')
+    .lean();
+  return new Set(rows.map((r) => String(r.user_id)));
 }

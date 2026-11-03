@@ -1,6 +1,6 @@
 # 17: CR/DCR dashboard
 
-R1 (room-request parts in R2) · Status: Draft · Depends on: 10, 12 · PRD: CR/DCR dashboard, Core features (F9a), Account states and access (Rosters) · Diagrams: 24-sitemap
+R1 (room-request parts in R2) · Status: Done · Depends on: 10, 12 · PRD: CR/DCR dashboard, Core features (F9a), Account states and access (Rosters) · Diagrams: 24-sitemap
 
 ## Goal
 
@@ -81,13 +81,19 @@ CR/DCR dashboard: section header ("CSE 2-II-A · Fall 2026 · you are CR"), tabs
 
 - **Decision:** the "unconfirmed students" list for a CR includes last semester's matching section plus anyone who applied here (CRD-DSH-04). The PRD says "students who have not done the semester update" without saying which students belong to a section before they are accepted.
 - **Decision:** the reminder limit is shared across the section's CR/DCRs (one per student per day in total).
+- **Decision:** pending applicants appear in the unconfirmed list, but only students in state `unconfirmed` get a reminder button. The server answers `409 CONFLICT` for a reminder to anyone else (applicants are waiting for join approval, not for the semester update).
+- **Decision:** `flag` also stores `department_id`, so the admin digest (spec 15) and spec 18 can scope flags by department.
+- **Decision:** the daily flag limit is kept in a `flag_quota` document per CR/DCR and day, changed with a conditional update inside the flag's transaction. Two flags sent at once cannot both pass the fifth.
+- **Decision:** the section routine returns the section's payload and one payload per group, built with the student's own rules (group slots plus whole-section slots), so live status is computed the same way everywhere.
+- **Decision:** the CR/DCR's join-request list is spec 10's endpoint (its email exception is kept). Rejected and escalated requests are a read-only list in the overview, with no email.
+- **Decision:** a department admin may read the dashboard and send reminders (the permissions table), but cannot raise a flag, which is the CR/DCR's action.
 
 ## Tasks
 
-- [ ] Access guard (role in effect, per request)
-- [ ] Overview service (roster, unconfirmed, flags)
-- [ ] Section/group routine + status data
-- [ ] Reminders with daily limit
-- [ ] `flag` model + raise endpoint + limit
-- [ ] Dashboard page
-- [ ] Tests
+- [x] Access guard (role in effect, per request)
+- [x] Overview service (roster, unconfirmed, flags)
+- [x] Section/group routine + status data
+- [x] Reminders with daily limit
+- [x] `flag` model + raise endpoint + limit
+- [x] Dashboard page
+- [x] Tests
