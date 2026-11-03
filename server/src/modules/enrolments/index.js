@@ -6,6 +6,9 @@ export {
   createAcceptedForRepresentative,
   escalatePendingOfSection,
   withdrawPendingOfSemester,
+  listAcceptedOfSection,
+  countAcceptedBySection,
+  approvedUvIds,
 } from './enrolment.service.js';
 export { Enrolment } from './enrolment.model.js';
 export { UvClaim } from './uvclaim.model.js';

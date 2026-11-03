@@ -286,7 +286,7 @@ describe('bouncing email banner (PRF-06)', () => {
   it('PRF-06 no banner when the email is fine', async () => {
     mockApi(base());
     renderApp('/');
-    await screen.findByRole('heading', { name: 'Welcome' });
+    await screen.findByRole('heading', { name: 'Dashboard' });
     expect(screen.queryByText('Your email address is not working')).not.toBeInTheDocument();
   });
 });

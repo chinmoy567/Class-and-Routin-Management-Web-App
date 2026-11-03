@@ -5,3 +5,4 @@ export * from './calendar.js';
 export * from './availability.js';
 export { liveStatus } from './liveStatus.js';
 export { PERIODS } from './periods.js';
+export { CURRENT_RELEASE, FEATURE_RELEASE, RELEASE_ORDER, isReleased } from './features.js';

@@ -68,7 +68,7 @@ describe('AuthGate', () => {
   it('AUTH-29 a person with next=dashboard leaves a step screen for the app', async () => {
     mockApi({ 'GET /api/auth/me': meResponse('dashboard') });
     renderApp('/waiting-approval');
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
   });
 
   it('AUTH-29 public pages stay open to everyone', async () => {

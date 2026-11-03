@@ -35,6 +35,7 @@ import { joinRouter } from './modules/join/index.js';
 import { routineRouter, myRoutineRouter } from './modules/routine/index.js';
 import { calendarRouter } from './modules/calendar/index.js';
 import { rolloverAdminRouter, rolloverMeRouter } from './modules/rollover/index.js';
+import { dashboardRouter, rosterRouter } from './modules/dashboard/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
 // queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
@@ -132,6 +133,8 @@ export function createApp(
   app.use('/api', routineRouter);
   app.use('/api', myRoutineRouter);
   app.use('/api', calendarRouter);
+  app.use('/api', dashboardRouter);
+  app.use('/api', rosterRouter);
   // EML-11: the dev outbox exists only in development.
   if (config.NODE_ENV === 'development') app.use('/dev', devOutboxRouter);
   if (mountApi) mountApi(app);

@@ -357,3 +357,29 @@ export async function getMyRoutine(actor, { from, to }) {
     is_teacher: isTeacher,
   };
 }
+
+/**
+ * DSH-09: the courses a student's group takes this semester, with the teachers of each course for
+ * that group only (a G2 student sees the G2 lab teacher, never G1's). Whole-section slots count too.
+ */
+export async function sectionCoursesFor({ semesterId, sectionId, groupId }) {
+  const pattern = await sectionSlotPattern(semesterId, sectionId);
+  const visible = pattern.filter((s) => !s.group_id || s.group_id === groupId);
+  const byCourse = new Map();
+  for (const s of visible) {
+    const entry = byCourse.get(s.course_code) ?? {
+      course_code: s.course_code,
+      course_name: s.course_name,
+      teachers: new Map(),
+    };
+    for (const t of s.teachers) entry.teachers.set(`${t.short_code}|${t.full_name}`, t);
+    byCourse.set(s.course_code, entry);
+  }
+  return [...byCourse.values()]
+    .map((e) => ({
+      course_code: e.course_code,
+      course_name: e.course_name,
+      teachers: [...e.teachers.values()],
+    }))
+    .sort((a, b) => a.course_code.localeCompare(b.course_code));
+}

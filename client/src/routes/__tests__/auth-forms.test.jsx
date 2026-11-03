@@ -122,7 +122,7 @@ describe('sign-in form', () => {
     });
     renderApp('/login');
     await fill(userEvent.setup());
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     const logins = posts(calls, '/api/auth/login');
     expect(logins).toHaveLength(2);
     expect(logins[0].body.captcha).toBeUndefined();
@@ -157,7 +157,7 @@ describe('second step and authenticator setup', () => {
     await user.clear(screen.getByLabelText('6 digit code'));
     await user.type(screen.getByLabelText('6 digit code'), '123456');
     await user.click(screen.getByRole('button', { name: 'Verify' }));
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     expect(posts(calls, '/api/auth/second-step')[0].body).toEqual({ code: '123456' });
   });
 
@@ -208,7 +208,7 @@ describe('second step and authenticator setup', () => {
     );
     await user.type(screen.getByLabelText('6 digit code'), '654321');
     await user.click(screen.getByRole('button', { name: 'Confirm and continue' }));
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     expect(posts(calls, '/api/auth/totp/confirm')[0].body).toEqual({ code: '654321' });
   });
 });

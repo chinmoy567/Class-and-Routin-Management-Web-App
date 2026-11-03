@@ -8,7 +8,7 @@ describe('AppShell', () => {
   it('FND-31 renders the navigation, a skip link and the home page', async () => {
     mockApi({ 'GET /api/auth/me': meResponse('dashboard') });
     renderApp('/');
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main');
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');

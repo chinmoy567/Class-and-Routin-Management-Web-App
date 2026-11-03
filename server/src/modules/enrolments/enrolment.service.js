@@ -81,3 +81,29 @@ export async function countEscalatedPending({ departmentIds }) {
   if (departmentIds) filter.department_id = { $in: departmentIds };
   return Enrolment.countDocuments(filter);
 }
+
+/** DSH-13: the accepted enrolments of one section in one semester (students of that section). */
+export const listAcceptedOfSection = (sectionId, semesterId) =>
+  Enrolment.find({ section_id: sectionId, semester_id: semesterId, status: 'accepted' }).lean();
+
+/** DSH-07, DSH-13: the number of accepted students per section, keyed by section id string. */
+export async function countAcceptedBySection(sectionIds, semesterId) {
+  const rows = await Enrolment.find({
+    section_id: { $in: sectionIds },
+    semester_id: semesterId,
+    status: 'accepted',
+  })
+    .select('section_id')
+    .lean();
+  const counts = new Map();
+  for (const r of rows) counts.set(String(r.section_id), (counts.get(String(r.section_id)) ?? 0) + 1);
+  return counts;
+}
+
+/** DSH-13: each user's approved UV ID (text form), keyed by user id string. */
+export async function approvedUvIds(userIds) {
+  const rows = await UvClaim.find({ user_id: { $in: userIds }, status: 'approved' })
+    .select('user_id uv_id_text')
+    .lean();
+  return new Map(rows.map((r) => [String(r.user_id), r.uv_id_text]));
+}

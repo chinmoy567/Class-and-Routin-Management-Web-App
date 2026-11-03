@@ -84,4 +84,5 @@ export {
   getGroupBrief,
   hasPublishedCleanImport,
 } from './section.brief.js';
+export { sectionCoursesFor } from './my-routine.service.js';
 export { clearAll as clearRoutineCaches } from './routine-cache.js';

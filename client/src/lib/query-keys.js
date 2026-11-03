@@ -44,4 +44,6 @@ export const qk = {
   freeNow: () => ['rooms', 'free-now'],
   rolloverReadiness: (semesterId) => ['admin', 'rollover', semesterId],
   semesterUpdate: () => ['me', 'semester-update'],
+  dashboard: () => ['me', 'dashboard'],
+  sectionRoster: (sectionId) => ['sections', sectionId, 'roster'],
 };
