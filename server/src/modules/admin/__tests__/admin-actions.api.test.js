@@ -261,3 +261,53 @@ describe('ADM-22 no admin response carries an email or a phone', () => {
     }
   });
 });
+
+describe('X6 concurrency for reactivate and graduate', () => {
+  it('X6 two reactivations at the same moment: exactly one 200 and one 409 CONFLICT', async () => {
+    const w = await world();
+    const admin = await loginAs(w.cseAdmin, app);
+    await admin
+      .post(`/api/admin/students/${w.cseStudent._id}/deactivate`)
+      .send({ reason: 'Away this term' });
+    const [a, b] = await Promise.all([
+      admin.post(`/api/admin/students/${w.cseStudent._id}/reactivate`),
+      admin.post(`/api/admin/students/${w.cseStudent._id}/reactivate`),
+    ]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    const loser = a.status === 409 ? a : b;
+    expect(loser.body.error.code).toBe('CONFLICT');
+    expect((await User.findById(w.cseStudent._id).lean()).state).toBe('active');
+  });
+
+  it('X6 two graduations at the same moment: exactly one 200 and one 409 CONFLICT', async () => {
+    const w = await world();
+    const admin = await loginAs(w.cseAdmin, app);
+    const [a, b] = await Promise.all([
+      admin.post(`/api/admin/students/${w.cseStudent._id}/graduate`),
+      admin.post(`/api/admin/students/${w.cseStudent._id}/graduate`),
+    ]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    const loser = a.status === 409 ? a : b;
+    expect(loser.body.error.code).toBe('CONFLICT');
+    expect((await User.findById(w.cseStudent._id).lean()).state).toBe('graduated');
+  });
+});
+
+describe('S24 a teacher without an admin role is refused every admin read', () => {
+  it('ADM-11 a teacher with no admin role gets 403 on each admin read, even with a department filter', async () => {
+    const w = await world();
+    const teacher = await makeUser({ kind: 'teacher', state: 'active', departmentId: w.cse._id });
+    const agent = await loginAs(teacher, app);
+    const dep = String(w.cse._id);
+    for (const url of [
+      '/api/admin/dashboard',
+      `/api/admin/dashboard?department_id=${dep}`,
+      `/api/admin/students?q=Rahim&department_id=${dep}`,
+      `/api/admin/flags?department_id=${dep}`,
+      '/api/admin/audit',
+    ]) {
+      const res = await agent.get(url);
+      expect(res.status, url).toBe(403);
+    }
+  });
+});

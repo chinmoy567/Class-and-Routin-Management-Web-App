@@ -256,3 +256,91 @@ describe('temporary password and staff landing (spec 18)', () => {
     expect(await screen.findByRole('heading', { name: 'Admin home' })).toBeInTheDocument();
   });
 });
+
+describe('ADM-21 destructive admin actions ask first (spec 18)', () => {
+  const cseDept = { id: 'd1', code: 'CSE', name: 'Computer Science', retired: false };
+  const adminsList = ok({
+    admins: [
+      {
+        user_id: 'me',
+        full_name: 'Root Admin',
+        kind: 'staff',
+        state: 'active',
+        roles: [{ id: 'r1', role: 'super_admin', department: null }],
+      },
+      {
+        user_id: 'u2',
+        full_name: 'Dr Salma',
+        kind: 'teacher',
+        state: 'active',
+        roles: [{ id: 'r2', role: 'dept_admin', department: cseDept }],
+      },
+    ],
+    super_admin_count: 2,
+    fewer_than_two_super_admins: false,
+  });
+
+  it('ADM-21 cancelling the remove-role confirmation sends nothing to the server', async () => {
+    const calls = mockApi({
+      'GET /api/auth/me': me([{ role: 'super_admin' }]),
+      'GET /api/admin/admins': adminsList,
+      'GET /api/admin/departments': ok([cseDept]),
+      'DELETE /api/admin/admins/r2': ok({}),
+    });
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderApp('/admin/admins');
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove role' }));
+    expect(confirm).toHaveBeenCalled();
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false);
+    confirm.mockRestore();
+  });
+
+  it('ADM-21 confirming the remove-role request sends the removal', async () => {
+    const calls = mockApi({
+      'GET /api/auth/me': me([{ role: 'super_admin' }]),
+      'GET /api/admin/admins': adminsList,
+      'GET /api/admin/departments': ok([cseDept]),
+      'DELETE /api/admin/admins/r2': ok({}),
+    });
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderApp('/admin/admins');
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove role' }));
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'DELETE' && c.url === '/api/admin/admins/r2')).toBe(
+        true,
+      ),
+    );
+    confirm.mockRestore();
+  });
+});
+
+describe('ADM-16 appeals from the admin home (spec 18)', () => {
+  it('ADM-16 accepting an open appeal calls the spec 10 appeal decision endpoint', async () => {
+    const calls = mockApi({
+      'GET /api/auth/me': me(cseAdmin, 'teacher'),
+      'GET /api/admin/dashboard': dashboard({
+        rejections_and_appeals: {
+          count: 1,
+          items: [
+            {
+              kind: 'appeal',
+              id: 'e9',
+              full_name: 'Mina Begum',
+              department: { code: 'CSE' },
+              section: null,
+              reason: 'Wrong section',
+              created_at: '2027-04-05T04:00:00Z',
+            },
+          ],
+        },
+      }),
+      'POST /api/admin/enrolments/e9/appeal-decision': ok({ id: 'e9' }),
+    });
+    renderApp('/admin');
+    await userEvent.click(await screen.findByRole('button', { name: 'Accept the request' }));
+    await waitFor(() => {
+      const post = calls.find((c) => c.method === 'POST' && c.url.endsWith('/e9/appeal-decision'));
+      expect(post?.body).toEqual({ decision: 'reverse' });
+    });
+  });
+});
