@@ -167,19 +167,35 @@ describe('calendar resolver — dayRule (CAL-06, CAL-07)', () => {
   });
 
   it('CAL-03 dept_event without cutoff → closed', () => {
-    const ev = mkEvent({ kind: 'dept_event', scope_department_id: 'cse_id', cutoff_min: null, label: 'Fest' });
+    const ev = mkEvent({
+      kind: 'dept_event',
+      scope_department_id: 'cse_id',
+      cutoff_min: null,
+      label: 'Fest',
+    });
     expect(dayRule('2027-06-07', 'cse_id', { events: [ev], semester }).kind).toBe('closed');
   });
 
   it('CAL-03 dept_event with cutoff → cutoff', () => {
-    const ev = mkEvent({ kind: 'dept_event', scope_department_id: 'cse_id', cutoff_min: 720, label: 'Fest' });
+    const ev = mkEvent({
+      kind: 'dept_event',
+      scope_department_id: 'cse_id',
+      cutoff_min: 720,
+      label: 'Fest',
+    });
     const result = dayRule('2027-06-07', 'cse_id', { events: [ev], semester });
     expect(result).toEqual({ kind: 'cutoff', cutoff_min: 720, label: 'Fest' });
   });
 });
 
 describe('calendar resolver — slotRuns (CAL-08)', () => {
-  const slot = { slot_id: 'slot1', day_of_week: 1, start_min: 695, end_min: 750, department_id: 'cse' };
+  const slot = {
+    slot_id: 'slot1',
+    day_of_week: 1,
+    start_min: 695,
+    end_min: 750,
+    department_id: 'cse',
+  };
 
   it('CAL-08 normal day → runs with original end_min', () => {
     const result = slotRuns(slot, '2027-06-07', { events: [], cancellations: [], semester });
@@ -201,7 +217,11 @@ describe('calendar resolver — slotRuns (CAL-08)', () => {
 
   it('CAL-10 cancelled slot → cancelled with reason', () => {
     const cancellation = { slot_id: 'slot1', date: '2027-06-07', reason: 'Teacher absent' };
-    const result = slotRuns(slot, '2027-06-07', { events: [], cancellations: [cancellation], semester });
+    const result = slotRuns(slot, '2027-06-07', {
+      events: [],
+      cancellations: [cancellation],
+      semester,
+    });
     expect(result).toEqual({ status: 'cancelled', reason: 'Teacher absent' });
   });
 

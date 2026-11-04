@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { uvIdSchema } from '@crm/shared';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { FormError } from '@/features/auth/components/FormError.jsx';
@@ -34,6 +37,38 @@ function RejectionNotice({ request }) {
   );
 }
 
+/** JR-01: the name and UV ID are asked only while the student still needs them. */
+function joinSchema({ askUvId }) {
+  return z.object({
+    full_name: z.string().optional(),
+    uv_id: askUvId ? uvIdSchema : z.string().optional(),
+    department_id: z.string(),
+    section_id: z.string().min(1),
+    group_id: z.string().optional(),
+  });
+}
+
+/**
+ * The effective choices: what the student picked, or else the spec 14 pre-fill. `undefined`
+ * means "not touched yet", so an empty string (the "choose" option) is kept as a real choice.
+ */
+function choicesFrom(values, { prefill, departments, accountName }) {
+  const departmentId = values.department_id ?? prefill?.department_id ?? '';
+  const department = departments.find((d) => d.id === departmentId);
+  const prefillLabel = prefill ? `${prefill.level}-${prefill.term}-${prefill.letter}` : null;
+  const sectionId =
+    values.section_id ?? department?.sections.find((s) => s.label === prefillLabel)?.id ?? '';
+  const section = department?.sections.find((s) => s.id === sectionId);
+  return {
+    departmentId,
+    department,
+    sectionId,
+    section,
+    fullName: values.full_name ?? accountName ?? '',
+    groupId: values.group_id ?? '',
+  };
+}
+
 /** JR-01, JR-03, JR-05: the join form. */
 export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   const options = useJoinOptions();
@@ -41,12 +76,34 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   const me = useMe();
   const send = useSendRequest();
   const signOut = useSignOut();
-  // null means the student has not touched the choice yet, so the pre-fill (spec 14) applies.
-  const [departmentChoice, setDepartmentChoice] = useState(null);
-  const [sectionChoice, setSectionChoice] = useState(null);
-  const [groupId, setGroupId] = useState('');
-  const [fullName, setFullName] = useState(null);
-  const [uvId, setUvId] = useState('');
+
+  const departments = options.data?.departments ?? [];
+  const last = mine.data;
+  const needsUvId = last?.uv_id?.status !== 'approved';
+  const firstRequest = !last;
+  const accountName = me.data?.user?.full_name;
+  const context = { prefill, departments, accountName };
+
+  const form = useForm({
+    resolver: (values, ctx, opts) => {
+      const c = choicesFrom(values, context);
+      return zodResolver(joinSchema({ askUvId: needsUvId }))(
+        { ...values, department_id: c.departmentId, section_id: c.sectionId },
+        ctx,
+        opts,
+      );
+    },
+    defaultValues: {
+      full_name: undefined,
+      uv_id: '',
+      department_id: undefined,
+      section_id: undefined,
+      group_id: undefined,
+    },
+  });
+  const { control, handleSubmit, setValue, watch, formState } = form;
+  const errors = formState.errors;
+  const c = choicesFrom(watch(), context);
   const fields = send.error?.fields ?? {};
 
   if (options.isPending || mine.isPending || options.isError) {
@@ -58,41 +115,38 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
     );
   }
 
-  const departments = options.data.departments;
-  const departmentId = departmentChoice ?? prefill?.department_id ?? '';
-  const department = departments.find((d) => d.id === departmentId);
-  const prefillLabel = prefill ? `${prefill.level}-${prefill.term}-${prefill.letter}` : null;
-  const sectionId =
-    sectionChoice ?? department?.sections.find((s) => s.label === prefillLabel)?.id ?? '';
-  const section = department?.sections.find((s) => s.id === sectionId);
-  const last = mine.data;
-  // JR-01: the name and UV ID are asked until a claim has been approved.
-  const needsUvId = last?.uv_id?.status !== 'approved';
-  const firstRequest = !last;
-  const name = fullName ?? me.data?.user?.full_name ?? '';
-
-  function submit(event) {
-    event.preventDefault();
+  const onValid = (values) => {
     send.mutate({
-      section_id: sectionId,
-      ...(groupId && { group_id: groupId }),
-      ...(needsUvId && uvId && { uv_id: uvId }),
-      ...(firstRequest && name && { full_name: name }),
+      section_id: c.sectionId,
+      ...(c.groupId && { group_id: c.groupId }),
+      ...(needsUvId && values.uv_id && { uv_id: values.uv_id }),
+      ...(firstRequest && c.fullName && { full_name: c.fullName }),
     });
-  }
+  };
 
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-semibold">{title ?? t('join.title')}</h1>
       {last?.status === 'rejected' && <RejectionNotice request={last} />}
       <p>{intro ?? t('join.intro')}</p>
-      <form onSubmit={submit} className="space-y-3" noValidate>
+      <form onSubmit={handleSubmit(onValid)} className="space-y-3" noValidate>
         {firstRequest && (
           <div className="space-y-1.5">
             <label htmlFor="join-name" className="block text-sm font-medium">
               {t('join.fullName')}
             </label>
-            <Input id="join-name" value={name} onChange={(e) => setFullName(e.target.value)} />
+            <Controller
+              name="full_name"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="join-name"
+                  value={c.fullName}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
             {fields.full_name && (
               <p className="text-sm text-destructive">{t('join.fieldError.full_name')}</p>
             )}
@@ -103,18 +157,25 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
             <label htmlFor="join-uv" className="block text-sm font-medium">
               {t('join.uvId')}
             </label>
-            <Input
-              id="join-uv"
-              inputMode="numeric"
-              value={uvId}
-              onChange={(e) => setUvId(e.target.value)}
-              aria-describedby="join-uv-hint"
-              aria-invalid={fields.uv_id ? 'true' : undefined}
+            <Controller
+              name="uv_id"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="join-uv"
+                  inputMode="numeric"
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  aria-describedby="join-uv-hint"
+                  aria-invalid={errors.uv_id || fields.uv_id ? 'true' : undefined}
+                />
+              )}
             />
             <p id="join-uv-hint" className="text-sm text-muted-foreground">
               {t('join.uvIdHint')}
             </p>
-            {fields.uv_id && (
+            {(errors.uv_id || fields.uv_id) && (
               <p className="text-sm text-destructive">{t('join.fieldError.uv_id')}</p>
             )}
           </div>
@@ -123,74 +184,95 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
           <label htmlFor="join-dept" className="block text-sm font-medium">
             {t('join.department')}
           </label>
-          <select
-            id="join-dept"
-            className={selectClass}
-            value={departmentId}
-            onChange={(e) => {
-              setDepartmentChoice(e.target.value);
-              setSectionChoice('');
-              setGroupId('');
-            }}
-          >
-            <option value="">{t('join.choose')}</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.code} {d.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="department_id"
+            control={control}
+            render={({ field }) => (
+              <select
+                id="join-dept"
+                className={selectClass}
+                value={c.departmentId}
+                onBlur={field.onBlur}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                  setValue('section_id', '');
+                  setValue('group_id', '');
+                }}
+              >
+                <option value="">{t('join.choose')}</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.code} {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
         </div>
-        {department?.setting_up && (
+        {c.department?.setting_up && (
           <p role="status" className="rounded-md border p-3 text-sm">
             {t('join.settingUp')}
           </p>
         )}
-        {department && !department.setting_up && (
+        {c.department && !c.department.setting_up && (
           <div className="space-y-1.5">
             <label htmlFor="join-section" className="block text-sm font-medium">
               {t('join.section')}
             </label>
-            <select
-              id="join-section"
-              className={selectClass}
-              value={sectionId}
-              onChange={(e) => {
-                setSectionChoice(e.target.value);
-                setGroupId('');
-              }}
-            >
-              <option value="">{t('join.choose')}</option>
-              {department.sections.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="section_id"
+              control={control}
+              render={({ field }) => (
+                <select
+                  id="join-section"
+                  className={selectClass}
+                  value={c.sectionId}
+                  onBlur={field.onBlur}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    setValue('group_id', '');
+                  }}
+                >
+                  <option value="">{t('join.choose')}</option>
+                  {c.department.sections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
           </div>
         )}
-        {section?.groups.length > 0 && (
+        {c.section?.groups.length > 0 && (
           <div className="space-y-1.5">
             <label htmlFor="join-group" className="block text-sm font-medium">
               {t('join.group')}
             </label>
-            <select
-              id="join-group"
-              className={selectClass}
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-            >
-              <option value="">{t('join.noGroup')}</option>
-              {section.groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="group_id"
+              control={control}
+              render={({ field }) => (
+                <select
+                  id="join-group"
+                  className={selectClass}
+                  value={c.groupId}
+                  onBlur={field.onBlur}
+                  onChange={(e) => field.onChange(e.target.value)}
+                >
+                  <option value="">{t('join.noGroup')}</option>
+                  {c.section.groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
           </div>
         )}
         <FormError error={send.error} />
-        <Button type="submit" className="w-full" disabled={!sectionId || send.isPending}>
+        <Button type="submit" className="w-full" disabled={!c.sectionId || send.isPending}>
           {t('join.submit')}
         </Button>
       </form>

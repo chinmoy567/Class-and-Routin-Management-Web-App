@@ -18,7 +18,4 @@ export {
   registerBookingAffectedProvider,
   resetBookingAffectedProviders,
 } from './calendar.service.js';
-export {
-  registerCalendarAudienceProvider,
-  resetCalendarAudienceProviders,
-} from './hooks.js';
+export { registerCalendarAudienceProvider, resetCalendarAudienceProviders } from './hooks.js';

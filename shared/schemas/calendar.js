@@ -7,7 +7,11 @@ export const EVENT_KINDS = ['holiday', 'prep_leave', 'exam', 'early_closing', 'd
 const cutoffMin = z.number().int().min(0).max(1439);
 
 // CAL-01: label 1–80 chars.
-const label = z.string().min(1).max(80).transform((s) => s.trim());
+const label = z
+  .string()
+  .min(1)
+  .max(80)
+  .transform((s) => s.trim());
 
 const eventFields = z.object({
   scope: z.union([z.literal('university'), objectIdString]),
@@ -20,7 +24,11 @@ const eventFields = z.object({
 
 function validateEventFields(v, ctx) {
   if (v.from_date && v.to_date && v.from_date > v.to_date) {
-    ctx.addIssue({ code: 'custom', path: ['to_date'], message: 'to_date must be on or after from_date' });
+    ctx.addIssue({
+      code: 'custom',
+      path: ['to_date'],
+      message: 'to_date must be on or after from_date',
+    });
   }
   if (v.kind === 'early_closing' && !v.cutoff_min && v.cutoff_min !== 0) {
     ctx.addIssue({ code: 'custom', path: ['cutoff_min'], message: 'Required for early_closing' });
@@ -29,7 +37,11 @@ function validateEventFields(v, ctx) {
     ctx.addIssue({ code: 'custom', path: ['cutoff_min'], message: 'Not allowed for this kind' });
   }
   if (v.kind === 'dept_event' && v.scope === 'university') {
-    ctx.addIssue({ code: 'custom', path: ['scope'], message: 'dept_event must have a department scope' });
+    ctx.addIssue({
+      code: 'custom',
+      path: ['scope'],
+      message: 'dept_event must have a department scope',
+    });
   }
 }
 
@@ -61,6 +73,6 @@ export const cancellationBody = z.object({
 });
 
 export const cancellationParams = z.object({
-  id: objectIdString,   // slot id
+  id: objectIdString, // slot id
   date: dateString,
 });

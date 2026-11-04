@@ -30,7 +30,10 @@ const summary = (imp, uploaderNames) => ({
   semester_id: String(imp.semester_id),
   department_id: String(imp.department_id),
   status: imp.status,
-  uploaded_by: { id: String(imp.uploaded_by), full_name: uploaderNames?.get(String(imp.uploaded_by)) ?? '' },
+  uploaded_by: {
+    id: String(imp.uploaded_by),
+    full_name: uploaderNames?.get(String(imp.uploaded_by)) ?? '',
+  },
   uploaded_at: imp.uploaded_at,
   published_at: imp.published_at ?? null,
   counts: imp.counts ?? {},
@@ -78,7 +81,11 @@ async function analyse({ read, semesterId, departmentId }) {
   for (const r of rows) {
     for (const t of r.teachers) {
       const dept = activeDepartments.get(t.department_code);
-      if (dept) pairs.set(`${dept.id}:${t.short_code}`, { department_id: dept.id, short_code: t.short_code });
+      if (dept)
+        pairs.set(`${dept.id}:${t.short_code}`, {
+          department_id: dept.id,
+          short_code: t.short_code,
+        });
     }
   }
   for (const e of entries) pairs.set(`${e.department_id}:${e.short_code}`, e);
@@ -142,7 +149,8 @@ export async function uploadImport(actor, semesterId, departmentId, buffer) {
   } catch {
     throw new AppError(503, 'SCAN_UNAVAILABLE', 'The file could not be scanned. Try again later.');
   }
-  if (scan.infected) throw new AppError(422, 'FILE_INFECTED', 'The file was rejected by the virus scan.');
+  if (scan.infected)
+    throw new AppError(422, 'FILE_INFECTED', 'The file was rejected by the virus scan.');
 
   const file_id = await putImportFile(buffer, {
     department_id: deptId,

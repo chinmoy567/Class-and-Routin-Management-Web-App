@@ -43,5 +43,4 @@ const classCancellationSchema = new Schema(
 classCancellationSchema.index({ slot_id: 1, date: 1 }, { unique: true });
 
 export const ClassCancellation =
-  mongoose.models.ClassCancellation ??
-  mongoose.model('ClassCancellation', classCancellationSchema);
+  mongoose.models.ClassCancellation ?? mongoose.model('ClassCancellation', classCancellationSchema);

@@ -42,7 +42,11 @@ function cellText(cell) {
     return `${v.getUTCHours()}:${pad(v.getUTCMinutes())}`;
   }
   if (typeof v === 'object') {
-    if (Array.isArray(v.richText)) return v.richText.map((p) => p.text).join('').trim();
+    if (Array.isArray(v.richText))
+      return v.richText
+        .map((p) => p.text)
+        .join('')
+        .trim();
     if ('result' in v) return String(v.result ?? '').trim();
     if ('text' in v) return String(v.text ?? '').trim();
     return '';
@@ -55,7 +59,9 @@ const sheetNamed = (wb, name) =>
 
 function readSheet(ws, columns, keys) {
   const header = ws.getRow(1);
-  const bad = columns.some((c, i) => cellText(header.getCell(i + 1)).toLowerCase() !== c.toLowerCase());
+  const bad = columns.some(
+    (c, i) => cellText(header.getCell(i + 1)).toLowerCase() !== c.toLowerCase(),
+  );
   if (bad) return null;
   const out = [];
   const last = Math.min(ws.rowCount, MAX_ROWS + 1);

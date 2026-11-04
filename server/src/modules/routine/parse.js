@@ -153,7 +153,9 @@ export function parseRoutineRows(raw, { activeDepartments }) {
       issues.push(err('END_BEFORE_START', row, 'The end time must be after the start time.'));
     }
 
-    const t = c.teachers ? parseTeachers(c.teachers, row) : { teachers: [], tba: false, issues: [] };
+    const t = c.teachers
+      ? parseTeachers(c.teachers, row)
+      : { teachers: [], tba: false, issues: [] };
     issues.push(...t.issues);
 
     staged.push({
@@ -184,7 +186,11 @@ export function parseRoutineRows(raw, { activeDepartments }) {
     if (r.letter || !r.department_id || !r.level || !r.term) continue;
     if (letters.has(batchKey(r))) {
       issues.push(
-        err('SECTION_REQUIRED', r.row, 'Write the section letter: this batch has several sections.'),
+        err(
+          'SECTION_REQUIRED',
+          r.row,
+          'Write the section letter: this batch has several sections.',
+        ),
       );
     } else {
       r.letter = 'A';

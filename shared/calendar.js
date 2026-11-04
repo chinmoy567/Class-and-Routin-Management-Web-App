@@ -19,7 +19,7 @@ const weekday = (date) => new Date(`${date}T00:00:00Z`).getUTCDay();
  *
  * @param {string} date YYYY-MM-DD (institution time)
  * @param {string|null} departmentId the section's department (null = university-wide student)
- * @param {{ events: CalEvent[], semester: Semester }} 
+ * @param {{ events: CalEvent[], semester: Semester }}
  * @returns {{ kind: string, label?: string, cutoff_min?: number }}
  */
 export function dayRule(date, departmentId, { events, semester }) {

@@ -416,4 +416,27 @@ describe('free-room view (spec 13)', () => {
     // never one query per room: 150 rooms cost the same as 5.
     expect(calls.length).toBeLessThanOrEqual(25);
   });
+
+  it('FRV-10 a view of 150 rooms answers in under 500 ms (slowest of 5 runs after a warm-up)', async () => {
+    const semester = await makeSemester();
+    const cse = await createDepartment({ code: 'CSE' });
+    await publish(semester, cse);
+    const rooms = [];
+    for (let i = 0; i < 150; i += 1) rooms.push(await makeRoom(cse, { code: `R${i}` }));
+    for (const room of rooms.slice(0, 40)) {
+      await makeSlot({ semester, dept: cse, room, start: at(10), end: at(11) });
+    }
+    const agent = await asStudent();
+    await query(agent, base); // warm-up: connection and first-query cost are not the target
+
+    const times = [];
+    for (let i = 0; i < 5; i += 1) {
+      const started = performance.now();
+      const res = await query(agent, base);
+      times.push(performance.now() - started);
+      expect(res.body.data.rooms).toHaveLength(150);
+    }
+    // The spec asks for p95 under 500 ms. With five runs the slowest run is the p95 bound.
+    expect(Math.max(...times)).toBeLessThan(500);
+  });
 });

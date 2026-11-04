@@ -389,4 +389,3 @@ export async function roomCodes(ids) {
 /** ROL-01(d): how many rooms the department owns that are not retired. */
 export const countActiveRoomsOf = (departmentId) =>
   Room.countDocuments({ owner_department_id: departmentId, retired: false });
-

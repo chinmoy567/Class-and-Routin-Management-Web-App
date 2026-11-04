@@ -807,4 +807,19 @@ describe('the waiting screen (JR-21) and account states', () => {
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('STATE_NOT_ALLOWED');
   });
+
+  it('[PRD] a claim_pending student is refused (403) on My routine and the free-room view', async () => {
+    const w = await world();
+    const a = await applicant(w);
+    const routine = await a.agent.get('/api/me/routine');
+    expect(routine.status).toBe(403);
+    expect(routine.body.error.code).toBe('STATE_NOT_ALLOWED');
+    const rooms = await a.agent.get('/api/rooms/availability').query({
+      date: '2026-07-05',
+      from: '660',
+      to: '720',
+    });
+    expect(rooms.status).toBe(403);
+    expect(rooms.body.error.code).toBe('STATE_NOT_ALLOWED');
+  });
 });

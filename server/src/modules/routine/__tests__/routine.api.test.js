@@ -69,10 +69,25 @@ async function world({ status = 'draft' } = {}) {
     })
   ).body.data;
   if (status !== 'draft') await Semester.updateOne({ _id: sem.id }, { $set: { status } });
-  const room = (await sup.post('/api/admin/rooms').send({ code: '311', type: 'classroom', department_id: cse.id })).body.data;
+  const room = (
+    await sup
+      .post('/api/admin/rooms')
+      .send({ code: '311', type: 'classroom', department_id: cse.id })
+  ).body.data;
   await sup.post(`/api/admin/rooms/${room.id}/aliases`).send({ alias: 'RN: 311' });
-  await sup.post('/api/admin/rooms').send({ code: '312', type: 'classroom', department_id: cse.id });
-  return { cse, law, eee, sup, sem, room, cseAdmin: await asDeptAdmin(cse), lawAdmin: await asDeptAdmin(law) };
+  await sup
+    .post('/api/admin/rooms')
+    .send({ code: '312', type: 'classroom', department_id: cse.id });
+  return {
+    cse,
+    law,
+    eee,
+    sup,
+    sem,
+    room,
+    cseAdmin: await asDeptAdmin(cse),
+    lawAdmin: await asDeptAdmin(law),
+  };
 }
 
 const TEACHERS = [['CSE', 'AB', 'Ab Bar']];
@@ -201,7 +216,8 @@ describe('upload (IMP-02, IMP-03)', () => {
   it('IMP-03/32 a second upload replaces the open import, and the list returns the open one', async () => {
     const w = await world();
     const first = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')])).body.data;
-    const second = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { day: 'Monday' })])).body.data;
+    const second = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { day: 'Monday' })])).body
+      .data;
     const list = (
       await w.cseAdmin.get(`/api/semesters/${w.sem.id}/imports?department_id=${w.cse.id}`)
     ).body.data;
@@ -217,7 +233,8 @@ describe('upload (IMP-02, IMP-03)', () => {
 describe('checks (IMP-04 … IMP-22)', () => {
   it('IMP-08 an unknown teacher is an error and publishing is IMPORT_HAS_ERRORS', async () => {
     const w = await world();
-    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'CSE:AA' })])).body.data;
+    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'CSE:AA' })])).body
+      .data;
     const found = await issuesOf(w.cseAdmin, up.id, 'UNKNOWN_TEACHER');
     expect(found).toHaveLength(1);
     expect(found[0]).toMatchObject({ severity: 'error', row: 2 });
@@ -229,21 +246,29 @@ describe('checks (IMP-04 … IMP-22)', () => {
   it('IMP-08 a teacher already in the saved directory is not unknown', async () => {
     const w = await world();
     await Teacher.create({ department_id: w.cse._id, short_code: 'ZZ', full_name: 'Zed Zee' });
-    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'CSE:ZZ' })], [])).body.data;
+    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'CSE:ZZ' })], []))
+      .body.data;
     expect(up.counts.errors).toBe(0);
   });
 
   it('IMP-09 the same short code twice with different names is an error', async () => {
     const w = await world();
     const up = (
-      await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')], [...TEACHERS, ['CSE', 'AB', 'Someone Else']])
+      await uploadRows(
+        w.cseAdmin,
+        w,
+        w.cse,
+        [row('CSE')],
+        [...TEACHERS, ['CSE', 'AB', 'Someone Else']],
+      )
     ).body.data;
     expect(await issuesOf(w.cseAdmin, up.id, 'DUPLICATE_TEACHER')).toHaveLength(1);
   });
 
   it('IMP-10 a room alias imports into the room, and an unknown room blocks publishing', async () => {
     const w = await world();
-    const ok = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { room: 'RN: 311' })])).body.data;
+    const ok = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { room: 'RN: 311' })])).body
+      .data;
     const view = (await preview(w.cseAdmin, ok.id)).body.data;
     expect(view.sections[0].rows[0].room_code).toBe('311');
     expect(ok.counts.errors).toBe(0);
@@ -264,8 +289,22 @@ describe('checks (IMP-04 … IMP-22)', () => {
     const up = (
       await uploadRows(w.cseAdmin, w, w.cse, [
         row('CSE', { code: 'CSE-301', group: 'G1', start: '9:00', end: '10:00', room: '311' }),
-        row('CSE', { code: 'CSE-301', group: 'G1', start: '11:00', end: '12:00', room: '312', teachers: 'TBA' }),
-        row('CSE', { code: 'CSE-302', group: 'G2', start: '7:00', end: '8:00', room: '312', day: 'Monday' }),
+        row('CSE', {
+          code: 'CSE-301',
+          group: 'G1',
+          start: '11:00',
+          end: '12:00',
+          room: '312',
+          teachers: 'TBA',
+        }),
+        row('CSE', {
+          code: 'CSE-302',
+          group: 'G2',
+          start: '7:00',
+          end: '8:00',
+          room: '312',
+          day: 'Monday',
+        }),
       ])
     ).body.data;
     expect(await issuesOf(w.cseAdmin, up.id, 'DUPLICATE_COURSE_DAY')).toHaveLength(1);
@@ -276,7 +315,10 @@ describe('checks (IMP-04 … IMP-22)', () => {
   it('IMP-04 level 5 and day Fri are errors', async () => {
     const w = await world();
     const up = (
-      await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { level: '5' }), row('CSE', { day: 'Fri' })])
+      await uploadRows(w.cseAdmin, w, w.cse, [
+        row('CSE', { level: '5' }),
+        row('CSE', { day: 'Fri' }),
+      ])
     ).body.data;
     expect(up.counts.errors).toBe(2);
   });
@@ -333,7 +375,10 @@ describe('combined class (IMP-21)', () => {
   it('IMP-21 two sections with the same teacher, room and time warn; confirming shares a combined_key', async () => {
     const w = await world();
     const up = (
-      await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { section: 'A' }), row('CSE', { section: 'B' })])
+      await uploadRows(w.cseAdmin, w, w.cse, [
+        row('CSE', { section: 'A' }),
+        row('CSE', { section: 'B' }),
+      ])
     ).body.data;
     expect(up.counts.warnings).toBeGreaterThanOrEqual(2);
     const warnings = await issuesOf(w.cseAdmin, up.id, 'ROOM_OVERLAP');
@@ -341,7 +386,10 @@ describe('combined class (IMP-21)', () => {
 
     const res = await w.cseAdmin.post(`/api/imports/${up.id}/issues/${warnings[0].id}/confirm`);
     expect(res.status).toBe(200);
-    expect((await w.cseAdmin.post(`/api/imports/${up.id}/issues/${warnings[0].id}/confirm`)).body.error.code).toBe('ALREADY_DECIDED');
+    expect(
+      (await w.cseAdmin.post(`/api/imports/${up.id}/issues/${warnings[0].id}/confirm`)).body.error
+        .code,
+    ).toBe('ALREADY_DECIDED');
     // the teacher overlap for the same two rows is confirmed with it
     const view = (await preview(w.cseAdmin, up.id)).body.data;
     expect(view.issues.filter((i) => i.offer_combined).every((i) => i.confirmed)).toBe(true);
@@ -355,7 +403,8 @@ describe('combined class (IMP-21)', () => {
 
   it('IMP-21 an issue that is not a combined-class offer cannot be confirmed', async () => {
     const w = await world();
-    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'TBA' })])).body.data;
+    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'TBA' })])).body
+      .data;
     const tba = (await issuesOf(w.cseAdmin, up.id, 'TEACHER_TBA'))[0];
     const res = await w.cseAdmin.post(`/api/imports/${up.id}/issues/${tba.id}/confirm`);
     expect(res.status).toBe(400);
@@ -387,10 +436,16 @@ describe('publish (IMP-25 … IMP-30)', () => {
   it('IMP-26 publishing creates sections, groups, teachers and slots, and audits the counts', async () => {
     const w = await world();
     const up = (
-      await uploadRows(w.cseAdmin, w, w.cse, [
-        row('CSE', { group: 'G1', teachers: 'CSE:AB+CSE:CD' }),
-        row('CSE', { day: 'Monday', teachers: 'TBA', room: '312' }),
-      ], [...TEACHERS, ['CSE', 'CD', 'Cd Dee']])
+      await uploadRows(
+        w.cseAdmin,
+        w,
+        w.cse,
+        [
+          row('CSE', { group: 'G1', teachers: 'CSE:AB+CSE:CD' }),
+          row('CSE', { day: 'Monday', teachers: 'TBA', room: '312' }),
+        ],
+        [...TEACHERS, ['CSE', 'CD', 'Cd Dee']],
+      )
     ).body.data;
     const res = await publish(w.cseAdmin, up.id);
     expect(res.status).toBe(200);
@@ -412,7 +467,8 @@ describe('publish (IMP-25 … IMP-30)', () => {
 
   it('IMP-25 warnings must be reviewed before publishing', async () => {
     const w = await world();
-    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'TBA' })])).body.data;
+    const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE', { teachers: 'TBA' })])).body
+      .data;
     const res = await publish(w.cseAdmin, up.id, {});
     expect(res.status).toBe(400);
     expect(res.body.error.fields.warnings_reviewed).toBeTruthy();
@@ -422,7 +478,9 @@ describe('publish (IMP-25 … IMP-30)', () => {
   it('IMP-26 a CSE file with LAW 1-II-A rows creates that section, shown as created by CSE (IMP-27)', async () => {
     const w = await world();
     const up = (
-      await uploadRows(w.cseAdmin, w, w.cse, [row('LAW', { level: '1', term: 'II', section: 'A', teachers: 'CSE:AB' })])
+      await uploadRows(w.cseAdmin, w, w.cse, [
+        row('LAW', { level: '1', term: 'II', section: 'A', teachers: 'CSE:AB' }),
+      ])
     ).body.data;
     expect((await publish(w.cseAdmin, up.id)).status).toBe(200);
     const section = await Section.findOne().lean();
@@ -444,7 +502,16 @@ describe('publish (IMP-25 … IMP-30)', () => {
         w.lawAdmin,
         w,
         w.law,
-        [row('LAW', { level: '1', term: 'II', teachers: 'LAW:XY', code: 'LAW-101', day: 'Monday', room: '312' })],
+        [
+          row('LAW', {
+            level: '1',
+            term: 'II',
+            teachers: 'LAW:XY',
+            code: 'LAW-101',
+            day: 'Monday',
+            room: '312',
+          }),
+        ],
         [['LAW', 'XY', 'Xy Why']],
       )
     ).body.data;
@@ -454,10 +521,18 @@ describe('publish (IMP-25 … IMP-30)', () => {
     const slots = await RoutineSlot.find().lean();
     expect(slots).toHaveLength(2);
     expect(new Set(slots.map((s) => String(s.section_id))).size).toBe(1); // one LAW 1-II section
-    expect(slots.find((s) => s.course_code === 'CSE-101').owner_department_id.equals(w.cse._id)).toBe(true);
+    expect(
+      slots.find((s) => s.course_code === 'CSE-101').owner_department_id.equals(w.cse._id),
+    ).toBe(true);
     // a LAW re-import of an empty-ish file removes only LAW's own slot
     const again = (
-      await uploadRows(w.lawAdmin, w, w.law, [row('LAW', { level: '2', teachers: 'LAW:XY' })], [['LAW', 'XY', 'Xy Why']])
+      await uploadRows(
+        w.lawAdmin,
+        w,
+        w.law,
+        [row('LAW', { level: '2', teachers: 'LAW:XY' })],
+        [['LAW', 'XY', 'Xy Why']],
+      )
     ).body.data;
     await publish(w.lawAdmin, again.id);
     const left = await RoutineSlot.find({ course_code: 'CSE-101' }).lean();
@@ -496,9 +571,15 @@ describe('publish (IMP-25 … IMP-30)', () => {
     const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')])).body.data;
     await publish(w.cseAdmin, up.id);
     expect((await publish(w.cseAdmin, up.id)).body.error.code).toBe('ALREADY_DECIDED');
-    expect((await w.cseAdmin.put(`/api/imports/${up.id}/keep-choices`).send({})).body.error.code).toBe('ALREADY_DECIDED');
-    expect((await w.cseAdmin.post(`/api/imports/${up.id}/issues/0/confirm`)).body.error.code).toBe('ALREADY_DECIDED');
-    const list = (await w.cseAdmin.get(`/api/semesters/${w.sem.id}/imports?department_id=${w.cse.id}`)).body.data;
+    expect(
+      (await w.cseAdmin.put(`/api/imports/${up.id}/keep-choices`).send({})).body.error.code,
+    ).toBe('ALREADY_DECIDED');
+    expect((await w.cseAdmin.post(`/api/imports/${up.id}/issues/0/confirm`)).body.error.code).toBe(
+      'ALREADY_DECIDED',
+    );
+    const list = (
+      await w.cseAdmin.get(`/api/semesters/${w.sem.id}/imports?department_id=${w.cse.id}`)
+    ).body.data;
     expect(list.open_import_id).toBeNull();
     expect(list.imports[0].status).toBe('published');
   });
@@ -515,7 +596,10 @@ describe('re-import diff (IMP-24)', () => {
     ).body.data;
     await publish(w.cseAdmin, first.id);
     const hand = await RoutineSlot.findOne({ course_code: 'CSE-302' });
-    await RoutineSlot.updateOne({ _id: hand._id }, { $set: { edited_by_hand: true, source: 'manual' } });
+    await RoutineSlot.updateOne(
+      { _id: hand._id },
+      { $set: { edited_by_hand: true, source: 'manual' } },
+    );
     return { w, hand };
   }
 
@@ -525,15 +609,24 @@ describe('re-import diff (IMP-24)', () => {
     const view = (await preview(w.cseAdmin, again.id)).body.data;
     expect(view.diff.changed).toHaveLength(1); // CSE-301 moved room
     expect(view.diff.removed).toHaveLength(1);
-    expect(view.diff.removed[0]).toMatchObject({ id: String(hand._id), edited_by_hand: true, choice: 'keep' });
-    expect((await publish(w.cseAdmin, again.id)).body.data).toMatchObject({ changed: 1, removed: 0 });
+    expect(view.diff.removed[0]).toMatchObject({
+      id: String(hand._id),
+      edited_by_hand: true,
+      choice: 'keep',
+    });
+    expect((await publish(w.cseAdmin, again.id)).body.data).toMatchObject({
+      changed: 1,
+      removed: 0,
+    });
     expect(await RoutineSlot.findById(hand._id)).toBeTruthy();
   });
 
   it('IMP-24 choosing replace deletes the hand-edited slot', async () => {
     const { w, hand } = await publishedWithHandEdit();
     const again = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')])).body.data;
-    const put = await w.cseAdmin.put(`/api/imports/${again.id}/keep-choices`).send({ [String(hand._id)]: 'replace' });
+    const put = await w.cseAdmin
+      .put(`/api/imports/${again.id}/keep-choices`)
+      .send({ [String(hand._id)]: 'replace' });
     expect(put.status).toBe(200);
     expect((await publish(w.cseAdmin, again.id)).body.data).toMatchObject({ removed: 1, added: 0 });
     expect(await RoutineSlot.findById(hand._id)).toBeNull();
@@ -543,9 +636,13 @@ describe('re-import diff (IMP-24)', () => {
     const { w } = await publishedWithHandEdit();
     const again = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')])).body.data;
     const plain = await RoutineSlot.findOne({ course_code: 'CSE-301' });
-    const res = await w.cseAdmin.put(`/api/imports/${again.id}/keep-choices`).send({ [String(plain._id)]: 'keep' });
+    const res = await w.cseAdmin
+      .put(`/api/imports/${again.id}/keep-choices`)
+      .send({ [String(plain._id)]: 'keep' });
     expect(res.status).toBe(400);
-    expect((await w.cseAdmin.put(`/api/imports/${again.id}/keep-choices`).send({ x: 'keep' })).status).toBe(400);
+    expect(
+      (await w.cseAdmin.put(`/api/imports/${again.id}/keep-choices`).send({ x: 'keep' })).status,
+    ).toBe(400);
   });
 });
 
@@ -584,7 +681,9 @@ describe('access and scope', () => {
     const up = (await uploadRows(w.cseAdmin, w, w.cse, [row('CSE')])).body.data;
     const eee = await asDeptAdmin(w.eee);
     expect((await preview(eee, up.id)).status).toBe(404);
-    expect((await eee.get(`/api/semesters/${w.sem.id}/imports?department_id=${w.cse.id}`)).status).toBe(404);
+    expect(
+      (await eee.get(`/api/semesters/${w.sem.id}/imports?department_id=${w.cse.id}`)).status,
+    ).toBe(404);
     expect((await publish(eee, up.id)).status).toBe(404);
     expect((await eee.post(`/api/imports/${up.id}/issues/0/confirm`)).status).toBe(404);
     expect((await eee.put(`/api/imports/${up.id}/keep-choices`).send({})).status).toBe(404);

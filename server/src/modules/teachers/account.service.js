@@ -1,4 +1,4 @@
-import { assertCan, can } from '../../policy/index.js';
+import { assertCan } from '../../policy/index.js';
 import { withTransaction } from '../../lib/db.js';
 import { AppError, notFound } from '../../lib/errors.js';
 import { record } from '../audit/index.js';
@@ -11,7 +11,11 @@ const ACTIONS = {
   reactivate: { from: ['suspended', 'deactivated'], to: 'active', audit: 'teacher.reactivate' },
 };
 
-/** TCH-12, TCH-13: the admin must act for a department where the account holds the teacher role. */
+/**
+ * TCH-12, TCH-13: the account has one state for all its departments, so the actor must administer
+ * every department where the account holds the teacher role. Otherwise a suspension would also
+ * cut off a department the actor does not run. A super admin passes every check.
+ */
 export async function changeTeacherState(actor, userId, action, reason) {
   const spec = ACTIONS[action];
   assertCan(actor, 'teacher.admin_list');
@@ -21,10 +25,10 @@ export async function changeTeacherState(actor, userId, action, reason) {
   if (!user || user.kind !== 'teacher') throw notFound('Teacher not found.');
   const roles = await UserRole.find({ user_id: user._id, role: 'teacher', ended_at: null }).lean();
   if (!roles.length) throw notFound('Teacher not found.');
-  const scopeDept = roles
-    .map((r) => r.department_id)
-    .find((d) => can(actor, 'teacher.manage', { department_id: d }));
-  if (!scopeDept) assertCan(actor, 'teacher.manage', { department_id: roles[0].department_id });
+  const departmentIds = [...new Set(roles.map((r) => String(r.department_id)))];
+  for (const departmentId of departmentIds) {
+    assertCan(actor, 'teacher.manage', { department_id: departmentId });
+  }
   if (String(actor._id) === String(user._id)) {
     throw new AppError(409, 'CONFLICT', 'You cannot do this to your own account.');
   }
@@ -38,15 +42,18 @@ export async function changeTeacherState(actor, userId, action, reason) {
     if (!changed) {
       throw new AppError(409, 'CONFLICT', 'The account is not in a state that allows this.');
     }
-    await record({
-      actor,
-      action: spec.audit,
-      scope_department_id: scopeDept,
-      target: { type: 'user', id: user._id },
-      old_value: { state: changed.state },
-      new_value: { state: spec.to, ...(reason && { reason }) },
-      session,
-    });
+    // One audit entry per department, so each department's history shows the change.
+    for (const departmentId of departmentIds) {
+      await record({
+        actor,
+        action: spec.audit,
+        scope_department_id: departmentId,
+        target: { type: 'user', id: user._id },
+        old_value: { state: changed.state },
+        new_value: { state: spec.to, ...(reason && { reason }) },
+        session,
+      });
+    }
   });
   // AUTH-23: the teacher can no longer sign in, so every open session ends.
   if (action !== 'reactivate') await endAllSessions(user._id);

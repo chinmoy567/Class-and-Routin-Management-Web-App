@@ -142,7 +142,9 @@ describe('validation (IMP-08 … IMP-22)', () => {
   });
 
   it('IMP-15 a TBA teacher is a warning', () => {
-    expect(has(check([r({ tba: true, teachers: [], teacher_keys: [] })]), 'TEACHER_TBA')).toHaveLength(1);
+    expect(
+      has(check([r({ tba: true, teachers: [], teacher_keys: [] })]), 'TEACHER_TBA'),
+    ).toHaveLength(1);
   });
 
   it('IMP-16 the same course and group twice in one day is a warning', () => {

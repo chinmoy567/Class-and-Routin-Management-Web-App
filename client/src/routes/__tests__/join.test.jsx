@@ -107,6 +107,22 @@ describe('join form (spec 10)', () => {
     );
   });
 
+  it('JR-01 a UV ID that is not 1 to 20 digits is caught on the form and nothing is sent', async () => {
+    const calls = mockApi({
+      'GET /api/auth/me': meResponse('join-form', { state: 'claim_pending' }),
+      'GET /api/join/options': ok(options),
+      'GET /api/me/join-request': ok(null),
+    });
+    renderApp('/join');
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('UV ID'), 'abc');
+    await user.selectOptions(screen.getByLabelText('Department'), 'd1');
+    await user.selectOptions(await screen.findByLabelText('Section'), 'sec1');
+    await user.click(screen.getByRole('button', { name: 'Send request' }));
+    expect(await screen.findByText('Enter your UV ID (1 to 20 digits).')).toBeVisible();
+    expect(calls.some((c) => c.method === 'POST')).toBe(false);
+  });
+
   it('JR-20 a rejected request shows the reason and a one-tap appeal; the UV ID is asked again', async () => {
     const calls = mockApi({
       'GET /api/auth/me': meResponse('join-form', { state: 'claim_pending' }),

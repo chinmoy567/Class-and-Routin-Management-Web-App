@@ -573,6 +573,47 @@ describe('suspend, remove and reactivate (spec 06)', () => {
     );
   });
 
+  it('a teacher in two departments is only suspended, removed or reactivated by an admin of both (or a super admin)', async () => {
+    const cse = await createDepartment();
+    const eee = await createDepartment();
+    const teacher = await makeUser({
+      kind: 'teacher',
+      roles: [
+        { role: 'teacher', department_id: cse._id },
+        { role: 'teacher', department_id: eee._id },
+      ],
+      departmentId: cse._id,
+      password: TEST_PASSWORD,
+    });
+    const cseAdmin = await asDeptAdmin(cse);
+    const eeeAdmin = await asDeptAdmin(eee);
+    // One department's admin would also cut off the other department: refused, nothing changes.
+    expect((await act(cseAdmin, teacher, 'suspend', { reason: 'Left CSE' })).status).toBe(403);
+    expect((await act(eeeAdmin, teacher, 'suspend', { reason: 'Left EEE' })).status).toBe(403);
+    expect((await User.findById(teacher._id)).state).toBe('active');
+    expect(await auditList({ action: 'teacher.suspend' })).toHaveLength(0);
+
+    const bothAdmin = await loginAs(
+      await makeUser({
+        kind: 'staff',
+        roles: [
+          { role: 'dept_admin', department_id: cse._id },
+          { role: 'dept_admin', department_id: eee._id },
+        ],
+      }),
+      app,
+    );
+    expect(
+      (await act(bothAdmin, teacher, 'suspend', { reason: 'Left the university' })).status,
+    ).toBe(200);
+    expect((await User.findById(teacher._id)).state).toBe('suspended');
+    // The audit entry is written once per department the teacher belongs to.
+    expect(await auditList({ action: 'teacher.suspend' })).toHaveLength(2);
+    expect((await act(cseAdmin, teacher, 'reactivate')).status).toBe(403);
+    expect((await act(await asSuper(), teacher, 'reactivate')).status).toBe(200);
+    expect((await User.findById(teacher._id)).state).toBe('active');
+  });
+
   it('a CSE admin cannot suspend, remove or reactivate an EEE teacher; students are not teachers', async () => {
     const cse = await createDepartment();
     const eee = await createDepartment();

@@ -1,7 +1,6 @@
 // IMP-24: what a re-import would change in one department's own slots. Pure functions.
 
-const keyOf = (s) =>
-  [s.section_key, s.group ?? '', s.day, s.start_min, s.course_code].join('|');
+const keyOf = (s) => [s.section_key, s.group ?? '', s.day, s.start_min, s.course_code].join('|');
 const teacherSig = (s) => [...s.teacher_keys].sort().join('+');
 const sigOf = (s) =>
   [s.end_min, s.room_id, teacherSig(s), s.tba ? 1 : 0, s.course_name ?? ''].join('|');
