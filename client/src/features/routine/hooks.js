@@ -6,8 +6,11 @@ import { qk } from '@/lib/query-keys';
 import { onEvent } from '@/lib/socket';
 import { fetchMyRoutine } from './api.js';
 
-/** RTN-12: fetch the routine. Refetches every 5 minutes and when the tab becomes visible again. */
-export function useMyRoutine(from, to) {
+/**
+ * RTN-12: fetch the routine. Refetches every 5 minutes and when the tab becomes visible again.
+ * With no dates the server picks the default window (RTN-06), which also says what today is.
+ */
+export function useMyRoutine(from, to, { enabled = true } = {}) {
   const queryClient = useQueryClient();
   useEffect(() => {
     const onVisible = () => {
@@ -21,6 +24,7 @@ export function useMyRoutine(from, to) {
   return useQuery({
     queryKey: qk.myRoutine(from ?? null, to ?? null),
     queryFn: () => fetchMyRoutine(from, to),
+    enabled,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
     retry: false,

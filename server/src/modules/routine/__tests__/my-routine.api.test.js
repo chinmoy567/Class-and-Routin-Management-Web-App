@@ -22,6 +22,9 @@ import { Teacher } from '../../teachers/index.js';
 import { Room } from '../../rooms/index.js';
 import { clearAll as clearRoutineCache, getSectionSlots } from '../routine-cache.js';
 import { addGroup } from '../section.service.js';
+import { notifyRoutineChange, registerRoutineChangeListener } from '../publish.service.js';
+import { clearCachesOnRoutineChange } from '../index.js';
+import { CalendarEvent } from '../../calendar/index.js';
 
 let app;
 beforeAll(async () => {
@@ -217,6 +220,15 @@ describe('RTN-06 response shape', () => {
     const res = await agent.get('/api/me/routine?from=2027-04-10&to=2027-04-04');
     expect(res.status).toBe(400);
   });
+
+  it('RTN-06 a date that is not a real day (2027-13-45) → 400, not a server error', async () => {
+    const dept = await createDepartment();
+    await makeSemester();
+    const agent = await asActiveStudent(dept);
+    const res = await agent.get('/api/me/routine?from=2027-13-45&to=2027-13-46');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
 });
 
 // ── RTN-01: group-aware filtering ────────────────────────────────────────────
@@ -355,6 +367,48 @@ describe('RTN-03 teacher routine', () => {
     expect(allCourseCodes).toContain('CSE-TEACHER');
   });
 
+  it('RTN-13 a teacher of two groups of the same course sees both slots, with section and group', async () => {
+    const dept = await createDepartment();
+    const sem = await makeSemester();
+    const section = await makeSection(sem, dept);
+    const g1 = await makeGroup(section, 'G1');
+    const g2 = await makeGroup(section, 'G2');
+    const room = await makeRoom(dept);
+
+    const user = await makeUser({ kind: 'teacher', state: 'active', departmentId: dept._id });
+    const teacherRec = await makeTeacher(dept, 'GRP');
+    await Teacher.updateOne({ _id: teacherRec._id }, { $set: { user_id: user._id } });
+
+    const slotG1 = await makePublishedSlot(sem, dept, section, room, {
+      course_code: 'CSE-422',
+      group_id: g1._id,
+      day_of_week: 0,
+      start_min: 630,
+      end_min: 685,
+      tba: false,
+    });
+    const slotG2 = await makePublishedSlot(sem, dept, section, room, {
+      course_code: 'CSE-422',
+      group_id: g2._id,
+      day_of_week: 0,
+      start_min: 630,
+      end_min: 685,
+      tba: false,
+    });
+    await linkTeacher(slotG1, teacherRec);
+    await linkTeacher(slotG2, teacherRec);
+
+    fixClock('2027-04-04T04:00:00Z');
+    const agent = await loginAs(user, app);
+    const res = await agent.get('/api/me/routine?from=2027-04-04&to=2027-04-04');
+    const slots = res.body.data.days[0].slots;
+    expect(slots.map((s) => s.group).sort()).toEqual(['G1', 'G2']);
+    for (const s of slots) {
+      expect(s.section_label).toBe('2-I A');
+      expect(s.course_code).toBe('CSE-422');
+    }
+  });
+
   it('RTN-03 teacher does not receive slots they are not linked to', async () => {
     const dept = await createDepartment();
     const sem = await makeSemester();
@@ -490,6 +544,76 @@ describe('RTN-06 institution today', () => {
   });
 });
 
+describe('RTN-06 default range ends on the next teaching day', () => {
+  it('RTN-06 on Thursday the default range runs to Sunday, skipping Friday and Saturday', async () => {
+    const dept = await createDepartment();
+    const sem = await makeSemester();
+    const section = await makeSection(sem, dept);
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-08T04:00:00Z'); // Thursday 10:00 in Asia/Dhaka
+    const res = await (await loginAs(user, app)).get('/api/me/routine');
+    expect(res.status).toBe(200);
+    expect(res.body.data.days.map((d) => d.date)).toEqual([
+      '2027-04-08',
+      '2027-04-09',
+      '2027-04-10',
+      '2027-04-11',
+    ]);
+  });
+
+  it('RTN-06 a closed Sunday is skipped, so the default range runs to Monday', async () => {
+    const dept = await createDepartment();
+    const sem = await makeSemester();
+    const section = await makeSection(sem, dept);
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    await CalendarEvent.create({
+      from_date: '2027-04-11',
+      to_date: '2027-04-11',
+      kind: 'holiday',
+      label: 'Test holiday',
+      created_by: sem._id,
+    });
+    fixClock('2027-04-08T04:00:00Z');
+    const res = await (await loginAs(user, app)).get('/api/me/routine');
+    expect(res.body.data.days.at(-1).date).toBe('2027-04-12');
+  });
+});
+
+describe('RTN-14 a publish replaces the cached pattern', () => {
+  it('RTN-14 after a publish, the next call returns the new slots', async () => {
+    const dept = await createDepartment();
+    const sem = await makeSemester();
+    const section = await makeSection(sem, dept);
+    const room = await makeRoom(dept);
+    await makePublishedSlot(sem, dept, section, room, { course_code: 'OLD-101', day_of_week: 0 });
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-04T04:00:00Z');
+    const agent = await loginAs(user, app);
+    const url = '/api/me/routine?from=2027-04-04&to=2027-04-04';
+
+    const before = await agent.get(url);
+    expect(before.body.data.days[0].slots.map((s) => s.course_code)).toEqual(['OLD-101']);
+
+    await makePublishedSlot(sem, dept, section, room, { course_code: 'NEW-202', day_of_week: 0 });
+    // resetRoutineHooks() clears the listeners before each test, so register the real one here.
+    registerRoutineChangeListener(clearCachesOnRoutineChange);
+    await notifyRoutineChange({
+      semester: { _id: sem._id, status: 'current' },
+      sectionIds: [String(section._id)],
+      teacherIds: [],
+    });
+
+    const after = await agent.get(url);
+    expect(after.body.data.days[0].slots.map((s) => s.course_code).sort()).toEqual([
+      'NEW-202',
+      'OLD-101',
+    ]);
+  });
+});
+
 describe("RTN-02 every department's slots for a section", () => {
   it('RTN-02 a LAW student sees both LAW-owned and CSE-owned slots of the section', async () => {
     const sem = await makeSemester();
@@ -523,6 +647,22 @@ describe('RTN-07 teacher short codes', () => {
     expect(res.body.data.week[0].slots[0].teachers).toEqual([
       { short_code: 'AR', full_name: 'Test Teacher' },
     ]);
+  });
+
+  it('RTN-07 a slot with two teachers lists both', async () => {
+    const sem = await makeSemester();
+    const dept = await createDepartment({ code: 'CSE' });
+    const section = await makeSection(sem, dept);
+    const room = await makeRoom(dept);
+    const slot = await makePublishedSlot(sem, dept, section, room, { day_of_week: 0, tba: false });
+    await linkTeacher(slot, await makeTeacher(dept, 'AR'));
+    await linkTeacher(slot, await makeTeacher(dept, 'BK'));
+    const user = await makeUser({ kind: 'student', state: 'active', departmentId: dept._id });
+    await enrolStudent(user, sem, section);
+    fixClock('2027-04-04T04:00:00Z');
+    const res = await (await loginAs(user, app)).get('/api/me/routine');
+    const codes = res.body.data.week[0].slots[0].teachers.map((t) => t.short_code);
+    expect(codes.sort()).toEqual(['AR', 'BK']);
   });
 });
 

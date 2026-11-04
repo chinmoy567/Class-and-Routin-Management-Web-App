@@ -914,6 +914,8 @@
     "noSlotsToday": "No classes today",
     "week": "Week",
     "today": "Today",
+    "todayClasses": "Today’s classes",
+    "runningNow": "Now",
     "loading": "Loading your routine…",
     "noSemester": "No active semester.",
     "cancelled": "Cancelled",

@@ -3,21 +3,33 @@ import { screen, waitFor, within, act } from '@testing-library/react';
 import { mockApi, ok, renderApp, meResponse } from '@/test/mockApi.jsx';
 import { t } from '@/lib/i18n';
 
+const sockets = vi.hoisted(() => ({ handlers: {} }));
+
 vi.mock('@/lib/socket', () => ({
   connectSocket: () => ({ on: () => {}, off: () => {}, disconnect: () => {} }),
   disconnectSocket: () => {},
-  onEvent: () => () => {},
+  onEvent: (name, fn) => {
+    sockets.handlers[name] = fn;
+    return () => {};
+  },
 }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+  sockets.handlers = {};
+});
 
-// The page asks for the device-based window (today and six days on), as in the page code.
-const deviceDay = (offset) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
+const addDays = (date, n) => {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
-const ROUTINE_URL = `/api/me/routine?from=${deviceDay(0)}&to=${deviceDay(6)}`;
+
+// RTN-06: the first request asks for the server's default window (no dates). The page then asks
+// for its week, starting from the server's `today`, never from the device clock.
+const DEFAULT_URL = '/api/me/routine';
+const weekUrl = (today) => `/api/me/routine?from=${today}&to=${addDays(today, 6)}`;
 
 const teacher = { short_code: 'AR', full_name: 'Abdur Rahman' };
 const slot = {
@@ -65,7 +77,8 @@ const loaded = () => screen.findAllByText('CSE-421');
 
 const routes = (data) => ({
   'GET /api/auth/me': meResponse('dashboard'),
-  [`GET ${ROUTINE_URL}`]: ok(data),
+  [`GET ${DEFAULT_URL}`]: ok(data),
+  [`GET ${weekUrl(data.today)}`]: ok(data),
 });
 
 describe('my routine page (spec 12)', () => {
@@ -77,6 +90,26 @@ describe('my routine page (spec 12)', () => {
     expect(screen.getAllByText('CSE-421').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Abdur Rahman').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/311/).length).toBeGreaterThan(0);
+  });
+
+  it('RTN-16 on a wide screen, today’s classes are listed before the week grid', async () => {
+    mockApi(routes(routine()));
+    renderApp('/routine');
+    await loaded();
+    const region = await screen.findByRole('region', { name: t('routine.todayClasses') });
+    expect(within(region).getByText(/CSE-421/)).toBeInTheDocument();
+  });
+
+  it('RTN-06 the page asks for its week from the server today, not the device date', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2030-01-01T10:00:00Z'));
+    const calls = mockApi(routes(routine()));
+    renderApp('/routine');
+    await loaded();
+    const urls = calls.map((c) => c.url);
+    expect(urls).toContain(DEFAULT_URL);
+    expect(urls).toContain(weekUrl('2027-04-04'));
+    expect(urls.some((u) => u.includes('2030-01-0'))).toBe(false);
   });
 
   it('RTN-07 the week grid shows the teacher short code', async () => {
@@ -125,12 +158,25 @@ describe('my routine page (spec 12)', () => {
     const calls = mockApi(routes(routine()));
     renderApp('/routine');
     await loaded();
-    const before = calls.filter((c) => c.url === ROUTINE_URL).length;
+    const before = calls.filter((c) => c.url === weekUrl('2027-04-04')).length;
     await act(async () => {
       document.dispatchEvent(new Event('visibilitychange'));
     });
     await waitFor(() =>
-      expect(calls.filter((c) => c.url === ROUTINE_URL).length).toBeGreaterThan(before),
+      expect(calls.filter((c) => c.url === weekUrl('2027-04-04')).length).toBeGreaterThan(before),
+    );
+  });
+
+  it('RTN-12 a routine.changed push refetches the routine at once', async () => {
+    const calls = mockApi(routes(routine()));
+    renderApp('/routine');
+    await loaded();
+    const before = calls.filter((c) => c.url === weekUrl('2027-04-04')).length;
+    await act(async () => {
+      sockets.handlers['routine.changed']?.({});
+    });
+    await waitFor(() =>
+      expect(calls.filter((c) => c.url === weekUrl('2027-04-04')).length).toBeGreaterThan(before),
     );
   });
 });

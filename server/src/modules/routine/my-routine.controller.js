@@ -4,10 +4,16 @@ import { AppError } from '../../lib/errors.js';
 import { getMyRoutine } from './my-routine.service.js';
 import { dateString } from '@crm/shared/schemas';
 
+/** A YYYY-MM-DD string that is a real calendar day (2027-02-30 and 2027-13-45 are not). */
+const realDate = dateString.refine((s) => {
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}, 'Not a real date');
+
 const querySchema = z
   .object({
-    from: dateString.optional(),
-    to: dateString.optional(),
+    from: realDate.optional(),
+    to: realDate.optional(),
   })
   .superRefine((v, ctx) => {
     if (v.from && v.to) {

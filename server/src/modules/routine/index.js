@@ -42,17 +42,19 @@ registerAvailabilityProvider({ publishedDepartments, runningSlots, dayRules });
 
 // RTN-14: clear caches when published slots change or teacher links change.
 import { registerRoutineChangeListener } from './publish.service.js';
-registerRoutineChangeListener(async ({ sectionIds, userIds }) => {
+/** RTN-14: drop the cached patterns of the changed sections and teachers. */
+export async function clearCachesOnRoutineChange({ sectionIds, userIds }) {
   const semester = await currentSemester();
   if (!semester) return;
-  const semId = String(semester._id);
+  const semId = semester.id ?? String(semester._id);
   for (const sid of sectionIds) clearSectionCache(semId, sid);
   for (const uid of userIds) clearTeacherCache(semId, uid);
-});
+}
+registerRoutineChangeListener(clearCachesOnRoutineChange);
 registerLinkChangeListener(async (userId) => {
   const semester = await currentSemester();
   if (!semester) return;
-  clearTeacherCache(String(semester._id), String(userId));
+  clearTeacherCache(semester.id ?? String(semester._id), String(userId));
 });
 
 export { routineRouter } from './routine.routes.js';

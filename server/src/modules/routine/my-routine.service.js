@@ -225,6 +225,21 @@ function buildDays(slotsForDays, fromDate, toDate, events, cancellations, semest
 }
 
 /**
+ * RTN-06: the default end of the range is the next teaching day after today (Sunday to Thursday,
+ * not a closed day, inside the semester). Looks up to 14 days ahead; falls back to tomorrow.
+ */
+async function nextTeachingDay(today, departmentId, semester) {
+  const horizon = addDays(today, 14);
+  const events = departmentId ? await getEventsForDepartment(departmentId, today, horizon) : [];
+  for (let i = 1; i <= 14; i += 1) {
+    const date = addDays(today, i);
+    const { kind } = dayRule(date, departmentId, { events, semester });
+    if (kind === 'normal' || kind === 'cutoff') return date;
+  }
+  return addDays(today, 1);
+}
+
+/**
  * RTN-01, RTN-03, RTN-05, RTN-06: main service function.
  * actor must already be checked as active before calling this.
  */
@@ -249,7 +264,6 @@ export async function getMyRoutine(actor, { from, to }) {
   const today = toInstitutionDate(clock.now());
 
   const fromDate = from ?? today;
-  const toDate = to ?? addDays(today, 1);
 
   const isTeacher = actor.kind === 'teacher';
 
@@ -302,6 +316,8 @@ export async function getMyRoutine(actor, { from, to }) {
       slotsForDays = allSectionSlots.filter((s) => !s.group_id);
     }
   }
+
+  const toDate = to ?? (await nextTeachingDay(today, departmentId, semester));
 
   return buildRoutinePayload({
     semester,
