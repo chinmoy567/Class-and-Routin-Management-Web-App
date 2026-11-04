@@ -24,7 +24,7 @@ The PRD is `DOCUMENTS/Class and Routine Management - PRD.md` and the stack is in
 | Feature area | Diagrams |
 |---|---|
 | Sign-up, sign-in, email check, second step | 17-seq-auth-login, 19-state-account |
-| Student onboarding, join request, UV ID claim | 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request |
+| Student onboarding, join request | 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request |
 | Teacher approval | 10-activity-teacher-approval, 19-state-account |
 | CR/DCR assignment | 26-activity-cr-dcr-assignment, 02-role-hierarchy |
 | Room booking, free-room view | 11-activity-room-booking, 16-seq-room-request, 21-state-room-request, 28-activity-free-room-check |

@@ -1,5 +1,4 @@
 import { Enrolment } from './enrolment.model.js';
-import { UvClaim } from './uvclaim.model.js';
 import { clock } from '../../lib/time.js';
 
 /** The student's accepted enrolment in a semester, or null. */
@@ -55,20 +54,11 @@ export const groupInUse = async (groupId) =>
 
 /**
  * ROL-04, D2: at rollover the old semester's pending requests are withdrawn, so the student can
- * send a new one (a pending request blocks another). Undecided UV claims go with them.
+ * send a new one (a pending request blocks another).
  */
 export async function withdrawPendingOfSemester(semesterId, session) {
-  const pending = await Enrolment.find({ semester_id: semesterId, status: 'pending' })
-    .select('_id uv_claim_id')
-    .session(session)
-    .lean();
-  if (!pending.length) return 0;
-  const claimIds = pending.map((p) => p.uv_claim_id).filter(Boolean);
-  if (claimIds.length) {
-    await UvClaim.deleteMany({ _id: { $in: claimIds }, status: 'pending' }, { session });
-  }
   const res = await Enrolment.updateMany(
-    { _id: { $in: pending.map((p) => p._id) }, status: 'pending' },
+    { semester_id: semesterId, status: 'pending' },
     { $set: { status: 'withdrawn', decided_at: clock.now() } },
     { session },
   );
@@ -101,14 +91,6 @@ export async function countAcceptedBySection(sectionIds, semesterId) {
   return counts;
 }
 
-/** DSH-13: each user's approved UV ID (text form), keyed by user id string. */
-export async function approvedUvIds(userIds) {
-  const rows = await UvClaim.find({ user_id: { $in: userIds }, status: 'approved' })
-    .select('user_id uv_id_text')
-    .lean();
-  return new Map(rows.map((r) => [String(r.user_id), r.uv_id_text]));
-}
-
 /** CRD-DSH-04, CRD-DSH-09: a section's enrolments of one status in one semester, oldest first. */
 export const enrolmentsOfSection = (sectionId, semesterId, status) =>
   Enrolment.find({ section_id: sectionId, semester_id: semesterId, status })
@@ -137,19 +119,6 @@ export async function enrolledUserIdsOfDepartments(departmentIds) {
   return ids.map(String);
 }
 
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => `\\${c}`);
-
-/** ADM-12: students whose UV ID (leading zeros ignored, spaces and dashes removed) contains the digits. */
-export async function userIdsByUvId(q) {
-  const digits = String(q).replace(/[\s-]/g, '').replace(/^0+/, '');
-  if (!/^\d{2,20}$/.test(digits)) return [];
-  const rows = await UvClaim.find({ uv_id_norm: { $regex: escapeRegex(digits) } })
-    .select('user_id')
-    .limit(50)
-    .lean();
-  return rows.map((r) => String(r.user_id));
-}
-
 /**
  * ADM-12, ADM-16: the student's enrolment for a semester, keyed by user id. An accepted enrolment
  * wins over a pending request.
@@ -169,14 +138,6 @@ export async function currentEnrolmentsOf(userIds, semesterId) {
     if (!seen || (r.status === 'accepted' && seen.status !== 'accepted')) byUser.set(key, r);
   }
   return byUser;
-}
-
-/** ADM-16: each student's approved UV ID claim (id and text), keyed by user id. */
-export async function approvedClaimsOf(userIds) {
-  const rows = await UvClaim.find({ user_id: { $in: userIds }, status: 'approved' })
-    .select('user_id uv_id_text')
-    .lean();
-  return new Map(rows.map((r) => [String(r.user_id), { id: String(r._id), uv_id: r.uv_id_text }]));
 }
 
 // ADM-13: the department a student belongs to, from their latest enrolment, when the account has none.

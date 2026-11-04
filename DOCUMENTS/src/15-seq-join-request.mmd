@@ -1,4 +1,4 @@
-%% Sequence — student join request accepted by CR
+%% Sequence — student join request accepted by CR (no UV ID claim, spec 24)
 sequenceDiagram
   autonumber
   actor St as Student
@@ -8,24 +8,24 @@ sequenceDiagram
   actor CR as CR / DCR
   participant Mail as Email service
 
-  St->>UI: Fill join form (UV ID, section, group)
-  UI->>API: POST /join-requests
-  API->>DB: Section has CR? UV ID unused? rejections < 5 / 24 h?
+  St->>UI: Fill join form (section, group)
+  UI->>API: POST /enrolments
+  API->>DB: Section open (has CR)? No other open request?
   DB-->>API: OK
-  API->>DB: Insert join_request (pending)
-  API->>DB: Audit log: claim submitted
+  API->>DB: Insert enrolment (pending)
+  API->>DB: Audit log: join request
   API-->>UI: 201 pending
   UI-->>St: "Waiting for approval"
   API-)CR: Dashboard notification (pending request)
-  CR->>UI: Open request (name, email, photo, UV ID, group)
-  UI->>API: POST /join-requests/{id}/accept {group: G2}
+  CR->>UI: Open request (name, email, photo, profile UV ID, group)
+  UI->>API: POST /enrolments/{id}/decision {accept, group: G2}
   API->>DB: findOneAndUpdate where status = pending (transaction)
   alt Already decided by another CR/DCR
     API-->>UI: 409 "Already handled"
   else First action wins
-    API->>DB: status = accepted, create enrolment (semester stamp)
-    API->>DB: Add student to section group conversation
+    API->>DB: status = accepted, student active (semester stamp)
     API->>DB: Audit log: accepted by CR
+    API->>DB: Add student to section group conversation (after commit)
     API-)Mail: "Join request accepted"
     Mail--)St: Email
     API-->>UI: 200

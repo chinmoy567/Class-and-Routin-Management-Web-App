@@ -8,8 +8,6 @@ export const create = async (r, res) =>
 export const withdraw = async (r, res) =>
   res.json({ data: await req.withdrawRequest(r.user, r.params.id) });
 export const mine = async (r, res) => res.json({ data: await req.myRequest(r.user) });
-export const ownClaim = async (r, res) =>
-  res.status(201).json({ data: await req.submitOwnClaim(r.user, r.body) });
 
 export const sectionRequests = async (r, res) =>
   res.json({ data: await list.listSectionRequests(r.user, r.params.id) });
@@ -23,7 +21,5 @@ export const group = async (r, res) =>
 export const appeal = async (r, res) => res.json({ data: await dec.appeal(r.user, r.params.id) });
 export const appealDecision = async (r, res) =>
   res.json({ data: await dec.decideAppeal(r.user, r.params.id, r.body) });
-export const revoke = async (r, res) =>
-  res.json({ data: await dec.revokeClaim(r.user, r.params.id, r.body) });
-export const claimDecision = async (r, res) =>
-  res.json({ data: await dec.decideOwnClaim(r.user, r.params.id, r.body) });
+export const removeFromSection = async (r, res) =>
+  res.json({ data: await dec.removeFromSection(r.user, r.params.id, r.body) });

@@ -19,7 +19,7 @@ A dashboard for the CR and DCRs of **one section in one semester**: monitor the 
 - **CRD-DSH-02** The dashboard never shows another section's students, requests or flags. The student's own student dashboard links to it.
 
 ### Monitor
-- **CRD-DSH-03** **Roster:** every accepted student of the section with name, UV ID, group, photo and whether they're confirmed for this semester. Never phone or email.
+- **CRD-DSH-03** **Roster:** every accepted student of the section with name, UV ID (from the profile, if given), group, photo and whether they're confirmed for this semester. Never phone or email.
 - **CRD-DSH-04** **Unconfirmed students:** students who were in the matching section last semester (spec 09 CRD-07) or who applied to this section, and aren't yet accepted this semester, excluding "not enrolled". Each has a "send reminder" button, limited to one reminder per student per day across all the section's CR/DCRs (`429 RATE_LIMITED`).
 - **CRD-DSH-05** **Section routine:** the section's published routine, today's classes first, with which classes are running now.
 - **CRD-DSH-06** **Live status:** the section's status, and each group's status, with countdowns, using the same `liveStatus` function (spec 12) applied to the section and each group.

@@ -24,7 +24,6 @@ import '../src/modules/rooms/rooms.model.js';
 import '../src/modules/teachers/teachers.model.js';
 import '../src/modules/routine/routine.model.js';
 import '../src/modules/enrolments/enrolment.model.js';
-import '../src/modules/enrolments/uvclaim.model.js';
 import '../src/modules/audit/audit.model.js';
 import '../src/modules/calendar/calendar.model.js';
 

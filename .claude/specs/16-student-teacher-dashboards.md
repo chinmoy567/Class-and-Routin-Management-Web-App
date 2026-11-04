@@ -31,7 +31,7 @@ The first page an `active` student or teacher sees: a summary of right now, the 
 ### Teacher dashboard
 - **DSH-11** **Right now:** "Teaching" or "Free" (spec 12 RTN-13), countdown, and the current or next class card (course, section, group, room, time). For a lab shared with another teacher, both full names are shown.
 - **DSH-12** **My routine:** today's classes across all sections, the week grid where each cell shows course, section, group and room, and a next-teaching-day preview when no classes remain today.
-- **DSH-13** **Students:** for each section the teacher teaches (spec 06 TCH-16), a roster with each student's name, UV ID and group. Opening a roster of a section the teacher doesn't teach → `404`. Phone and email are never shown.
+- **DSH-13** **Students:** for each section the teacher teaches (spec 06 TCH-16), a roster with each student's name, UV ID (from the student's profile, if given) and group. Opening a roster of a section the teacher doesn't teach → `404`. Phone and email are never shown. The UV ID is shown only on this roster (PRD Privacy of the UV ID).
 - **DSH-14** **Rooms:** free rooms with a date and time picker (spec 13). The request button and "My room requests" appear in R2 (spec 19).
 - **DSH-15** **Messages and notices:** upcoming calendar events for the next 14 days. Messages (R3), notifications and announcements (later releases) stay hidden.
 - **DSH-16** **Account:** linked short code and name, or the "not linked yet" notice (spec 06 TCH-11), plus profile reminders when phone or photo is missing.
@@ -52,7 +52,7 @@ No new collections.
 | Method and path | Who | Success | Errors |
 |---|---|---|---|
 | `GET /api/me/dashboard` | see above | `{ kind, section?, representatives?, courses?, upcoming_events, free_now, reminders, teacher_link?, sections_taught? }` | `STATE_NOT_ALLOWED` |
-| `GET /api/sections/:id/roster` | see above | `[{ user_id, name, photo, uv_id, group }]` (CR/DCR also get `confirmed_this_semester`) | `NOT_FOUND` |
+| `GET /api/sections/:id/roster` | see above | `[{ user_id, name, photo, uv_id, group }]` (`uv_id` from the profile or null; CR/DCR also get `confirmed_this_semester`) | `NOT_FOUND` |
 
 ## Screens
 

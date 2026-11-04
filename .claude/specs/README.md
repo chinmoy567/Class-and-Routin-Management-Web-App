@@ -29,7 +29,7 @@ Use `/build-feature specs/NN-name.md` to build a spec.
 | 07 | [Routine import](07-routine-import.md): template, checks, preview, re-import diff, publish | 04, 05, 06 |
 | 08 | [Routine edit](08-routine-edit.md): slot add, edit and delete with checks | 07 |
 | 09 | [CR/DCR assignment](09-cr-dcr-assignment.md) | 04, 07 |
-| 10 | [Join requests and ID claims](10-join-requests.md): enrolment, UV ID claim, groups, escalation | 09 |
+| 10 | [Join requests](10-join-requests.md): enrolment, groups, escalation, removal from a section | 09 |
 | 11 | [University calendar](11-calendar.md): events, single-class cancellation | 04, 07 |
 | 12 | [My routine and live status](12-my-routine-live-status.md) | 04, 05, 06, 07, 10, 11 |
 | 13 | [Free-room view](13-free-room-view.md): read-only | 05, 07, 11 |
@@ -38,6 +38,7 @@ Use `/build-feature specs/NN-name.md` to build a spec.
 | 16 | [Student and teacher dashboards](16-student-teacher-dashboards.md) | 12, 13 |
 | 17 | [CR/DCR dashboard](17-cr-dcr-dashboard.md): roster, reminders, flags | 10, 12 |
 | 18 | [Admin dashboard](18-admin-dashboard.md): cards, user management, audit log view | 03–17 |
+| 24 | [Open sign-up, no UV ID claim](24-open-signup-no-id.md): any-email student sign-up, CAPTCHA, optional profile UV ID, claim removed | 01, 02, 10 |
 
 ### R2
 

@@ -84,10 +84,6 @@
       "subject": "Your lab group changed",
       "body": "Hello {name},\n\nYour lab group in {section} is now {group}. Sign in to see your routine:\n{link}"
     },
-    "uv_id_conflict": {
-      "subject": "A UV ID claim needs your attention",
-      "body": "Hello,\n\nThe UV ID {uv_id} is involved in a claim problem for {section}: {detail}\n\nReview it here:\n{link}"
-    },
     "department_without_admin": {
       "subject": "A department has no active admin",
       "body": "Hello,\n\nThe department {department} has no active department admin. You can act for it, or appoint a new admin here:\n{link}"
@@ -119,7 +115,7 @@
   },
   "digest": {
     "teacher_registrations": "Teacher registrations waiting",
-    "escalated_id_claims": "Escalated ID claims waiting",
+    "escalated_join_requests": "Escalated join requests waiting",
     "open_flags": "Problems flagged by CR or DCR"
   }
 }

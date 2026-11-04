@@ -20,7 +20,7 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 - **CHT-02a** All chat checks go through the central `can(user, action, resource)` with the actions `chat.search`, `chat.open_direct`, `chat.send`, `chat.read`, `chat.delete_own`, `chat.moderate_group` and `chat.restore_member`, so search, open and send share one function. Error codes: `STATE_NOT_ALLOWED` when the caller's own account state can't use chat; `CHAT_NOT_ALLOWED` when the caller can chat but not with this person or conversation (the other side's state, or a `claim_pending` student messaging anyone but the section's CR/DCR).
 
 ### Finding people
-- **CHT-03** Search by name (at least 2 characters, case-insensitive prefix on any word, at most 20 results) shows name, photo, department and role labels (student, teacher, CR, DCR). Never level, term, section, group, phone or email. Results include only people the caller is allowed to message.
+- **CHT-03** Search by name (at least 2 characters, case-insensitive prefix on any word, at most 20 results) shows name, photo, department and role labels (student, teacher, CR, DCR). Never level, term, section, group, UV ID, phone or email. Results include only people the caller is allowed to message.
 - **CHT-04** A chat can also be started from a public profile, a roster or the CR/DCR card.
 
 ### One-to-one
@@ -30,10 +30,10 @@ Small, safe chat: one-to-one messages between people allowed by their account st
 
 ### Section groups
 - **CHT-08** A group is created automatically when the first CR of a section in the current semester takes effect (spec 09 hook, and spec 14 at rollover). It is named "CSE 2-II-A · Fall 2026".
-- **CHT-09** Members: the section's CR and DCRs (as owners) and its accepted students, added automatically on acceptance (spec 10 hook). Teachers are never members. Only members can read or send.
+- **CHT-09** Members: the section's CR and DCRs (as owners) and its accepted students, added automatically on acceptance (spec 10 hook) and removed when the admin removes them from the section (spec 10 JR-19 hook). Teachers are never members. Only members can read or send.
 - **CHT-10** Owners can delete any message in the group and remove a member. A removed member can't read or send, and is listed for the admin (spec 18 ADM-04). They can appeal, and the admin can restore them. Owners can't delete accounts.
 - **CHT-10a** A removed member can file one appeal per removal (`POST /api/chat/conversations/:id/appeal`, text up to 500 characters). It appears in the admin's appeals list (spec 18 ADM-04). A second appeal for the same removal returns `CONFLICT`. Restoring the member (admin) clears `removed_at`, writes an audit entry and notifies them.
-- **CHT-10b** Owners and the admin of the section's department can list a group's members (name, photo, role label, removed or not; never email or phone). Ordinary members see current members' names only.
+- **CHT-10b** Owners and the admin of the section's department can list a group's members (name, photo, role label, removed or not; never email, phone or UV ID). Ordinary members see current members' names only.
 - **CHT-11** When a CR/DCR role ends, they stop being an owner. If they remain an accepted student of the section, they stay a member.
 - **CHT-12** At rollover the group is **closed**: nobody can send, and history stays readable to its members. A new group is created when the new semester's CR takes effect. A student who moves to another section joins that section's group when accepted. An `unconfirmed` student keeps read-only access to their old group.
 - **CHT-13** Group messages have timestamps but no per-member delivered/seen status. Only one-to-one messages show it.
@@ -91,7 +91,7 @@ Sending is rate limited to 30 messages per minute per user.
 
 ## Jobs and events
 
-- `message.new`, `message.status` via Socket.IO. Hooks: `onCrAssigned` (create group), `onEnrolmentAccepted` (add member), `onRoleEnded` (owner → member), `onRollover` (close old groups).
+- `message.new`, `message.status` via Socket.IO. Hooks: `onCrAssigned` (create group), `onEnrolmentAccepted` (add member), `onMembershipRemoved` (remove member, spec 10 JR-19), `onRoleEnded` (owner → member), `onRollover` (close old groups).
 
 ## Screens
 

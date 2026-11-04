@@ -1,6 +1,6 @@
 # 09: CR/DCR assignment
 
-R1 · Status: Draft · Depends on: 04, 07 · PRD: CR/DCR assignment, Users & roles (notes), Student ID claim (Rules), Semesters and student updates (Draft) · Diagrams: 26-activity-cr-dcr-assignment, 02-role-hierarchy
+R1 · Status: Draft · Depends on: 04, 07 · PRD: CR/DCR assignment, Users & roles (notes), Joining a section (Rules), Semesters and student updates (Draft) · Diagrams: 26-activity-cr-dcr-assignment, 02-role-hierarchy
 
 ## Goal
 
@@ -14,7 +14,7 @@ The department admin chooses each section's CR (one) and DCRs (up to two) for a 
 
 ## Requirements
 
-- **CRD-01** The admin of the section's department picks a **student** account that has a verified email and is not `deactivated` or `graduated`. No approved UV ID claim is needed. The admin's choice is the approval.
+- **CRD-01** The admin of the section's department picks a **student** account that has a verified email and is not `deactivated` or `graduated`. No accepted join request is needed. The admin's choice is the approval.
 - **CRD-02** Role is `cr` or `dcr`, scoped to `section_id` and `semester_id`. A section has at most one CR and two DCRs in effect (`409 ROLE_LIMIT` with "This section already has a CR" or "already has two DCRs"). The limit is checked inside a transaction (count, then insert, with a write to the section document first, as in mongo-patterns §6).
 - **CRD-03** A student holds at most one CR/DCR role per semester (`409 CONFLICT`).
 - **CRD-04** Assigning in the **current** semester takes effect at once. The student gets an `accepted` enrolment in that section (no join request needed, group left empty for them to set). A `claim_pending` or `unconfirmed` student becomes `active`, and the profile is stamped with the semester. Any pending join request they have elsewhere in this semester is withdrawn.
@@ -45,7 +45,7 @@ Uses `user_role` (spec 03) with role `cr`/`dcr`, section_id and semester_id. Add
 | `POST /api/admin/sections/:id/representatives` | admin of dept | user_id, role | 201 | `ROLE_LIMIT`, `CONFLICT`, `USER_NOT_ELIGIBLE` |
 | `POST /api/admin/sections/:id/representatives/reappoint` | admin of dept | none | 200 (list assigned + skipped with reasons) | none |
 | `DELETE /api/admin/representatives/:roleId` | admin of dept | none | 204 | none |
-| `GET /api/admin/students/search?q=&department_id=` | admin | none | eligible students (name, photo, UV ID if approved, state) | none |
+| `GET /api/admin/students/search?q=&department_id=` | admin | none | eligible students (name, photo, UV ID from the profile if given, state) | none |
 
 ## Jobs and events
 
@@ -69,7 +69,7 @@ Section detail (admin): CR and DCR slots with "assign" (student search) and "rem
 ## Decisions and open questions
 
 - **Decision:** one CR/DCR role per student per semester (CRD-03). The PRD doesn't say, but a student belongs to one section.
-- **Decision:** the CR's UV ID. The CR gets an accepted enrolment without a join request (PRD: "the admin's assignment is their approval"). A CR who has no approved UV ID enters it from their profile, and the claim goes to the **department admin**, because a CR can't approve their own claim (spec 10 JR-17).
+- **Decision:** the CR gets an accepted enrolment without a join request (PRD: "the admin's assignment is their approval"). Their UV ID is the optional profile field like any student's (spec 02 PRF-10); there is no claim (spec 24). If a CR or DCR sends a join request, it goes straight to the department admin (spec 10 JR-18).
 - **Decision:** "matching section" for re-appointing means same department and letter, one term earlier (CRD-07).
 - **Decision:** losing the last CR closes the section for new requests only. Members stay.
 

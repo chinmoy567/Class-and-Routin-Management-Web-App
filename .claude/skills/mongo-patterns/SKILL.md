@@ -39,7 +39,7 @@ export async function withTransaction(fn) {
 
 `fn` may run more than once, so it must have no side effects outside the database (no emails, no socket events). Send those **after** the transaction commits.
 
-## 2. "First action wins" (join requests, ID claims, room requests)
+## 2. "First action wins" (join requests, room requests)
 
 Make the state change conditional on the old state. Never read the document, check its status, then save it.
 
@@ -66,8 +66,8 @@ enrolmentSchema.index(
   { unique: true, partialFilterExpression: { status: 'accepted' } }
 );
 
-// One approved claim per UV ID (pending claims don't reserve it)
-uvClaimSchema.index({ uv_id_norm: 1 }, { unique: true, partialFilterExpression: { status: 'approved' } });
+// At most one pending join request per user
+enrolmentSchema.index({ user_id: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
 
 // teacher.user_id unique only when set
 teacherSchema.index({ user_id: 1 }, { unique: true, partialFilterExpression: { user_id: { $type: 'objectId' } } });
@@ -75,7 +75,7 @@ teacherSchema.index({ user_id: 1 }, { unique: true, partialFilterExpression: { u
 
 `partialFilterExpression` supports only equality, `$exists: true`, `$type`, comparisons, and `$and`. It doesn't support `$ne` or `$in`, so filter on the value you want (`status: 'approved'`), not on the values you don't.
 
-Turn a duplicate-key error (`err.code === 11000`) into a clear `409` with a message about the rule that was broken, for example "This UV ID is already approved for another student."
+Turn a duplicate-key error (`err.code === 11000`) into a clear `409` with a message about the rule that was broken, for example "This student is already in a section this semester."
 
 ## 4. No double-booking: `room_slot_lock`
 

@@ -2,7 +2,7 @@
 flowchart LR
   Login["Sign in / Sign up<br/>Forgot password"] --> Gate{Account state}
   Gate -- "teacher pending" --> Wait1["Waiting for admin approval"]
-  Gate -- "student no claim / unconfirmed" --> Join["Join form / semester update"] --> Wait2["Waiting for CR/DCR"]
+  Gate -- "student not in a section / unconfirmed" --> Join["Join form / semester update"] --> Wait2["Waiting for CR/DCR"]
   Gate -- "student active" --> SD["Student dashboard"]
   Gate -- "teacher active" --> TD["Teacher dashboard"]
   Gate -- "admin + OTP" --> AD["Admin dashboard"]

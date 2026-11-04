@@ -1,48 +1,49 @@
 # 02: Profile
 
-R1 · Status: Done · Depends on: 01 · PRD: Core features (F1), Authentication & onboarding (Required university email), Non-functional requirements (Privacy), Chat (What others see on a profile) · Diagrams: 24-sitemap
+R1 · Status: Done · Depends on: 01 · PRD: Core features (F1), Authentication & onboarding (Required email), Joining a section (UV ID on the profile), Non-functional requirements (Privacy), Chat (What others see on a profile) · Diagrams: 24-sitemap
 
 ## Goal
 
-Every user has one profile page where they can see their details and edit their phone, photo and email. Other people see only a small public profile.
+Every user has one profile page where they can see their details and edit their phone, photo and email (and, for a student, an optional UV ID). Other people see only a small public profile.
 
 ## Scope
 
-**In:** viewing your own profile, editing phone and photo, changing your email (with verification), the "email is bouncing" prompt, the public profile others see, showing roles and CR/DCR status.
+**In:** viewing your own profile, editing phone, photo and (students) the optional UV ID, changing your email (with verification), the "email is bouncing" prompt, the public profile others see, showing roles and CR/DCR status.
 
 **Out:** the join form fields (level, term, section, group), which change only through a join request (spec 10) or a CR/DCR or admin action. Password change is in spec 01.
 
 ## Requirements
 
-- **PRF-01** Your own profile shows: full name, email (decrypted, yours only), phone (yours only), photo, kind, roles (including "CR of CSE 2-II-A · Fall 2026"), and for a student the department, level, term, section and group accepted for the current semester, plus the semester it was last confirmed for ("Fall 2026 confirmed"). For a teacher it shows the linked department and short code, or "not linked yet".
+- **PRF-01** Your own profile shows: full name, email (decrypted, yours only), phone (yours only), photo, kind, roles (including "CR of CSE 2-II-A · Fall 2026"), and for a student the department, level, term, section and group accepted for the current semester, plus the semester it was last confirmed for ("Fall 2026 confirmed") and their optional UV ID. For a teacher it shows the linked department and short code, or "not linked yet".
 - **PRF-02** Full name can be edited only by an admin of the user's department. Students and teachers can't rename themselves, because the CR/DCR and admin identify people by name.
 - **PRF-03** Phone is optional, stored encrypted, and accepted only in Bangladeshi mobile format (`01XXXXXXXXX`, or with `+880`). It is stored normalised as `+8801XXXXXXXXX`.
 - **PRF-04** Photo: JPEG, PNG or WebP only (checked from the file's content, not its name), at most 2 MB. It is stored in GridFS, scanned by ClamAV before use, and served only to signed-in users. Until the scan passes, the old photo (or initials) is shown. A failed scan deletes the file and tells the user.
-- **PRF-05** Changing email: the new address must be on an allowed domain and not used by another account. A link sent to the **new** address (24 hours, single use) completes the change. Until then the old email stays in use. When it completes, `email_hmac` and `email_enc` are replaced, `email_bouncing` is cleared, and the old address gets a "your email was changed" notice.
+- **PRF-05** Changing email: the new address must not be used by another account, and a **teacher**'s new address must be on an allowed domain (`EMAIL_DOMAIN_NOT_ALLOWED`); a student may use any domain (spec 24). A link sent to the **new** address (24 hours, single use) completes the change. Until then the old email stays in use. When it completes, `email_hmac` and `email_enc` are replaced, `email_bouncing` is cleared, and the old address gets a "your email was changed" notice.
 - **PRF-06** If the user's email is marked bouncing (spec 15), `/api/auth/me` returns `email_action_required: true` and the client shows a banner asking for a new email at every sign-in until it is changed.
-- **PRF-07** The **public profile** (`GET /api/users/:id`) shows only name, photo, department and role labels (student, teacher, CR, DCR). Never level, term, section, group, phone or email. It is available to any account allowed to use chat (spec 20), and to admins of the user's department.
-- **PRF-08** Every profile change is recorded in `audit_log` (`user.phone_change`, `user.photo_change`, `user.email_change`, `user.name_change`) without storing the phone or email values.
+- **PRF-07** The **public profile** (`GET /api/users/:id`) shows only name, photo, department and role labels (student, teacher, CR, DCR). Never level, term, section, group, UV ID, phone or email. It is available to any account allowed to use chat (spec 20), and to admins of the user's department.
+- **PRF-08** Every profile change is recorded in `audit_log` (`user.phone_change`, `user.photo_change`, `user.email_change`, `user.name_change`, `user.uv_id_change`) without storing the phone, email or UV ID values.
 - **PRF-09** Edit-own-profile is allowed in every state that can sign in, except `email_unverified` (spec 01 state table).
+- **PRF-10** (spec 24 OS-05) A student's optional **UV ID** (`user.uv_id`): trimmed, spaces and dashes removed, leading zeros kept, 1–20 digits; `null` or an empty string clears it. It is **not unique** and is never checked against anything. Only the owner edits it, at any time. A teacher or staff account sending `uv_id` → `400 VALIDATION_ERROR`. Who else may see it follows the PRD's Privacy of the UV ID rule (the section's CR/DCR, the department admin, and a teacher on the roster of a section they teach), never public profiles, chat or other students.
 
 ## Permissions
 
 | Action | Who | States |
 |---|---|---|
-| View and edit own phone and photo | the owner | all signed-in states except `email_unverified` |
+| View and edit own phone and photo; a student's own UV ID | the owner | all signed-in states except `email_unverified` |
 | Change own email | the owner | same |
 | Change full name | admin of the user's department | n/a |
 | View a public profile | chat-enabled accounts; admins of that department | per the chat rules |
 
 ## Data
 
-Uses `user` (spec 01). Photos in GridFS bucket `photos` with metadata `{ owner_id, scan_status: 'pending' | 'clean' | 'infected', content_type }`. `user.photo_file_id` points to the latest **clean** photo, and `user.pending_photo_file_id` holds one waiting for its scan.
+Uses `user` (spec 01), plus `user.uv_id?` (string of 1–20 digits, students only, not unique, no index). Photos in GridFS bucket `photos` with metadata `{ owner_id, scan_status: 'pending' | 'clean' | 'infected', content_type }`. `user.photo_file_id` points to the latest **clean** photo, and `user.pending_photo_file_id` holds one waiting for its scan.
 
 ## API
 
 | Method and path | Who | Body | Success | Errors |
 |---|---|---|---|---|
 | `GET /api/me/profile` | owner | none | full own profile | none |
-| `PATCH /api/me/profile` | owner | phone (or null) | updated profile | `VALIDATION_ERROR` |
+| `PATCH /api/me/profile` | owner | phone? (or null), uv_id? (student; or null / empty) | updated profile | `VALIDATION_ERROR` |
 | `PUT /api/me/photo` | owner | the image bytes as the raw body (`Content-Type: image/*`) | 202 `{ scan_status: 'pending' }` | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` |
 | `DELETE /api/me/photo` | owner | none | 204 | none |
 | `POST /api/me/email` | owner | new_email | 202 | `EMAIL_DOMAIN_NOT_ALLOWED`, `CONFLICT` (taken), `RATE_LIMITED` |
@@ -67,6 +68,8 @@ My profile (view + edit phone, photo, email; shows roles, semester badge, group 
 - PRF-05: if another account took the new email before the link is used → `CONFLICT`.
 - PRF-07: a teacher viewing a student's public profile gets no `level`, `section`, `phone` or `email` keys in the response.
 - PRF-09: an `email_unverified` user calling `PATCH /api/me/profile` → `403 STATE_NOT_ALLOWED`.
+- PRF-10: saving `08 22-3102` stores `08223102`. 21 digits → `VALIDATION_ERROR`. Two students may save the same value. `null` clears it. A teacher sending `uv_id` → `VALIDATION_ERROR`. The public profile has no `uv_id` key.
+- PRF-05: a student changing to `x@gmail.com` → 202. A teacher changing to `x@gmail.com` → `EMAIL_DOMAIN_NOT_ALLOWED`.
 
 ## Decisions and open questions
 

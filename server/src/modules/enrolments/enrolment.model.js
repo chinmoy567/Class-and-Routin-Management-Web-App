@@ -12,7 +12,6 @@ const enrolmentSchema = new Schema(
     department_id: oid(),
     group_id: oid(),
     group_set_by: { type: String, enum: ['cr', 'admin'] },
-    uv_claim_id: oid(),
     reason: { type: String },
     appeal: {
       type: new Schema(

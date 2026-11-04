@@ -1,17 +1,17 @@
 # Plan: Spec 18 — Admin dashboard
 
-Spec: `.claude/specs/18-admin-dashboard.md` (R1). PRD: Admin dashboard and controls, Core features F5/F5a, CR/DCR dashboard (Checks on CR power), Student ID claim (revocation), Account states, Privacy, Auditability.
+Spec: `.claude/specs/18-admin-dashboard.md` (R1). PRD: Admin dashboard and controls, Core features F5/F5a, CR/DCR dashboard (Checks on CR power), Joining a section (removal from a section), Account states, Privacy, Auditability.
 Final save path (after approval): `implementation-plan/18-admin-dashboard-plan.md`.
 
 ## Context / Goal
 
-Give each admin one home page showing everything that needs attention in their scope (department admin: own department(s); super admin: everything, with a department filter), plus the management screens no other spec owns: **students** (search, deactivate/reactivate, graduate/undo, temporary-password fallback, set group, revoke UV ID claim), **flags** (resolve), **appeals and rejections**, and the **audit log viewer**. Most card data already exists in earlier specs (03-17); this spec aggregates it in one scoped call and adds the missing management actions.
+Give each admin one home page showing everything that needs attention in their scope (department admin: own department(s); super admin: everything, with a department filter), plus the management screens no other spec owns: **students** (search, deactivate/reactivate, graduate/undo, temporary-password fallback, set group, remove from a section), **flags** (resolve), **appeals and rejections**, and the **audit log viewer**. Most card data already exists in earlier specs (03-17); this spec aggregates it in one scoped call and adds the missing management actions.
 
 Not blocked: none of the PRD's five open questions touches this spec. ADM-06 (room requests) is R2/spec 19, so that card stays hidden behind the release map. ADM-04's "removed from section groups" and ADM-20 (reported chat messages) are R3 and not built.
 
 ## What already exists and is reused
 
-- Admin join endpoints (spec 10), unchanged: `GET /api/admin/join-requests?view=escalated|claims|rejected|appeals`, `POST /api/enrolments/:id/decision`, `PATCH /api/enrolments/:id/group` (admin override stores `group_set_by:'admin'`), `POST /api/admin/enrolments/:id/appeal-decision`, `POST /api/admin/uv-claims/:id/revoke`, `POST /api/admin/uv-claims/:id/decision`. ADM-16 is therefore UI plus tests, no new endpoint.
+- Admin join endpoints (spec 10): `GET /api/admin/join-requests?view=escalated|rejected|appeals`, `POST /api/enrolments/:id/decision`, `PATCH /api/enrolments/:id/group` (admin override stores `group_set_by:'admin'`), `POST /api/admin/enrolments/:id/appeal-decision`, `POST /api/admin/enrolments/:id/remove` (spec 24, JR-19). ADM-16 is therefore UI plus tests, no new endpoint in this spec.
 - Teacher registrations: `listRegistrations`, `POST /api/admin/teacher-registrations/:id/decision` (spec 06). Used inline.
 - Flags: `Flag` model, `countOpenFlags`, digest provider `open_flags` (spec 17).
 - Rollover: `readinessFor`, `listOverdueUnconfirmed` (14-day rule), `currentSemester`, `draftSemester`. Representatives: `unconfirmedOf` logic in `cr/cr.lists.js`.
@@ -24,7 +24,7 @@ Not blocked: none of the PRD's five open questions touches this spec. ADM-06 (ro
 Numbering follows the spec's IDs. X-items are rules from CLAUDE.md/PRD that the spec relies on.
 
 1. **ADM-01** Teacher registrations card: pending registrations (name, department, requested short code, date; no email), inline approve and reject (reason) using the spec 06 decision endpoint.
-2. **ADM-02** ID claims needing the admin: escalated join requests (JR-14), CR/DCR own claims (JR-18, view `claims`), and claims with the "duplicate pending claim" badge (UV ID conflict). Decide inline/linked.
+2. **ADM-02** Join requests needing the admin (`join_requests` card): escalated join requests (JR-14), including a CR/DCR's own request (JR-18). Decide inline/linked.
 3. **ADM-03** Reports from CR/DCR: open flags (name of section, category, raised by, when), newest first. Removal requests: not built (later).
 4. **ADM-04** Rejected join requests and appeals: open appeals first, then recent rejections (by CR/DCR). Group removals: R3, not built.
 5. **ADM-05** Routine problems: open errors and unconfirmed warnings from each in-scope department's latest import; cross-department duplicate warnings raised by another department's import (IMP-18); sections created by another department's import (IMP-27, "Section created by CSE import").
@@ -34,16 +34,16 @@ Numbering follows the spec's IDs. X-items are rules from CLAUDE.md/PRD that the 
 9. **ADM-09** Unconfirmed students per section: only students unconfirmed 14+ days after the semester became current, excluding "not enrolled" (reuses ROL-12 `listOverdueUnconfirmed`). Before day 14 the card is empty.
 10. **ADM-10** Recent activity: latest 20 audit entries in scope.
 11. **ADM-11** `GET /api/admin/dashboard?department_id=` returns all cards in one call, scoped by `isAdminOf`. A department admin passing another department → `403`. Super admin sees both. Non-admin → `403`.
-12. **ADM-12** `GET /api/admin/students?q=&department_id=`: search by name or UV ID. Row: name, photo, UV ID, section, group, state, email status `verified`/`unverified`/`bouncing`. Never the address or phone.
+12. **ADM-12** `GET /api/admin/students?q=&department_id=`: search by name or the profile UV ID. Row: name, photo, UV ID, section, group, state, email status `verified`/`unverified`/`bouncing`. Never the address or phone.
 13. **ADM-13** Deactivate (reason required; confirmation on the client): can't sign in, all sessions end, history kept, previous state saved in `state_before_deactivation`. Reactivate restores: `active` if an accepted enrolment exists for the current semester; otherwise the previous state (`unconfirmed`, `claim_pending`, `graduated`, `email_unverified`); an `active` or `unconfirmed` account with no current enrolment → `unconfirmed`.
 14. **ADM-14** Mark graduated (from `active` or `unconfirmed`), and reverse (graduated → `unconfirmed`).
 15. **ADM-15** Temporary password: admin triggers it, plaintext returned once (`Cache-Control: no-store`), stored only as argon2id hash, `must_change_password = true`, all sessions end, audited (the password is never in the audit entry or logs). Next sign-in returns `next: 'change-password'`. Until changed, the server refuses everything except the change-password call, sign-out and `/auth/me`. Changing the password (or an email reset) clears the flag.
-16. **ADM-16** Set a student's group by hand, revoke a UV ID claim (reason required, confirmation), decide appeals: all through the existing spec 10 endpoints, with screens.
+16. **ADM-16** Set a student's group by hand, remove a student from a section (reason required, confirmation), decide appeals: all through the spec 10 endpoints, with screens.
 17. **ADM-17** No hard deletes. Every action here is audited with old and new values, `scope_department_id` = the student's department.
 18. **ADM-18** `GET /api/admin/flags?status=` lists flags with who raised them and when. `POST /api/admin/flags/:id/resolve` `{ status: 'fixed'|'rejected', reply 1–1,000 }`; second resolve → `409 ALREADY_DECIDED`. CR/DCRs of the section see the result (spec 17 already shows status and reply).
 19. **ADM-19** `GET /api/admin/audit?from=&to=&action=&actor_id=&target_id=` with paging. Department admin: only entries whose `scope_department_id` is in their departments. Super admin: all. The viewer is read-only; no update/delete endpoint exists, and no edit/delete control on screen.
 20. **ADM-20** Reported chat messages audit: R3, not built.
-21. **ADM-21** Destructive actions ask for confirmation on the client: deactivate and revoke claim (new `ConfirmDialog`); remove role, publish routine, make current already confirm (verify, no change).
+21. **ADM-21** Destructive actions ask for confirmation on the client: deactivate and remove from section (new `ConfirmDialog`); remove role, publish routine, make current already confirm (verify, no change).
 22. **ADM-22** No admin response or screen contains private messages, phone, or an email address. Only exceptions already allowed by specs 06/10 (those endpoints are unchanged; this dashboard does not show them).
 23. **X1** Every protected action goes through `can()`; scope is checked on every request. A department admin on another department's student/flag by id → `404` (hide existence); explicit `department_id` of another department → `403`.
 24. **X2** All times Asia/Dhaka via `lib/time.js` (date range filters of the audit viewer are institution dates converted to UTC instants).
@@ -58,7 +58,7 @@ Numbering follows the spec's IDs. X-items are rules from CLAUDE.md/PRD that the 
 - **D2 Student's department** = `user.department_id` (set on first acceptance), or the department of a pending join request for waiting students. A student with neither is visible/actionable only to a super admin.
 - **D3 Graduate** is allowed from `active`/`unconfirmed` only (`409 CONFLICT` otherwise). Deactivate is allowed from any student state except `deactivated`.
 - **D4 Temporary password** is allowed for any non-deactivated student in scope (the spec's "email no longer works" is shown in the UI by the `bouncing` badge, not enforced). 12 random characters from an unambiguous set, always containing a letter and a digit. Server-side gate for `must_change_password` is a small middleware after `secondStepGate` that answers `403 STATE_NOT_ALLOWED` (no new error code).
-- **D5 ADM-02 "UV ID conflicts"** = standalone/own claims and requests carrying the duplicate-pending-claim badge (the data that exists today). `UV_ID_TAKEN` refusals are already emailed to the admin and store nothing, so there is nothing more to list.
+- **D5 ADM-02** has no "UV ID conflicts" any more (removed by spec 24): the card lists escalated join requests only.
 - **D6 ADM-05 "latest import"** = the most recent import per department across draft/current semesters; open = errors plus unconfirmed warnings. Cross-department duplicates are read from other departments' imports whose `CROSS_DEPARTMENT_DUPLICATE` issues name this department's code.
 - **D7 ADM-09 per-section** = for each current section in scope, students of its matching last-semester section (CRD-07) who are in the overdue-unconfirmed list.
 - **D8 Cards** return `{ count, items (max 10) }` and a link to the owning screen. Super admin without a filter gets all departments.
@@ -90,7 +90,7 @@ Numbering follows the spec's IDs. X-items are rules from CLAUDE.md/PRD that the 
 - `auth/next.js`: `'change-password'` after the second-step cases.
 - `auth/sessions.js`: `passwordChangeGate` middleware; wired in `app.js` after `secondStepGate`.
 - `auth/index.js`: exports.
-- `enrolments/enrolment.service.js` + `index.js`: `userIdsByUvId(q)`, `pendingRequesterIdsOf(departmentIds)`, `currentEnrolmentsOf(userIds, semesterId)` (section, group, enrolment id).
+- `enrolments/enrolment.service.js` + `index.js`: `pendingRequesterIdsOf(departmentIds)`, `currentEnrolmentsOf(userIds, semesterId)` (section, group, enrolment id).
 - `join/list.service.js`: `listForAdmin` gains optional `limit`, `newestFirst`, `semester_id` (default behaviour unchanged) so the rejected card shows the newest rejections.
 - `representatives/cr/flags.admin.service.js` (new) + exports: `listFlagsForAdmin(actor,{status,department_id})`, `resolveFlag(actor,id,{status,reply})` (conditional update, audit `flag.resolve` with old/new). `representatives.policy.js`: `flag.admin`.
 - `routine/problems.service.js` (new) + `index.js` export: `routineProblemsFor(departmentIds)` (D6).
@@ -101,7 +101,7 @@ Numbering follows the spec's IDs. X-items are rules from CLAUDE.md/PRD that the 
 ### Client
 - `features/auth/api.js`: `NEXT_PATHS['change-password']`; `routes/ForcedPasswordChangePage.jsx` (step screen, reuses `changePasswordBody` and `TextField`); `App.jsx` step route.
 - `features/admin/api.js`, `hooks.js`, `lib/query-keys.js` additions.
-- `features/admin/components/`: `DepartmentFilter`, `ConfirmDialog`, card components (`TeacherRegistrationsCard`, `IdClaimsCard`, `FlagReportsCard`, `AppealsCard`, `RoutineProblemsCard`, `SemesterCard`, `MissingAdminCard`, `UnconfirmedCard`, `RecentActivityCard`), `StudentRow`, `TempPasswordDialog`, `AuditTable`.
+- `features/admin/components/`: `DepartmentFilter`, `ConfirmDialog`, card components (`TeacherRegistrationsCard`, `JoinRequestsCard`, `FlagReportsCard`, `AppealsCard`, `RoutineProblemsCard`, `SemesterCard`, `MissingAdminCard`, `UnconfirmedCard`, `RecentActivityCard`), `StudentRow`, `TempPasswordDialog`, `AuditTable`.
 - `routes/admin/`: `AdminDashboardPage.jsx` (`/admin`), `AdminStudentsPage.jsx` (`/admin/students`), `AdminFlagsPage.jsx` (`/admin/flags`), `AdminAppealsPage.jsx` (`/admin/appeals`), `AdminAuditPage.jsx` (`/admin/audit`).
 - `components/AppShell.jsx` nav items; `routes/HomePage.jsx` redirect for staff-only admins; `i18n/en.json` (`admin.dashboard.*`, `admin.students.*`, `admin.flags.*`, `admin.appeals.*`, `admin.audit.*`, `auth.forceChange.*`, `nav.*`).
 
@@ -128,12 +128,12 @@ All behind `requireAuth` at `/api/admin`; the policy runs in the service; Zod on
 | `POST /flags/:id/resolve` | `flagIdParam`, `resolveFlagBody` | `flag.admin` on the flag's department (404 otherwise) | `flag.resolve` old/new status + reply |
 | `GET /audit?from=&to=&action=&actor_id=&target_id=&cursor=&limit=` | `auditQuery` | `admin.audit.read`, forced department scope | none |
 
-Search rows include what the screens need and nothing private: `enrolment_id`, `section {id,label}`, `groups`, `uv_claim_id` (approved claim, for revoke), `email_status`.
+Search rows include what the screens need and nothing private: `enrolment_id`, `section {id,label}`, `groups`, `uv_id` (from the profile), `email_status`.
 
 ## UI
 
-- `/admin`: department filter (super admin), then cards in the PRD order, each with count, up to 10 items and a "view all" link. Teacher registrations approve/reject inline; ID claims link to the decision; semester card shows readiness and a link to the rollover page for "Make current". Missing-admin card and the two-super-admin warning render only for a super admin.
-- `/admin/students`: search box (name or UV ID), result rows with state/email-status badges and actions: Deactivate (reason + confirm), Reactivate, Graduate/Undo, Temporary password (confirm, then shown once with a copy button and a warning), Set group (select), Revoke claim (reason + confirm).
+- `/admin`: department filter (super admin), then cards in the PRD order, each with count, up to 10 items and a "view all" link. Teacher registrations approve/reject inline; join requests link to the decision; semester card shows readiness and a link to the rollover page for "Make current". Missing-admin card and the two-super-admin warning render only for a super admin.
+- `/admin/students`: search box (name or UV ID), result rows with state/email-status badges and actions: Deactivate (reason + confirm), Reactivate, Graduate/Undo, Temporary password (confirm, then shown once with a copy button and a warning), Set group (select), Remove from section (reason + confirm).
 - `/admin/flags`: tabs open/fixed/rejected; resolve form with status and reply (1–1,000 characters).
 - `/admin/appeals`: open appeals first, rejections; accept/uphold actions via the spec 10 endpoints.
 - `/admin/audit`: filters (date range, action, actor, target), paged table, no edit/delete controls.
@@ -151,7 +151,7 @@ Server (`modules/admin/__tests__/`, plus small unit tests):
 - ADM-13 deactivate: login refused, open session removed from `sessions`, reason required, reactivate → `active` with enrolment, → `unconfirmed`/`claim_pending` otherwise; cross-department → `404`; concurrent double deactivate.
 - ADM-14 graduate/ungraduate state checks and audit.
 - ADM-15 temp password returned once and works for login; next sign-in returns `next: 'change-password'`; other endpoints refused until `POST /api/me/password`; flag cleared; sessions ended; audit has no secret; `Cache-Control: no-store`.
-- ADM-16 admin sets group (`group_set_by:'admin'`), revoke claim, appeal decision through the existing endpoints with cross-department refusals.
+- ADM-16 admin sets group (`group_set_by:'admin'`), remove from section, appeal decision through the spec 10 endpoints with cross-department refusals.
 - ADM-17 audit entries have old and new values and the right `scope_department_id` for every action; no student row is removed.
 - ADM-18 resolve flag, second resolve → `ALREADY_DECIDED`, concurrent resolves → one `200`, reply 0/1,001 chars → `400`, CR sees the result in the CR overview, other department's flag → `404`.
 - ADM-19 CSE admin audit query never returns an EEE entry (also with `target_id`/`actor_id` of EEE data); super admin sees all; filters and paging; date range respects `Asia/Dhaka` day edges; assertion that the audit router exposes only `GET` and that `AuditLog` update/delete throws.
@@ -161,7 +161,7 @@ Server (`modules/admin/__tests__/`, plus small unit tests):
 
 Shared: `admin-schemas.test.js`.
 
-Client (`routes/__tests__/`): ADM-01 inline approve/reject; ADM-03/04 cards render; ADM-08 hidden for department admin; ADM-12 results without contact fields; ADM-13/ADM-21 deactivate requires reason and confirmation, revoke requires confirmation; ADM-15 temp password shown once then cleared, forced change screen at `next: 'change-password'`; ADM-18 reply validation message; ADM-19 audit page has no edit/delete controls; staff-only admin redirected from `/` to `/admin`.
+Client (`routes/__tests__/`): ADM-01 inline approve/reject; ADM-03/04 cards render; ADM-08 hidden for department admin; ADM-12 results without contact fields; ADM-13/ADM-21 deactivate requires reason and confirmation, remove from section requires reason and confirmation; ADM-15 temp password shown once then cleared, forced change screen at `next: 'change-password'`; ADM-18 reply validation message; ADM-19 audit page has no edit/delete controls; staff-only admin redirected from `/` to `/admin`.
 
 ## Build order
 
@@ -197,5 +197,5 @@ Room requests card (R2, spec 19). Removal requests (later). Group-removal list a
 - **Card data shape:** each card is `{ count, items }` (at most 10 items). `missing_admin` is present only for a super admin. `room_requests` is absent (ADM-06), with `released.room_requests: false`.
 - **File layout:** all dashboard cards are in one server file (`dashboard.service.js`) and one client file (`DashboardCards.jsx`), not one file per card.
 - **Tests:** the plan's separate unit tests for the enrolment, rollover and problems functions were not written. Those functions are covered through the admin API tests (`students`, `flags`, `audit`, `dashboard`) and the audit unit file.
-- **Escalated requests and own claims** are decided inline on the dashboard, through the existing spec 10 endpoints (`/enrolments/:id/decision`, `/admin/uv-claims/:id/decision`).
+- **Escalated requests** (including a CR/DCR's own) are decided inline on the dashboard, through the spec 10 endpoint `/enrolments/:id/decision`.
 - **Not built (later releases):** ADM-06 room requests card (R2), ADM-04 group-removal list and ADM-20 reported-message audit (R3).

@@ -25,9 +25,9 @@ export const joinPolicy = {
       active(user) && (isAdminOf(user, r?.department_id) || repOf(user, r?.section_id)),
     hideExistence: true,
   },
-  // Resource: { department_id }. Revoke, appeals, escalated list, standalone claims.
+  // Resource: { department_id }. Appeals and the escalated, rejected and appeals lists.
   'join.admin': (user, r) => active(user) && isAdminOf(user, r?.department_id),
   'join.admin_any': (user) => active(user) && hasRole(user, ['super_admin', 'dept_admin']),
-  // JR-18
-  'join.claim_own': (user) => active(user) && isStudent(user) && hasRole(user, ['cr', 'dcr']),
+  // JR-19 (spec 24 OS-11): remove a student from a section. Resource: { department_id } of the section.
+  'join.remove': (user, r) => active(user) && isAdminOf(user, r?.department_id),
 };

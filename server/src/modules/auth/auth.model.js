@@ -50,13 +50,8 @@ const userSchema = new Schema(
     state_before_deactivation: { type: String, enum: ACCOUNT_STATES },
     // ADM-15: a temporary password was issued; the student must choose their own at next sign-in.
     must_change_password: { type: Boolean, default: false },
-    // JR-08: rejected UV ID claims since the last block, and when a block ends.
-    claim_rejections: {
-      type: new Schema(
-        { count: { type: Number, default: 0 }, blocked_until: { type: Date } },
-        { _id: false },
-      ),
-    },
+    // PRF-10 (spec 24): a student's optional UV ID, as typed (digits only). Not unique, never checked.
+    uv_id: { type: String },
   },
   { collection: 'user', timestamps: true },
 );

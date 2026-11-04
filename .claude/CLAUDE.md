@@ -56,8 +56,8 @@ These come from the PRD. If one of them gets in the way, stop and ask. Don't wor
 
 **Data integrity (MongoDB)**
 - No double-booking: the `room_slot_lock` collection has a unique index on `(room_id, date, block_start)`. Approving a booking inserts its locks inside a transaction.
-- "At most one" and "unique where" rules use **partial unique indexes** (`partialFilterExpression`): one current semester, one accepted enrolment per user per semester, one approved UV ID.
-- "First action wins" decisions (join requests, ID claims, room requests) use a conditional `findOneAndUpdate({ _id, status: 'pending' }, …)`. If nothing matches, return "already decided".
+- "At most one" and "unique where" rules use **partial unique indexes** (`partialFilterExpression`): one current semester, one accepted enrolment per user per semester, one pending join request per user.
+- "First action wins" decisions (join requests, room requests) use a conditional `findOneAndUpdate({ _id, status: 'pending' }, …)`. If nothing matches, return "already decided".
 - The 3-request limit and booking approval (approve, insert locks, cancel or reject overlapping requests) each run in **one transaction**.
 - `audit_log` is append-only: only insert and find, never update or delete. Log every action the PRD's "Auditability" list names.
 

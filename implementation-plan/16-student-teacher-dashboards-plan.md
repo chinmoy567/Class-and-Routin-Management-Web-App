@@ -26,7 +26,7 @@ R9 DSH-09 My section: CR + DCRs (name, photo), courses with the full teacher nam
 R10 DSH-10 Profile reminders: level/term/section/group read-only, semester badge ("Fall 2026 confirmed"), email banner if email bouncing/unverified, group notice if no group.
 R11 DSH-11 Teacher right-now: "Teaching"/"Free", countdown, current/next class (course, section, group, room, time); shared lab shows both teachers' full names.
 R12 DSH-12 Teacher routine: today across sections, week grid cells with course/section/group/room, next-teaching-day preview when no classes remain today.
-R13 DSH-13 Teacher students: roster per taught section (name, UV ID, group). Section not taught → `404`. No phone/email keys.
+R13 DSH-13 Teacher students: roster per taught section (name, profile UV ID, group). Section not taught → `404`. No phone/email keys.
 R14 DSH-14 Teacher rooms: free rooms with date/time picker (spec 13). Request button / "My room requests" arrive in R2 (hidden).
 R15 DSH-15 Teacher notices: calendar events next 14 days. Messages/notifications/announcements hidden.
 R16 DSH-16 Teacher account: linked short code + name, or "not linked yet" notice (empty routine); reminders when phone/photo (and email) missing.
@@ -64,7 +64,7 @@ None blocking. Decisions I made (tell me if you want any changed):
 
 **Existing server modules — small exported helpers only (each module's `index.js`)**
 - `routine/my-routine.service.js` + `routine/index.js`: export `sectionCourses({ semesterId, sectionId, groupId })` over the cached `sectionSlotPattern` (distinct courses, teachers of slots the student's group sees).
-- `enrolments/enrolment.service.js` + `index.js`: `listAcceptedOfSection(sectionId, semesterId)`, `countAcceptedBySection(sectionIds, semesterId)`, `approvedUvIds(userIds)`.
+- `enrolments/enrolment.service.js` + `index.js`: `listAcceptedOfSection(sectionId, semesterId)`, `countAcceptedBySection(sectionIds, semesterId)`; the UV IDs come from `auth.uvIdsOf(userIds)` (spec 24).
 - `auth/` + `auth/index.js`: `contactStatus(userId)` → `{ email_verified, email_bouncing, has_phone, has_photo }` (selects `phone_enc` only to test presence; never returns it).
 - `server/src/app.js`: mount the two routers (one line each; the file already has uncommitted spec-15 edits, which I will not touch).
 
@@ -79,7 +79,7 @@ None blocking. Decisions I made (tell me if you want any changed):
 
 ## Data model
 
-No new collections, no schema changes. Reads only: `enrolment` (accepted, current semester; uses the existing `section_id, status` index), `uv_claim` (approved, by `user_id` — existing `user_id, status` index), `user`, `teacher`, `routine_slot*` (through cached routine helpers), `calendar_event`, rooms (through `freeNow`). No transactions, no "first action wins" update: the endpoints are read-only, so no audit entries (the PRD's Auditability list does not cover dashboard or roster reads).
+No new collections, no schema changes. Reads only: `enrolment` (accepted, current semester; uses the existing `section_id, status` index), `user` (including the optional `uv_id`, spec 24), `teacher`, `routine_slot*` (through cached routine helpers), `calendar_event`, rooms (through `freeNow`). No transactions, no "first action wins" update: the endpoints are read-only, so no audit entries (the PRD's Auditability list does not cover dashboard or roster reads).
 
 ## API
 
@@ -145,7 +145,7 @@ CR/DCR dashboard and CR/DCR roster access (spec 17); admin dashboard (18); messa
 - Cards live in `client/src/features/dashboard/components/`, not as `StudentDashboardPage.jsx` / `TeacherDashboardPage.jsx`. `DashboardPage` takes a `kind` prop, and `routes/HomePage.jsx` dispatches by `me.user.kind`. Staff accounts keep the placeholder until spec 18.
 - `FreeRoomsNowCard` was **not** changed. The dashboard's `RoomsCard` renders the `free_now` data from the dashboard summary, so there is no second request.
 - The week grid, day list and live status card were moved into `client/src/features/routine/components/` (`WeekGrid`, `DayList`, `LiveStatusCard`) and are shared by My routine and the dashboard. `next` in the status card now reads `next.slot` (the earlier inline card read the wrong fields).
-- Helpers added: `contactStatus` (`auth/contact.service.js`), `sectionCoursesFor` (`routine`), `listAcceptedOfSection`, `countAcceptedBySection`, `approvedUvIds` (`enrolments`). Route mounts added to `app.js`.
+- Helpers added: `contactStatus` (`auth/contact.service.js`), `sectionCoursesFor` (`routine`), `listAcceptedOfSection`, `countAcceptedBySection` (`enrolments`), `uvIdsOf` (`auth`, spec 24). Route mounts added to `app.js`.
 - Dashboard API tests cover DSH-01, 02, 07, 08, 09, 10, 13, 15 and 16, plus cross-scope refusals. `cards.test.js` was folded into `dashboard.api.test.js`.
 - The 'Welcome' heading assertions in `AppShell`, `AuthGate`, `auth-forms` and `profile` tests were changed to 'Dashboard'. A student's landing page is now the dashboard (spec 16), so the old assertion no longer matched.
 - Verification fixes (second pass): the countdown now shows a real duration ("in 1 h 10 min", "Class ends in 25 min"), with the teacher and room; a next class on another day shows its date (RTN-10). The teacher week cell shows section and group (DSH-12). The CR/DCR photo is shown (DSH-09). The teacher dashboard embeds the date and time picker of the free-room view (DSH-14), shared as FreeRoomsFinder with the free-room page. The dashboard title shows while loading.

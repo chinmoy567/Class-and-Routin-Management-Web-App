@@ -17,11 +17,12 @@ import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { User, UserRole } from '../../auth/index.js';
 import { Semester } from '../../organisation/index.js';
 import { Section, SectionGroup } from '../../routine/index.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { list as auditList } from '../../audit/index.js';
 import {
   escalateStaleRequests,
   registerJoinAcceptedHook,
+  registerMembershipRemovedHook,
   resetJoinAcceptedHooks,
 } from '../index.js';
 
@@ -44,8 +45,8 @@ afterEach(() => {
   resetJoinAcceptedHooks();
 });
 
+// Spec 24: the UV ID lives on the profile. It is never sent with a join request.
 const ID_A = '0822310205101077';
-const ID_B = '822310205101077';
 
 /** A current semester, two departments, and CSE 2-II-A with a CR and a DCR. */
 async function world() {
@@ -92,7 +93,7 @@ const as = (user) => loginAs(user, app);
 const asAdmin = async (dept) =>
   as(await makeUser({ kind: 'staff', roles: [{ role: 'dept_admin', department_id: dept._id }] }));
 const join = (agent, sectionId, extra = {}) =>
-  agent.post('/api/enrolments').send({ section_id: String(sectionId), uv_id: ID_A, ...extra });
+  agent.post('/api/enrolments').send({ section_id: String(sectionId), ...extra });
 const decide = (agent, id, body) => agent.post(`/api/enrolments/${id}/decision`).send(body);
 const accept = (agent, id, extra = {}) => decide(agent, id, { decision: 'accept', ...extra });
 const reject = (agent, id, reason = 'Not in this batch') =>
@@ -100,10 +101,10 @@ const reject = (agent, id, reason = 'Not in this batch') =>
 const makeGroup = (sec, label) => SectionGroup.create({ section_id: sec._id, label });
 
 /** A student with a pending request in `sec`. */
-async function applicant(w, sec = w.secA, uv = ID_A, extra = {}) {
+async function applicant(w, sec = w.secA, extra = {}) {
   const user = await student(extra);
   const agent = await as(user);
-  const res = await join(agent, sec._id, { uv_id: uv });
+  const res = await join(agent, sec._id);
   expect(res.status).toBe(201);
   return { user, agent, id: res.body.data.id };
 }
@@ -125,7 +126,7 @@ describe('the join form (JR-01 to JR-04)', () => {
     expect(JSON.stringify(res.body)).not.toMatch(/@baiust/);
   });
 
-  it('JR-01 a claim_pending student sends a request with name, UV ID and group', async () => {
+  it('JR-01 a claim_pending student sends a request with name and group', async () => {
     const w = await world();
     const g = await makeGroup(w.secA, 'G1');
     const user = await student({ name: 'Old Name' });
@@ -139,35 +140,24 @@ describe('the join form (JR-01 to JR-04)', () => {
     expect(e.status).toBe('pending');
     expect(String(e.group_id)).toBe(String(g._id));
     expect(String(e.department_id)).toBe(String(w.cse._id));
-    const claim = await UvClaim.findById(e.uv_claim_id).lean();
-    expect(claim).toMatchObject({ status: 'pending', uv_id_text: ID_A, uv_id_norm: ID_B });
     expect((await User.findById(user._id).lean()).full_name).toBe('Rahim Uddin');
   });
 
-  it('JR-01 a UV ID is required until a claim is approved, and must be 1 to 20 digits', async () => {
+  it('OS-06 a join request that carries uv_id is a VALIDATION_ERROR, and nothing is created', async () => {
     const w = await world();
     const agent = await as(await student());
-    const none = await agent.post('/api/enrolments').send({ section_id: String(w.secA._id) });
-    expect(none.status).toBe(400);
-    expect(none.body.error.fields.uv_id).toBeTruthy();
-    const bad = await join(agent, w.secA._id, { uv_id: '12ab' });
-    expect(bad.status).toBe(400);
+    const res = await join(agent, w.secA._id, { uv_id: ID_A });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(await Enrolment.countDocuments({})).toBe(0);
   });
 
-  it('JR-01 an unconfirmed student with an approved UV ID needs no UV ID and can join again', async () => {
+  it('JR-01 an unconfirmed student joins again with no UV ID at all', async () => {
     const w = await world();
     const user = await makeUser({ kind: 'student', state: 'unconfirmed' });
-    await UvClaim.create({
-      user_id: user._id,
-      department_id: w.cse._id,
-      uv_id_text: ID_A,
-      uv_id_norm: ID_B,
-      status: 'approved',
-    });
     const agent = await as(user);
-    const res = await agent.post('/api/enrolments').send({ section_id: String(w.secA._id) });
+    const res = await join(agent, w.secA._id);
     expect(res.status).toBe(201);
-    expect((await Enrolment.findById(res.body.data.id).lean()).uv_claim_id).toBeUndefined();
     expect((await accept(await as(w.cr), res.body.data.id)).status).toBe(200);
     expect((await User.findById(user._id).lean()).state).toBe('active');
   });
@@ -191,7 +181,6 @@ describe('the join form (JR-01 to JR-04)', () => {
     expect(second.body.error.code).toBe('REQUEST_ALREADY_OPEN');
     const out = await a.agent.post(`/api/enrolments/${a.id}/withdraw`);
     expect(out.status).toBe(200);
-    expect(await UvClaim.countDocuments({ user_id: a.user._id })).toBe(0);
     expect((await join(a.agent, w.secA._id)).status).toBe(201);
     const again = await a.agent.post(`/api/enrolments/${a.id}/withdraw`);
     expect(again.body.error.code).toBe('ALREADY_DECIDED');
@@ -231,75 +220,54 @@ describe('the join form (JR-01 to JR-04)', () => {
   });
 });
 
-describe('UV ID rules (JR-06 to JR-08)', () => {
-  it('JR-06 an ID approved for another account is refused and the admin is told; a pending claim reserves nothing', async () => {
+describe('no claim rules any more (spec 24 OS-08, OS-10)', () => {
+  it('OS-08 the removed claim routes return 404', async () => {
     const w = await world();
-    const admin = await makeUser({
-      kind: 'staff',
-      roles: [{ role: 'dept_admin', department_id: w.cse._id }],
-    });
-    const a = await applicant(w);
-    // B's pending claim for the same ID is allowed while A is only pending.
-    const b = await student();
-    expect((await join(await as(b), w.secA._id, { uv_id: ID_B })).status).toBe(201);
-    expect((await accept(await as(w.cr), a.id)).status).toBe(200);
-    clearOutbox();
-    const c = await as(await student());
-    const res = await join(c, w.secA._id, { uv_id: ID_B });
-    expect(res.status).toBe(409);
-    expect(res.body.error.code).toBe('UV_ID_TAKEN');
-    const mail = await drainMail();
-    expect(mail.some((m) => m.to === admin.email && /UV ID claim/.test(m.subject))).toBe(true);
+    const cr = await as(w.cr);
+    const admin = await asAdmin(w.cse);
+    const id = 'a'.repeat(24);
+    expect((await cr.post('/api/me/uv-claim').send({ uv_id: '123' })).status).toBe(404);
+    expect(
+      (await admin.post(`/api/admin/uv-claims/${id}/revoke`).send({ reason: 'Because' })).status,
+    ).toBe(404);
+    expect(
+      (await admin.post(`/api/admin/uv-claims/${id}/decision`).send({ decision: 'approve' }))
+        .status,
+    ).toBe(404);
+    expect((await admin.get('/api/admin/join-requests?view=claims')).status).toBe(400);
+    expect(mongoose.connection.modelNames()).not.toContain('UvClaim');
   });
 
-  it('JR-07 and [PRD] two pending claims for the same ID both show the duplicate badge', async () => {
+  it('OS-05 two applicants with the same profile UV ID can both be accepted', async () => {
     const w = await world();
-    await applicant(w, w.secA, ID_A);
-    await applicant(w, w.secA, ID_B);
-    const res = await (
-      await as(w.cr)
-    ).get(`/api/sections/${w.secA.id}/join-requests?status=pending`);
-    expect(res.status).toBe(200);
-    expect(res.body.data).toHaveLength(2);
-    expect(res.body.data.every((r) => r.duplicate_pending_claim === true)).toBe(true);
+    const a = await applicant(w, w.secA, { uv_id: ID_A });
+    const b = await applicant(w, w.secA, { uv_id: ID_A });
+    const cr = await as(w.cr);
+    expect((await accept(cr, a.id)).status).toBe(200);
+    expect((await accept(cr, b.id)).status).toBe(200);
+    expect((await Enrolment.findById(b.id).lean()).status).toBe('accepted');
   });
 
-  it('JR-07 a unique pending claim has no badge', async () => {
+  it('OS-10 and JR-12 rejections are not counted: after six the student can still apply', async () => {
     const w = await world();
-    await applicant(w, w.secA, ID_A);
-    await applicant(w, w.secA, '999');
-    const res = await (await as(w.cr)).get(`/api/sections/${w.secA.id}/join-requests`);
-    expect(res.body.data.some((r) => r.duplicate_pending_claim)).toBe(false);
-  });
-
-  it('JR-08 the fifth rejection blocks claims for 24 hours, then the count starts again', async () => {
-    const w = await world();
-    fixClock('2026-08-01T06:00:00Z');
     const user = await student();
     const agent = await as(user);
     const cr = await as(w.cr);
-    for (let i = 0; i < 5; i += 1) {
-      const sent = await join(agent, w.secA._id, { uv_id: `70${i}` });
+    for (let i = 0; i < 6; i += 1) {
+      const sent = await join(agent, w.secA._id);
       expect(sent.status).toBe(201);
       expect((await reject(cr, sent.body.data.id)).status).toBe(200);
     }
-    const blocked = await join(agent, w.secA._id, { uv_id: '799' });
-    expect(blocked.status).toBe(429);
-    expect(blocked.body.error.code).toBe('CLAIM_BLOCKED');
-    expect(new Date(blocked.body.error.blocked_until).toISOString()).toBe(
-      '2026-08-02T06:00:00.000Z',
-    );
-    fixClock('2026-08-02T06:00:01Z');
-    expect((await join(agent, w.secA._id, { uv_id: '799' })).status).toBe(201);
-    expect((await User.findById(user._id).lean()).claim_rejections.count).toBe(0);
+    expect((await join(agent, w.secA._id)).status).toBe(201);
+    expect((await User.findById(user._id).lean()).claim_rejections).toBeUndefined();
   });
 });
 
 describe('deciding (JR-09 to JR-12)', () => {
-  it('JR-09 the CR sees name, email, photo field, UV ID, section and requested group', async () => {
+  it('JR-09 and OS-07 the CR sees name, email, photo field, profile UV ID, section and group', async () => {
     const w = await world();
     const g = await makeGroup(w.secA, 'G2');
-    const user = await student({ name: 'Karim Ali' });
+    const user = await student({ name: 'Karim Ali', uv_id: ID_A });
     await join(await as(user), w.secA._id, { group_id: String(g._id) });
     const res = await (await as(w.cr)).get(`/api/sections/${w.secA.id}/join-requests`);
     const row = res.body.data[0];
@@ -312,6 +280,32 @@ describe('deciding (JR-09 to JR-12)', () => {
       group: { label: 'G2' },
     });
     expect(row).toHaveProperty('photo_url');
+    expect(row).not.toHaveProperty('duplicate_pending_claim');
+  });
+
+  it('OS-07 an applicant with no profile UV ID shows uv_id null', async () => {
+    const w = await world();
+    await applicant(w);
+    const res = await (await as(w.cr)).get(`/api/sections/${w.secA.id}/join-requests`);
+    expect(res.body.data[0].uv_id).toBeNull();
+  });
+
+  it('OS-07 the CR of 2-II-B gets 404 for 2-II-A requests and never sees their UV IDs', async () => {
+    const w = await world();
+    const secB = await w.section(w.cse, 'B');
+    const crB = await as(await w.rep(secB, w.cse, 'cr'));
+    await applicant(w, w.secA, { uv_id: ID_A });
+    const res = await crB.get(`/api/sections/${w.secA.id}/join-requests`);
+    expect(res.status).toBe(404);
+    expect(JSON.stringify(res.body)).not.toContain(ID_A);
+  });
+
+  it('OS-07 the admin of the department sees the UV ID on the request lists, without email', async () => {
+    const w = await world();
+    await applicant(w, w.secA, { uv_id: ID_A });
+    const res = await (await asAdmin(w.cse)).get(`/api/sections/${w.secA.id}/join-requests`);
+    expect(res.body.data[0].uv_id).toBe(ID_A);
+    expect(res.body.data[0]).not.toHaveProperty('email');
   });
 
   it('JR-09 the admin list for the same section never carries an email', async () => {
@@ -323,7 +317,7 @@ describe('deciding (JR-09 to JR-12)', () => {
     expect(JSON.stringify(res.body)).not.toMatch(/@baiust/);
   });
 
-  it('JR-11 and [PRD] accepting makes the student active with an enrolment, group and approved claim', async () => {
+  it('JR-11 and [PRD] accepting makes the student active with an enrolment and group', async () => {
     const w = await world();
     const g1 = await makeGroup(w.secA, 'G1');
     const g2 = await makeGroup(w.secA, 'G2');
@@ -340,7 +334,6 @@ describe('deciding (JR-09 to JR-12)', () => {
     expect(u.state).toBe('active');
     expect(String(u.confirmed_semester_id)).toBe(String(w.current._id));
     expect(String(u.department_id)).toBe(String(w.cse._id));
-    expect((await UvClaim.findById(e.uv_claim_id).lean()).status).toBe('approved');
     expect(seen).toEqual([
       {
         user_id: String(a.user._id),
@@ -352,7 +345,8 @@ describe('deciding (JR-09 to JR-12)', () => {
     const mail = await drainMail();
     expect(mail.some((m) => m.to === a.user.email && /joined/.test(m.subject))).toBe(true);
     const actions = (await auditList({})).map((x) => x.action);
-    expect(actions).toEqual(expect.arrayContaining(['join.accept', 'uv_claim.approve']));
+    expect(actions).toContain('join.accept');
+    expect(actions.some((x) => x.startsWith('uv_claim'))).toBe(false);
   });
 
   it('JR-11 without a corrected group the requested group is kept', async () => {
@@ -366,27 +360,7 @@ describe('deciding (JR-09 to JR-12)', () => {
     expect(e.group_set_by).toBeUndefined();
   });
 
-  it('JR-11 and [PRD] accepting A rejects B (same ID) automatically and tells the admin', async () => {
-    const w = await world();
-    const admin = await makeUser({
-      kind: 'staff',
-      roles: [{ role: 'dept_admin', department_id: w.cse._id }],
-    });
-    const a = await applicant(w, w.secA, ID_A);
-    const b = await applicant(w, w.secA, ID_B);
-    expect((await accept(await as(w.cr), a.id)).status).toBe(200);
-    const rowB = await Enrolment.findById(b.id).lean();
-    expect(rowB).toMatchObject({ status: 'rejected', reason: 'ID approved for another account' });
-    expect((await UvClaim.findById(rowB.uv_claim_id).lean()).status).toBe('rejected');
-    expect((await User.findById(b.user._id).lean()).state).toBe('claim_pending');
-    // an automatic rejection is not a decider's rejection
-    expect((await User.findById(b.user._id).lean()).claim_rejections?.count ?? 0).toBe(0);
-    const mail = await drainMail();
-    expect(mail.some((m) => m.to === admin.email && /UV ID claim/.test(m.subject))).toBe(true);
-    expect(mail.some((m) => m.to === b.user.email && /not accepted/.test(m.subject))).toBe(true);
-  });
-
-  it('JR-10 CR and DCR accepting at the same moment: one 200, one ALREADY_DECIDED', async () => {
+  it('JR-10 and OS-09 CR and DCR accepting at the same moment: one 200, one ALREADY_DECIDED', async () => {
     const w = await world();
     const a = await applicant(w);
     const [cr, dcr] = [await as(w.cr), await as(w.dcr)];
@@ -395,6 +369,19 @@ describe('deciding (JR-09 to JR-12)', () => {
     const lost = results.find((r) => r.status === 409);
     expect(lost.body.error.code).toBe('ALREADY_DECIDED');
     expect(await Enrolment.countDocuments({ status: 'accepted' })).toBe(1);
+  });
+
+  it('OS-09 CR accepting and DCR rejecting at the same moment: exactly one decision applies', async () => {
+    const w = await world();
+    const a = await applicant(w);
+    const [cr, dcr] = [await as(w.cr), await as(w.dcr)];
+    const results = await Promise.all([accept(cr, a.id), reject(dcr, a.id)]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect(results.find((r) => r.status === 409).body.error.code).toBe('ALREADY_DECIDED');
+    const e = await Enrolment.findById(a.id).lean();
+    expect(['accepted', 'rejected']).toContain(e.status);
+    const decided = await auditList({});
+    expect(decided.filter((x) => ['join.accept', 'join.reject'].includes(x.action))).toHaveLength(1);
   });
 
   it('JR-10 a second decision after the first returns ALREADY_DECIDED', async () => {
@@ -429,19 +416,6 @@ describe('deciding (JR-09 to JR-12)', () => {
     expect(JSON.stringify(list.body)).not.toMatch(/@baiust/);
   });
 
-  it('JR-11 two accepts of the same UV ID in different sections: one 200, one UV_ID_TAKEN', async () => {
-    const w = await world();
-    const secB = await w.section(w.cse, 'B');
-    const crB = await w.rep(secB, w.cse, 'cr');
-    const a = await applicant(w, w.secA, ID_A);
-    const b = await applicant(w, secB, ID_B);
-    const results = await Promise.all([accept(await as(w.cr), a.id), accept(await as(crB), b.id)]);
-    const statuses = results.map((r) => r.status).sort();
-    // The second transaction either sees the first's auto-rejection or hits the unique index.
-    expect(statuses[0]).toBe(200);
-    expect([409]).toContain(statuses[1]);
-    expect(await UvClaim.countDocuments({ status: 'approved' })).toBe(1);
-  });
 });
 
 describe('who may decide (cross-scope refusals)', () => {
@@ -612,48 +586,79 @@ describe('groups (JR-16, JR-17)', () => {
   });
 });
 
-describe('revocation and appeals (JR-19, JR-20)', () => {
-  it('JR-19 revoking sends the wrong account back to waiting and lets the real owner claim', async () => {
+describe('removal from a section and appeals (JR-19, JR-20)', () => {
+  const remove = (agent, id, reason = 'Not in this section') =>
+    agent.post(`/api/admin/enrolments/${id}/remove`).send({ reason });
+
+  it('JR-19 and OS-11 the admin removes a student: enrolment revoked, back to claim_pending, audited', async () => {
     const w = await world();
-    const wrong = await applicant(w, w.secA, ID_A);
-    await accept(await as(w.cr), wrong.id);
-    const claim = await UvClaim.findOne({ user_id: wrong.user._id }).lean();
+    const a = await applicant(w);
+    expect((await accept(await as(w.cr), a.id)).status).toBe(200);
+    const seen = [];
+    registerMembershipRemovedHook(async (info) => seen.push(info));
     const admin = await asAdmin(w.cse);
-    expect(
-      (await admin.post(`/api/admin/uv-claims/${claim._id}/revoke`).send({ reason: 'x' })).status,
-    ).toBe(400);
-    const res = await admin
-      .post(`/api/admin/uv-claims/${claim._id}/revoke`)
-      .send({ reason: 'Owner came in person' });
+    expect((await remove(admin, a.id, 'x')).status).toBe(400);
+    const res = await remove(admin, a.id, 'Joined the wrong section');
     expect(res.status).toBe(200);
-    expect((await UvClaim.findById(claim._id).lean()).status).toBe('revoked');
-    expect((await Enrolment.findById(wrong.id).lean()).status).toBe('revoked');
-    expect((await User.findById(wrong.user._id).lean()).state).toBe('claim_pending');
-    const owner = await applicant(w, w.secA, ID_B);
-    expect((await accept(await as(w.cr), owner.id)).status).toBe(200);
-    expect(await UvClaim.countDocuments({ status: 'approved', uv_id_norm: ID_B })).toBe(1);
-    expect((await auditList({ action: 'uv_claim.revoke' })).length).toBe(1);
-    // revoking again is refused
-    const again = await admin
-      .post(`/api/admin/uv-claims/${claim._id}/revoke`)
-      .send({ reason: 'again again' });
-    expect(again.status).toBe(409);
+    expect(res.body.data).toEqual({ id: a.id, status: 'revoked' });
+    const e = await Enrolment.findById(a.id).lean();
+    expect(e).toMatchObject({ status: 'revoked', reason: 'Joined the wrong section' });
+    const u = await User.findById(a.user._id).lean();
+    expect(u.state).toBe('claim_pending');
+    expect(u.confirmed_semester_id).toBeUndefined();
+    expect(seen).toEqual([
+      { user_id: String(a.user._id), section_id: w.secA.id, semester_id: String(w.current._id) },
+    ]);
+    const log = await auditList({ action: 'join.remove' });
+    expect(log).toHaveLength(1);
+    expect(log[0].new_value).toMatchObject({ status: 'revoked', reason: 'Joined the wrong section' });
+    // the student can apply again
+    expect((await join(await as(a.user), w.secA._id)).status).toBe(201);
   });
 
-  it('JR-19 only an admin of that department can revoke', async () => {
+  it('JR-19 removing twice, or removing a request that was never accepted, is a CONFLICT', async () => {
+    const w = await world();
+    const a = await applicant(w);
+    const admin = await asAdmin(w.cse);
+    const pending = await remove(admin, a.id);
+    expect(pending.status).toBe(409);
+    expect(pending.body.error.code).toBe('CONFLICT');
+    await accept(await as(w.cr), a.id);
+    expect((await remove(admin, a.id)).status).toBe(200);
+    expect((await remove(admin, a.id)).status).toBe(409);
+  });
+
+  it('JR-19 two admins removing at the same moment: one 200, one CONFLICT, one audit entry', async () => {
     const w = await world();
     const a = await applicant(w);
     await accept(await as(w.cr), a.id);
-    const claim = await UvClaim.findOne({ user_id: a.user._id }).lean();
-    const body = { reason: 'Because reasons' };
-    expect(
-      (await (await asAdmin(w.eee)).post(`/api/admin/uv-claims/${claim._id}/revoke`).send(body))
-        .status,
-    ).toBe(403);
-    expect(
-      (await (await as(w.cr)).post(`/api/admin/uv-claims/${claim._id}/revoke`).send(body)).status,
-    ).toBe(403);
-    expect((await UvClaim.findById(claim._id).lean()).status).toBe('approved');
+    const [one, two] = [await asAdmin(w.cse), await asAdmin(w.cse)];
+    const results = await Promise.all([remove(one, a.id), remove(two, a.id)]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect(await auditList({ action: 'join.remove' })).toHaveLength(1);
+  });
+
+  it('JR-19 and OS-11 an admin of another department gets 403; a CR, a teacher and a student too', async () => {
+    const w = await world();
+    const a = await applicant(w);
+    await accept(await as(w.cr), a.id);
+    const teacher = await as(await makeUser({ kind: 'teacher', state: 'active' }));
+    expect((await remove(await asAdmin(w.eee), a.id)).status).toBe(403);
+    expect((await remove(await as(w.cr), a.id)).status).toBe(403);
+    expect((await remove(teacher, a.id)).status).toBe(403);
+    expect((await remove(a.agent, a.id)).status).toBe(403);
+    expect((await Enrolment.findById(a.id).lean()).status).toBe('accepted');
+    expect((await User.findById(a.user._id).lean()).state).toBe('active');
+    expect(await auditList({ action: 'join.remove' })).toHaveLength(0);
+  });
+
+  it('JR-19 a super admin may remove in any department; an unknown id is 404', async () => {
+    const w = await world();
+    const a = await applicant(w);
+    await accept(await as(w.cr), a.id);
+    const sup = await as(await makeUser({ kind: 'staff', roles: [{ role: 'super_admin' }] }));
+    expect((await remove(sup, 'f'.repeat(24))).status).toBe(404);
+    expect((await remove(sup, a.id)).status).toBe(200);
   });
 
   it('JR-20 a rejected student appeals once; the admin upholds', async () => {
@@ -693,7 +698,6 @@ describe('revocation and appeals (JR-19, JR-20)', () => {
       appeal: { status: 'reversed' },
     });
     expect((await User.findById(a.user._id).lean()).state).toBe('active');
-    expect((await UvClaim.findOne({ user_id: a.user._id }).lean()).status).toBe('approved');
   });
 
   it('JR-20 only the owner can appeal, and only a rejected request', async () => {
@@ -721,48 +725,41 @@ describe('revocation and appeals (JR-19, JR-20)', () => {
   });
 });
 
-describe('a CR or DCR own claim (JR-18)', () => {
-  it('JR-18 goes to the admin only; the admin approves it', async () => {
+describe('a CR or DCR own join request (JR-18, OS-12)', () => {
+  it('JR-18 a request from a student with a CR role in effect goes straight to the admin', async () => {
     const w = await world();
-    const cr = await as(w.cr);
-    const res = await cr.post('/api/me/uv-claim').send({ uv_id: '555 777' });
+    const secB = await w.section(w.cse, 'B');
+    await w.rep(secB, w.cse, 'cr'); // secB is open
+    // A DCR of 2-II-B whom the admin removed from their section is waiting again.
+    const waitingRep = await makeUser({
+      kind: 'student',
+      state: 'claim_pending',
+      roles: [
+        {
+          role: 'dcr',
+          department_id: w.cse._id,
+          section_id: secB._id,
+          semester_id: w.current._id,
+          is_representative: true,
+        },
+      ],
+    });
+    const agent = await as(waitingRep);
+    const res = await join(agent, secB._id);
     expect(res.status).toBe(201);
-    expect(await Enrolment.countDocuments({ user_id: w.cr._id, status: 'pending' })).toBe(0);
-    expect((await cr.post('/api/me/uv-claim').send({ uv_id: '555 778' })).status).toBe(409);
-    // the CR cannot decide it
-    const claimId = res.body.data.id;
-    const own = await cr
-      .post(`/api/admin/uv-claims/${claimId}/decision`)
-      .send({ decision: 'approve' });
-    expect(own.status).toBe(403);
+    expect((await Enrolment.findById(res.body.data.id).lean()).escalated_at).toBeInstanceOf(Date);
+    // nobody at the CR level decides it, not even the requester
+    expect((await accept(agent, res.body.data.id)).status).toBe(403);
     const admin = await asAdmin(w.cse);
-    const list = await admin.get('/api/admin/join-requests?view=claims');
-    expect(list.body.data.map((c) => c.id)).toEqual([claimId]);
-    const ok = await admin
-      .post(`/api/admin/uv-claims/${claimId}/decision`)
-      .send({ decision: 'approve' });
-    expect(ok.status).toBe(200);
-    expect((await UvClaim.findById(claimId).lean()).status).toBe('approved');
+    const list = await admin.get('/api/admin/join-requests?view=escalated');
+    expect(list.body.data.map((r) => r.id)).toEqual([res.body.data.id]);
+    expect((await accept(admin, res.body.data.id)).status).toBe(200);
   });
 
-  it('JR-18 a student without a CR or DCR role cannot use it', async () => {
+  it('JR-18 an ordinary student request is not escalated', async () => {
     const w = await world();
-    void w;
-    const res = await (
-      await as(await makeUser({ kind: 'student', state: 'active' }))
-    )
-      .post('/api/me/uv-claim')
-      .send({ uv_id: '123' });
-    expect(res.status).toBe(403);
-  });
-
-  it('JR-18 an ID approved for another account is refused', async () => {
-    const w = await world();
-    const a = await applicant(w, w.secA, '4242');
-    await accept(await as(w.cr), a.id);
-    const res = await (await as(w.dcr)).post('/api/me/uv-claim').send({ uv_id: '04242' });
-    expect(res.status).toBe(409);
-    expect(res.body.error.code).toBe('UV_ID_TAKEN');
+    const a = await applicant(w);
+    expect((await Enrolment.findById(a.id).lean()).escalated_at).toBeUndefined();
   });
 });
 
@@ -775,6 +772,7 @@ describe('the waiting screen (JR-21) and account states', () => {
     expect(pending.body.data).toMatchObject({ status: 'pending', section: { name: 'CSE 2-II-A' } });
     expect(pending.body.data.representatives.map((r) => r.role).sort()).toEqual(['cr', 'dcr']);
     expect(JSON.stringify(pending.body)).not.toMatch(/@baiust/);
+    expect(pending.body.data).not.toHaveProperty('uv_id');
     await reject(await as(w.cr), a.id, 'Wrong batch');
     const rejected = await a.agent.get('/api/me/join-request');
     expect(rejected.body.data).toMatchObject({ status: 'rejected', reason: 'Wrong batch' });

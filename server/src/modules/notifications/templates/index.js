@@ -59,7 +59,6 @@ const templates = {
   join_accepted: simple('join_accepted'),
   join_rejected: simple('join_rejected'),
   group_changed: simple('group_changed'),
-  uv_id_conflict: simple('uv_id_conflict'),
 };
 
 /** EML-03: every email carries the app link. A caller may override it (tests do). */

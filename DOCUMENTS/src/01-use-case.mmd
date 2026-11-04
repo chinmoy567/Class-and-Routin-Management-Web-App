@@ -11,7 +11,7 @@ flowchart LR
     direction TB
     UC1(("Sign up & verify email"))
     UC2(("Edit profile"))
-    UC3(("Submit join form / claim UV ID"))
+    UC3(("Submit join form"))
     UC4(("View My routine & week grid"))
     UC5(("Live status & countdown"))
     UC6(("Free-room view"))
@@ -30,13 +30,13 @@ flowchart LR
     UC19(("Decide room requests"))
     UC20(("Manage classrooms"))
     UC21(("Cancel single class"))
-    UC22(("Suspend chat / deactivate user"))
+    UC22(("Suspend chat / deactivate user / remove from section"))
     UC23(("Read audit log"))
     UC24(("Manage departments & admins"))
     UC25(("Create semester & rollover"))
     UC26(("Holidays & special periods"))
-    UC27(("Set allowed email domains"))
-    UC28(("Auto-expire requests, escalate claims, retention"))
+    UC27(("Set allowed email domains (teachers)"))
+    UC28(("Auto-expire requests, escalate join requests, retention"))
   end
 
   S --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC8 & UC9 & UC10

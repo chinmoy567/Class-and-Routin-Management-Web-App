@@ -11,8 +11,6 @@ export const link = () => `${getConfig().APP_URL}/login`;
 export const alreadyDecided = () =>
   new AppError(409, 'ALREADY_DECIDED', 'Someone already decided this request.');
 export const conflict = (message) => new AppError(409, 'CONFLICT', message);
-export const uvIdTaken = () =>
-  new AppError(409, 'UV_ID_TAKEN', 'This UV ID is already approved for another account.');
 
 /** "CSE 2-II-A" */
 export async function sectionLabel(section) {

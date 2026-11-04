@@ -1,31 +1,16 @@
-// JR-01 to JR-06, JR-08, JR-18, JR-21: sending, withdrawing and looking at a join request.
-import { normaliseUvId } from '@crm/shared';
-import { Enrolment, UvClaim } from '../enrolments/index.js';
-import {
-  claimBlockedUntil,
-  departmentAdminIds,
-  clearNotEnrolled,
-  setStudentName,
-  studentSummaries,
-} from '../auth/index.js';
+// JR-01 to JR-04, JR-18, JR-21: sending, withdrawing and looking at a join request.
+// Spec 24: there is no UV ID claim; the UV ID is an optional profile field (spec 02 PRF-10).
+import { Enrolment } from '../enrolments/index.js';
+import { clearNotEnrolled, setStudentName, studentSummaries } from '../auth/index.js';
 import { getGroupBrief, listGroupsOfSections, listSectionsBrief } from '../routine/index.js';
 import { crDcrOf, isOpen } from '../representatives/index.js';
 import { currentSemester, listActiveDepartments, getSemester } from '../organisation/index.js';
 import { record } from '../audit/index.js';
-import { enqueue } from '../notifications/index.js';
-import { can } from '../../policy/index.js';
-import { afterCommit, withTransaction } from '../../lib/db.js';
+import { can, hasRole } from '../../policy/index.js';
+import { withTransaction } from '../../lib/db.js';
 import { AppError, notFound } from '../../lib/errors.js';
 import { clock } from '../../lib/time.js';
-import {
-  alreadyDecided,
-  idOk,
-  link,
-  loadSectionOr404,
-  sectionLabel,
-  sectionLetters,
-  uvIdTaken,
-} from './common.js';
+import { alreadyDecided, idOk, loadSectionOr404, sectionLabel, sectionLetters } from './common.js';
 
 const invalid = (fields) =>
   new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid.', fields);
@@ -39,18 +24,6 @@ function assertWaitingStudent(actor) {
     });
   }
 }
-
-const claimBlocked = (until) => {
-  const err = new AppError(
-    429,
-    'CLAIM_BLOCKED',
-    'Too many rejected UV ID claims. Try again later.',
-    { blocked_until: until.toISOString() },
-  );
-  err.extra = { blocked_until: until.toISOString() };
-  err.retryAfter = Math.max(1, Math.ceil((until.getTime() - clock.now().getTime()) / 1000));
-  return err;
-};
 
 /** JR-03: open sections of the current semester by department, and departments still setting up. */
 export async function joinOptions(actor) {
@@ -90,42 +63,6 @@ export async function joinOptions(actor) {
   return { semester: { id: semester.id, name: semester.name }, departments: out };
 }
 
-/** JR-06: tell the admin of the chosen department that someone claimed an approved ID. */
-async function notifyIdTaken(section, uv) {
-  const label = await sectionLabel(section);
-  for (const adminId of await departmentAdminIds(section.department_id)) {
-    await enqueue({
-      to_user_id: adminId,
-      template: 'uv_id_conflict',
-      data: {
-        uv_id: uv.text,
-        section: label,
-        detail: 'it is already approved for another account.',
-        link: link(),
-      },
-    });
-  }
-}
-
-/** JR-05, JR-06, JR-08: the checks a new claim must pass. Returns the cleaned ID. */
-async function checkNewClaim(actor, rawUvId, section) {
-  if (!rawUvId) throw invalid({ uv_id: 'Enter your UV ID' });
-  const uv = normaliseUvId(rawUvId);
-  if (!uv) throw invalid({ uv_id: 'Enter 1 to 20 digits' });
-  const until = await claimBlockedUntil(actor._id);
-  if (until) throw claimBlocked(until);
-  const taken = await UvClaim.exists({
-    uv_id_norm: uv.norm,
-    status: 'approved',
-    user_id: { $ne: actor._id },
-  });
-  if (taken) {
-    await notifyIdTaken(section, uv);
-    throw uvIdTaken();
-  }
-  return uv;
-}
-
 /** JR-01, JR-02 */
 export async function createRequest(actor, body) {
   assertWaitingStudent(actor);
@@ -143,26 +80,11 @@ export async function createRequest(actor, body) {
   if (await Enrolment.exists({ user_id: actor._id, status: 'pending' })) {
     throw new AppError(409, 'REQUEST_ALREADY_OPEN', 'You already have a request waiting.');
   }
-  const approved = await UvClaim.exists({ user_id: actor._id, status: 'approved' });
-  const uv = approved ? null : await checkNewClaim(actor, body.uv_id, section);
+  // JR-18: a CR or DCR never decides their own request; it goes straight to the admin.
+  const ownRequest = hasRole(actor, ['cr', 'dcr']);
 
   try {
     const enrolment = await withTransaction(async (session) => {
-      let claim = null;
-      if (uv) {
-        [claim] = await UvClaim.create(
-          [
-            {
-              user_id: actor._id,
-              department_id: section.department_id,
-              uv_id_text: uv.text,
-              uv_id_norm: uv.norm,
-              status: 'pending',
-            },
-          ],
-          { session },
-        );
-      }
       // ROL-10: sending a request ends a "not enrolled this semester" choice.
       await clearNotEnrolled(actor._id, session);
       // JR-01: the name is given on the first request only.
@@ -176,7 +98,7 @@ export async function createRequest(actor, body) {
             section_id: section.id,
             department_id: section.department_id,
             ...(body.group_id && { group_id: body.group_id }),
-            ...(claim && { uv_claim_id: claim._id }),
+            ...(ownRequest && { escalated_at: clock.now() }),
             status: 'pending',
           },
         ],
@@ -190,7 +112,7 @@ export async function createRequest(actor, body) {
         new_value: {
           section_id: section.id,
           group_id: body.group_id ?? null,
-          uv_claim: Boolean(claim),
+          escalated: ownRequest,
         },
         session,
       });
@@ -217,9 +139,6 @@ export async function withdrawRequest(actor, id) {
       { new: true, session },
     ).lean();
     if (!e) return null;
-    // A claim nobody decided never reserved the ID, so it can go.
-    if (e.uv_claim_id)
-      await UvClaim.deleteOne({ _id: e.uv_claim_id, status: 'pending' }, { session });
     await record({
       actor,
       action: 'join.withdraw',
@@ -248,7 +167,6 @@ export async function myRequest(actor) {
   const section = await loadSectionOr404(e.section_id);
   const semester = await getSemester(e.semester_id);
   const group = e.group_id ? await getGroupBrief(e.group_id) : null;
-  const claim = e.uv_claim_id ? await UvClaim.findById(e.uv_claim_id).lean() : null;
   const reps = await crDcrOf(section.id);
   const people = await studentSummaries(reps.map((r) => r.user_id));
   return {
@@ -260,7 +178,6 @@ export async function myRequest(actor) {
     section: { id: section.id, name: await sectionLabel(section) },
     semester: semester ? { id: semester.id, name: semester.name } : null,
     group: group ? { id: group.id, label: group.label } : null,
-    uv_id: claim ? { text: claim.uv_id_text, status: claim.status } : null,
     created_at: e.created_at,
     representatives: reps.map((r) => ({
       user_id: r.user_id,
@@ -278,58 +195,4 @@ export async function hasOpenRequest(userId) {
     .select('status')
     .lean();
   return e?.status === 'pending';
-}
-
-/** JR-18: a CR or DCR's own claim goes straight to the department admin. */
-export async function submitOwnClaim(actor, { uv_id }) {
-  if (!can(actor, 'join.claim_own')) {
-    throw new AppError(403, 'FORBIDDEN', 'Only a CR or DCR can claim their UV ID here.');
-  }
-  const role = (actor.roles ?? []).find((r) => ['cr', 'dcr'].includes(r.role));
-  const section = await loadSectionOr404(role.section_id);
-  if (await UvClaim.exists({ user_id: actor._id, status: { $in: ['approved', 'pending'] } })) {
-    throw new AppError(409, 'CONFLICT', 'You already have a UV ID claim.');
-  }
-  const uv = await checkNewClaim(actor, uv_id, section);
-  const claim = await withTransaction(async (session) => {
-    const [row] = await UvClaim.create(
-      [
-        {
-          user_id: actor._id,
-          department_id: section.department_id,
-          uv_id_text: uv.text,
-          uv_id_norm: uv.norm,
-          status: 'pending',
-        },
-      ],
-      { session },
-    );
-    await record({
-      actor,
-      action: 'join.request',
-      scope_department_id: section.department_id,
-      target: { type: 'uv_claim', id: row._id },
-      new_value: { own_claim: true },
-      session,
-    });
-    await afterCommit(() => notifyAdminsOfClaim(section, uv));
-    return row;
-  });
-  return { id: String(claim._id), status: 'pending' };
-}
-
-async function notifyAdminsOfClaim(section, uv) {
-  const label = await sectionLabel(section);
-  for (const adminId of await departmentAdminIds(section.department_id)) {
-    await enqueue({
-      to_user_id: adminId,
-      template: 'uv_id_conflict',
-      data: {
-        uv_id: uv.text,
-        section: label,
-        detail: 'a CR or DCR asked you to approve it.',
-        link: link(),
-      },
-    });
-  }
 }

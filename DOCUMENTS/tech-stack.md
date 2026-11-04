@@ -30,7 +30,7 @@ The decided stack for the Class & Routine Management web app is **MERN**: MongoD
 | Password hashing | argon2 | |
 | Rate limiting | `express-rate-limit` with a MongoDB store | |
 | Real-time | Socket.IO | Chat and push events only. Everything else is REST |
-| Background jobs | Agenda (jobs stored in MongoDB) | Booking expiry, claim escalation, email digests, retention purge, semester rollover |
+| Background jobs | Agenda (jobs stored in MongoDB) | Booking expiry, join request escalation, email digests, retention purge, semester rollover |
 | File storage | MongoDB GridFS | Chat files and routine uploads |
 | Malware scanning | ClamAV | Required by the PRD's file rules; files are scanned by a background job before they become available |
 | Excel import | ExcelJS | Routine `.xlsx` import |
@@ -44,7 +44,7 @@ The PRD was written assuming PostgreSQL. These are the MongoDB equivalents:
 | PRD rule | MongoDB approach |
 |---|---|
 | No double-booking of a room (Postgres exclusion constraint) | A `room_slot_lock` collection with a **unique index on (room, date, time block)**. Approving a booking inserts its locks inside a transaction, so a clash fails the insert |
-| At most one current semester, one accepted enrolment per user per semester, one approved UV ID | **Partial unique indexes** (`partialFilterExpression`) |
+| At most one current semester, one accepted enrolment per user per semester, one pending join request per user | **Partial unique indexes** (`partialFilterExpression`) |
 | "First action wins" decisions | Conditional updates: `findOneAndUpdate({ _id, status: 'pending' }, …)`. If nothing matches, the decision was already taken |
 | 3-request limit, approve + cancel overlapping requests together | Multi-document **transactions** (needs the replica set) |
 | Append-only audit log | The app's database user has only `insert` and `find` rights on `audit_log` |

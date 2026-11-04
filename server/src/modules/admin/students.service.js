@@ -13,16 +13,16 @@ import {
   studentAdminRows,
   studentForAdmin,
   studentIdsByName,
+  studentIdsByUvId,
   studentIdsOfDepartments,
   transitionStudentState,
+  uvIdsOf,
 } from '../auth/index.js';
 import {
   acceptedEnrolmentOf,
-  approvedClaimsOf,
   currentEnrolmentsOf,
   departmentOfStudent,
   enrolledUserIdsOfDepartments,
-  userIdsByUvId,
 } from '../enrolments/index.js';
 import { getGroupBrief, getSectionBrief } from '../routine/index.js';
 import { currentSemester } from '../organisation/index.js';
@@ -55,11 +55,14 @@ export function restoredState(previous) {
   return 'claim_pending';
 }
 
-/** ADM-12: students of the actor's departments whose name or UV ID matches, with their current section. */
+/**
+ * ADM-12: students of the actor's departments whose name or profile UV ID matches, with their
+ * current section. The UV ID is shown here because the caller is an admin of the department.
+ */
 export async function searchStudents(actor, { q, department_id }) {
   assertCan(actor, 'admin.student.search');
   const scope = await scopeOf(actor, department_id);
-  const matches = new Set([...(await studentIdsByName(q)), ...(await userIdsByUvId(q))]);
+  const matches = new Set([...(await studentIdsByName(q)), ...(await studentIdsByUvId(q))]);
   if (!scope.all) {
     const allowed = new Set([
       ...(await studentIdsOfDepartments(scope.ids)),
@@ -73,7 +76,7 @@ export async function searchStudents(actor, { q, department_id }) {
   const rows = await studentAdminRows(ids);
   const semester = await currentSemester();
   const enrolments = semester ? await currentEnrolmentsOf(ids, semester.id) : new Map();
-  const claims = await approvedClaimsOf(ids);
+  const uvIds = await uvIdsOf(ids);
   const sections = new Map();
   const groups = new Map();
   for (const e of enrolments.values()) {
@@ -89,11 +92,9 @@ export async function searchStudents(actor, { q, department_id }) {
     const e = enrolments.get(row.id);
     const section = e ? sections.get(String(e.section_id)) : null;
     const group = e?.group_id ? groups.get(String(e.group_id)) : null;
-    const claim = claims.get(row.id);
     return {
       ...row,
-      uv_id: claim?.uv_id ?? null,
-      uv_claim_id: claim?.id ?? null,
+      uv_id: uvIds.get(row.id) ?? null,
       enrolment: e ? { id: String(e._id ?? ''), status: e.status } : null,
       section: section ? { id: section.id, label: sectionLabel(section) } : null,
       group: group ? { id: group.id, label: group.label } : null,

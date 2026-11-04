@@ -102,8 +102,6 @@ describe('errors and validation', () => {
         'GROUP_IN_USE',
         'ROLE_LIMIT',
         'REQUEST_ALREADY_OPEN',
-        'UV_ID_TAKEN',
-        'CLAIM_BLOCKED',
         'SECTION_CLOSED',
         'IMPORT_HAS_ERRORS',
         'INTERNAL',

@@ -33,7 +33,7 @@ Moving from one semester to the next in one safe step. Department admins prepare
 - **ROL-07** Because 6,000 students change state at once, the state change is one `updateMany`, not one write per student.
 
 ### Semester update screen
-- **ROL-08** An `unconfirmed` student sees the semester update screen: the join form pre-filled with last semester's department and section letter, and the suggested next level and term (2-I → 2-II, 2-II → 3-I). The student can change everything except their approved UV ID.
+- **ROL-08** An `unconfirmed` student sees the semester update screen: the join form pre-filled with last semester's department and section letter, and the suggested next level and term (2-I → 2-II, 2-II → 3-I). The student can change everything on the form; the UV ID is not on it (it is an optional profile field, spec 02).
 - **ROL-09** A student whose last confirmed term was **4-II** also sees "I have completed my degree". Choosing it (with confirmation) makes the account `graduated`, with no join request. The admin can reverse it (spec 18).
 - **ROL-10** "Not enrolled this semester" keeps the student `unconfirmed`, sets `not_enrolled_semester_id` = current, stops reminders, and keeps them off the overdue list until they send a join request.
 - **ROL-11** An `unconfirmed` student can use their profile and one-to-one chat (R3) but not My routine, live status, rooms or the section group (the old group stays read-only).
@@ -89,7 +89,7 @@ Readiness panel (admin dashboard card, spec 18) with "Make current" and the not-
 
 - **Decision:** readiness item (b) counts any published import of the department for the draft with zero errors.
 - **Decision:** reminders on day 0, 7 and 14. The PRD asks for a "semester update reminder" email without saying when.
-- **Decision (D2):** at rollover the old semester's pending join requests are withdrawn, with their undecided UV claims, so the student can send a new request. A pending request would otherwise block it (`REQUEST_ALREADY_OPEN`).
+- **Decision (D2):** at rollover the old semester's pending join requests are withdrawn, so the student can send a new request. A pending request would otherwise block it (`REQUEST_ALREADY_OPEN`).
 - **Decision (D3):** a draft CR/DCR whose account is no longer eligible (deactivated, graduated) keeps the role row but gets no enrolment and is counted in `roles_skipped`.
 - **Decision (D6):** an `unconfirmed` student with a request waiting is held on the waiting screen, not the update screen (`nextScreen`).
 - **Decision (D7):** the step screens hold `unconfirmed` students on one page, so they cannot open profile or chat in the UI yet. The server permissions (ROL-11) are in place; the navigation is the same gap spec 10 has.

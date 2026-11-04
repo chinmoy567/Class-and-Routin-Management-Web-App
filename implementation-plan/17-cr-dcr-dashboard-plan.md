@@ -21,7 +21,7 @@ A dashboard for the CR and DCRs of one section in one semester, at `/cr/sections
 
 1. CRD-DSH-01 Only an `active` student with a CR/DCR role in effect for a section of the current semester can open that section's dashboard. Each endpoint checks on each request. Anyone else, including a removed CR, gets `404`.
 2. CRD-DSH-02 The dashboard never shows another section's students, requests or flags. A CR of 2-II-A calling 2-II-B gets `404`.
-3. CRD-DSH-03 Roster: every accepted student of the section with name, UV ID, group, photo, `confirmed`. No phone or email keys.
+3. CRD-DSH-03 Roster: every accepted student of the section with name, profile UV ID (or null), group, photo, `confirmed`. No phone or email keys.
 4. CRD-DSH-04 Unconfirmed: last semester's matching section students (CRD-07) plus students with a pending request for this section, not accepted this semester, not "not enrolled", not `graduated` or `deactivated`. Reminder button only for state `unconfirmed`. One reminder per student per day across all the section's CR/DCRs (`429 RATE_LIMITED`).
 5. CRD-DSH-05 Section routine: published routine, today first, running classes marked (`GET /api/cr/sections/:id/routine`).
 6. CRD-DSH-06 Live status: section and each group, using `liveStatus` on each payload.

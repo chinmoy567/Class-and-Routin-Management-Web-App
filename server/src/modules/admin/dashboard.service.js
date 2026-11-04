@@ -28,15 +28,11 @@ async function teacherRegistrations(actor, departmentId) {
   return card(items.length, items);
 }
 
-/** ADM-02: escalated join requests and the CR/DCR's own UV ID claims, for the admin to decide. */
-async function idClaims(actor, departmentId) {
+/** ADM-02: join requests that need the admin: escalated ones, including a CR/DCR's own request. */
+async function joinRequestsForAdmin(actor, departmentId) {
   const scope = departmentId ? { department_id: departmentId } : {};
   const escalated = await listJoinForAdmin(actor, { ...scope, view: 'escalated' }, { limit: LIST });
-  const claims = await listJoinForAdmin(actor, { ...scope, view: 'claims' }, { limit: LIST });
-  const items = [
-    ...escalated.map((r) => ({ kind: 'escalated', ...pick(r) })),
-    ...claims.map((r) => ({ kind: 'claim', ...pick(r) })),
-  ];
+  const items = escalated.map((r) => ({ kind: 'escalated', ...pick(r) }));
   return card(items.length, items);
 }
 
@@ -46,7 +42,6 @@ const pick = (r) => ({
   uv_id: r.uv_id ?? null,
   department: r.department ?? null,
   section: r.section ?? null,
-  duplicate_pending_claim: Boolean(r.duplicate_pending_claim),
   created_at: r.created_at,
 });
 
@@ -169,10 +164,10 @@ export async function getAdminDashboard(actor, { department_id } = {}) {
   const scope = await scopeOf(actor, department_id);
   const superAdmin = hasRole(actor, 'super_admin');
   const deptFilter = department_id ?? null;
-  const [teachers, claims, openFlags, rejections, problems, semester, unconfirmed, recent] =
+  const [teachers, joinRequests, openFlags, rejections, problems, semester, unconfirmed, recent] =
     await Promise.all([
       teacherRegistrations(actor, deptFilter),
-      idClaims(actor, deptFilter),
+      joinRequestsForAdmin(actor, deptFilter),
       flags(actor, deptFilter),
       rejectionsAndAppeals(actor, deptFilter),
       routineProblems(scope),
@@ -184,7 +179,7 @@ export async function getAdminDashboard(actor, { department_id } = {}) {
     scope: { all: scope.all, department_id: deptFilter },
     released: { room_requests: isReleased('admin.room_requests') },
     teacher_registrations: teachers,
-    id_claims: claims,
+    join_requests: joinRequests,
     flags: openFlags,
     rejections_and_appeals: rejections,
     routine_problems: problems,

@@ -26,12 +26,22 @@ export const shortCodeSchema = z
   .regex(/^[A-Za-z]{1,10}$/, 'Use 1 to 10 letters')
   .transform((v) => v.toUpperCase());
 
+export const captchaAnswer = z.object({
+  id: objectId,
+  solution: z.string().min(1).max(64),
+});
+
+/**
+ * AUTH-04, spec 24 OS-02: a student sends a solved CAPTCHA. It is optional in the schema so a
+ * missing one gets the server's `403 CAPTCHA_REQUIRED` rather than a validation error.
+ */
 export const signupBody = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('student'),
     full_name: fullName,
     email: emailSchema,
     password: passwordSchema,
+    captcha: captchaAnswer.optional(),
   }),
   z.object({
     kind: z.literal('teacher'),
@@ -42,11 +52,6 @@ export const signupBody = z.discriminatedUnion('kind', [
     short_code: shortCodeSchema,
   }),
 ]);
-
-export const captchaAnswer = z.object({
-  id: objectId,
-  solution: z.string().min(1).max(64),
-});
 
 export const loginBody = z.object({
   email: emailSchema,

@@ -12,7 +12,7 @@ The spec also delivers `isOpen(sectionId)` and `crDcrOf(sectionId)` for specs 10
 
 ## Rules and acceptance criteria
 
-1. **CRD-01** The admin of the section's department, or a super admin, picks a **student** with a verified email whose state is `claim_pending`, `active` or `unconfirmed`. A `deactivated`, `graduated`, `email_unverified`, teacher or staff account gets `422 USER_NOT_ELIGIBLE`. No approved UV ID is needed.
+1. **CRD-01** The admin of the section's department, or a super admin, picks a **student** with a verified email whose state is `claim_pending`, `active` or `unconfirmed`. A `deactivated`, `graduated`, `email_unverified`, teacher or staff account gets `422 USER_NOT_ELIGIBLE`. No UV ID is needed.
 2. **CRD-02** The role is `cr` or `dcr`, scoped to `section_id` and `semester_id`. A second CR or a third DCR returns `409 ROLE_LIMIT` with the matching message ("This section already has a CR" / "already has two DCRs"). The check runs in a transaction. Acceptance: a second CR → `ROLE_LIMIT`, a third DCR → `ROLE_LIMIT`, and two admins assigning a CR at the same moment → exactly one succeeds.
 3. **CRD-03** A student holds at most one CR/DCR role per semester (`409 CONFLICT`). Acceptance: the same student made DCR of a second section in the same semester → `CONFLICT`.
 4. **CRD-04** Assigning in the **current** semester takes effect at once. In one transaction:
@@ -37,7 +37,7 @@ The spec also delivers `isOpen(sectionId)` and `crDcrOf(sectionId)` for specs 10
 
 - **No open question blocks this spec.** The choices below are the safest minimal readings, made because this run is unattended.
 - **The `enrolment` model belongs to spec 10, which is not built, but CRD-04 needs it.** This spec adds only the model and a few service functions in a small new `enrolments` module. The schema and indexes are copied from spec 10's Data section. Spec 10 extends that module. No join-request endpoints are added here.
-- **Fields used from spec 10:** `user.confirmed_semester_id` (profile stamp) is added here to the `User` model. The `uv_claim` collection is not built, so the student search returns `uv_id: null` until spec 10. A comment marks the place.
+- **Fields used from spec 10:** `user.confirmed_semester_id` (profile stamp) is added here to the `User` model. The student search returns the profile `uv_id` (spec 02 PRF-10, spec 24), or null.
 - **A student already accepted in another section this semester.** The partial unique index allows one accepted enrolment per user per semester, and moving sections is a flag handled elsewhere (PRD). So assigning that student as CR/DCR of a different section of the **current** semester returns `409 CONFLICT` ("already enrolled in another section"). Assigning them to the section they are already in keeps their existing enrolment. Draft assignments are not affected.
 - **The existing unique index on `user_role` blocks a student holding a current and a draft CR/DCR role.** The index is `{user_id, role, department_id}` on active rows. That blocks the re-appoint flow, so its key gets `semester_id` added. Admin and teacher rows have no `semester_id`, so their uniqueness is unchanged. Existing dev databases keep the old index until `syncIndexes()` is run, and the plan notes this.
 - **"In effect" is derived from the semester status.** A CR/DCR role is in effect when `ended_at` is null and its semester is `current`. `loadRequestUser` (`auth.service.js`) drops cr/dcr rows of other semesters, so a draft CR has no powers. `auth` already imports `organisation`, so there is no new dependency direction.
@@ -135,7 +135,7 @@ All routes are mounted at `/api/admin` behind `requireAuth` and use the Zod `val
 | `POST /api/admin/sections/:id/representatives` | `sectionIdParam`, `assignBody {user_id, role}` | `representative.manage` on the section's dept | 201 `{role_id, ...}`. `ROLE_LIMIT`, `CONFLICT`, `USER_NOT_ELIGIBLE`, `SEMESTER_ARCHIVED`, 404. | `representative.assign` |
 | `POST /api/admin/sections/:id/representatives/reappoint` | `sectionIdParam` | `representative.manage` | 200 `{assigned: [...], skipped: [{user_id, full_name, role, reason}]}`. Reasons: `USER_NOT_ELIGIBLE`, `ROLE_LIMIT`, `CONFLICT`, `ALREADY_ASSIGNED`. | one `representative.assign` (`via: reappoint`) per assigned person |
 | `DELETE /api/admin/representatives/:roleId` | `roleIdParam` | `representative.manage` on the role's dept | 204. 404 if missing or already ended. | `representative.remove` |
-| `GET /api/admin/students/search?q=&department_id=` | `searchQuery` | `representative.search` (any active admin); a given `department_id` needs `isAdminOf` | `[{id, full_name, photo_url, uv_id (null for now), state}]`, no email or phone | none |
+| `GET /api/admin/students/search?q=&department_id=` | `searchQuery` | `representative.search` (any active admin); a given `department_id` needs `isAdminOf` | `[{id, full_name, photo_url, uv_id (from the profile, or null), state}]`, no email or phone | none |
 | `GET /api/admin/semesters/:id/representatives/summary?department_id=` | `summaryQuery` | `representative.view` `{department_id}` | `[{section_id, name, has_cr, dcr_count, groups?}]` for the readiness hint | none |
 
 - **Policies** (`representatives.policy.js`) all require state `active` and the admin role, using `stateIn`, `hasRole` and `isAdminOf` from `policy/index.js`.
@@ -212,7 +212,7 @@ Server API tests are named `CRD-xx …` (Vitest, Supertest, in-memory replica se
 ## Out of scope
 
 - What the CR/DCR can do, and the CR/DCR dashboard (specs 10, 17).
-- Join requests, the join form, `SECTION_CLOSED` responses, UV ID claims and the CR's own UV ID entry (spec 10).
+- Join requests, the join form and `SECTION_CLOSED` responses (spec 10).
 - Creating the section group chat (spec 20 hooks into `onCrAssigned`).
 - The rollover step that switches draft roles on, creates their enrolments and fires the hook (spec 14).
 - The admin dashboard cards and the audit log view (spec 18).

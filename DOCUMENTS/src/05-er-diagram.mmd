@@ -58,7 +58,7 @@ erDiagram
     enum type "super_admin dept_admin teacher student"
     objectId department_id FK
     string full_name
-    string uv_id UK "students only"
+    string uv_id "students only, optional, not unique"
     bytes email_enc "encrypted"
     string email_hash UK
     bool email_verified
@@ -118,9 +118,8 @@ erDiagram
     objectId id PK
     objectId student_id FK
     objectId section_id FK
-    string uv_id
     string suggested_group
-    enum status "pending accepted rejected escalated revoked"
+    enum status "pending accepted rejected withdrawn revoked"
     string reason
     objectId decided_by FK
     datetime created_at

@@ -81,27 +81,60 @@ export async function getOwnProfile(actor) {
     photo: { url: photoUrl(user), status: photoStatus(user) },
     roles,
     representative: await representativeProvider(actor),
-    ...(user.kind === 'student' && { student: await extras.student(user) }),
+    ...(user.kind === 'student' && {
+      student: await extras.student(user),
+      uv_id: user.uv_id ?? null, // PRF-10: the owner always sees their own UV ID
+    }),
     ...(user.kind === 'teacher' && { teacher: await extras.teacher(user) }),
   };
 }
 
-/** PRF-03, PRF-08: the phone is stored encrypted and the audit entry holds no number. */
-export async function updatePhone(actor, phone) {
+/**
+ * PRF-03, PRF-10, PRF-08: change the phone and/or (students) the UV ID. Only the owner can. The
+ * phone is stored encrypted, and neither value is written to the audit log.
+ */
+export async function updateProfile(actor, body) {
   assertProfileState(actor, 'profile.edit_own');
+  const hasPhone = 'phone' in body;
+  const hasUvId = 'uv_id' in body;
+  if (hasUvId && actor.kind !== 'student') {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid.', {
+      uv_id: 'Only students have a UV ID.',
+    });
+  }
+  const set = {};
+  const unset = {};
+  if (hasPhone && body.phone) set.phone_enc = encrypt(body.phone);
+  else if (hasPhone) unset.phone_enc = 1;
+  if (hasUvId && body.uv_id) set.uv_id = body.uv_id;
+  else if (hasUvId) unset.uv_id = 1;
   await withTransaction(async (session) => {
     await User.updateOne(
       { _id: actor._id },
-      phone ? { $set: { phone_enc: encrypt(phone) } } : { $unset: { phone_enc: 1 } },
+      {
+        ...(Object.keys(set).length && { $set: set }),
+        ...(Object.keys(unset).length && { $unset: unset }),
+      },
       { session },
     );
-    await record({
-      actor,
-      action: 'user.phone_change',
-      target: { type: 'user', id: actor._id },
-      new_value: { has_phone: Boolean(phone) },
-      session,
-    });
+    if (hasPhone) {
+      await record({
+        actor,
+        action: 'user.phone_change',
+        target: { type: 'user', id: actor._id },
+        new_value: { has_phone: Boolean(body.phone) },
+        session,
+      });
+    }
+    if (hasUvId) {
+      await record({
+        actor,
+        action: 'user.uv_id_change',
+        target: { type: 'user', id: actor._id },
+        new_value: { has_uv_id: Boolean(body.uv_id) },
+        session,
+      });
+    }
   });
   return getOwnProfile(actor);
 }

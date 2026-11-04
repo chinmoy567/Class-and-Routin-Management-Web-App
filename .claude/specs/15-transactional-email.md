@@ -1,6 +1,6 @@
 # 15: Transactional email
 
-R1 · Status: In progress · Depends on: 00 (built alongside 01 onwards) · PRD: Authentication & onboarding (Required university email: emails, Batching, Link and code lifetimes), Admin dashboard and controls (Emails to admins), Non-functional requirements (Background jobs) · Diagrams: 03-system-context
+R1 · Status: In progress · Depends on: 00 (built alongside 01 onwards) · PRD: Authentication & onboarding (Required email: emails, Batching, Link and code lifetimes), Admin dashboard and controls (Emails to admins), Non-functional requirements (Background jobs) · Diagrams: 03-system-context
 
 ## Goal
 
@@ -36,7 +36,6 @@ The system sends the emails the PRD lists, reliably, from one sender, through a 
 | `role_assigned` / `role_removed` | student | CR/DCR change | 09 |
 | `join_accepted` / `join_rejected` | student | join request decided | 10 |
 | `group_changed` | student | group changed | 10 |
-| `uv_id_conflict` | dept admins | taken ID or auto-rejected duplicates | 10 |
 | `semester_update_reminder` | unconfirmed student | day 0, 7, 14; CR/DCR reminder | 14, 17 |
 | `routine_changed` | affected students and teachers | import publish or edits (batched) | 07, 08 |
 | `class_cancelled` / `class_restored` | affected students and teachers | single-class cancellation | 11 |
@@ -49,7 +48,7 @@ The system sends the emails the PRD lists, reliably, from one sender, through a 
 - **EML-07** Routine-change emails are sent only for the **current** semester.
 
 ### Admin digest
-- **EML-08** At 08:00 and 17:00 institution time, each admin with at least one waiting item in their scope gets one digest: room requests (R2, sorted by decision cutoff), pending teacher registrations, escalated ID claims, open CR/DCR flags and open appeals. No digest is sent when nothing is waiting.
+- **EML-08** At 08:00 and 17:00 institution time, each admin with at least one waiting item in their scope gets one digest: room requests (R2, sorted by decision cutoff), pending teacher registrations, escalated join requests, open CR/DCR flags and open appeals. No digest is sent when nothing is waiting.
 
 ### Bounces
 - **EML-09** A permanent bounce (reported by the provider's webhook, or an SMTP 5xx on send) sets `user.email_bouncing = true`. The user is asked to update their email at next sign-in (spec 02 PRF-06), and admins see "bouncing" (never the address) in user lists.
@@ -99,7 +98,7 @@ Not user-facing, except the bounce webhook, which is authenticated with a shared
 - [x] Template renderer + all R1 templates (text + HTML) + snapshot tests
 - [x] `email.send` job with decrypt-at-send, dedupe, retry, bounce on 5xx
 - [x] Batching (`email_batch`, flush job)
-- [x] Admin digest job (scoped queries per admin). Sources so far: teacher registrations, escalated ID claims. Room requests (19), CR/DCR flags (17) and appeals (22) add providers when built
+- [x] Admin digest job (scoped queries per admin). Sources so far: teacher registrations, escalated join requests. Room requests (19), CR/DCR flags (17) and appeals (22) add providers when built
 - [x] Bounce webhook
 - [x] Dev outbox page
 - [x] Tests (server suite 744 passing). Open: "bouncing" in admin user lists waits for the admin user list (spec 18)

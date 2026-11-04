@@ -14,7 +14,7 @@ The super admin makes the draft semester current in one safe transaction. Before
 6. ROL-05 Idempotent and guarded: runs only if the semester is still `draft`; a second or concurrent press gets `ALREADY_DECIDED`.
 7. ROL-06 A not-ready department finishes after the rollover; its sections open when each gets a CR; its students see "Your department is still setting up this semester" (already built in spec 10 JR-03; test only).
 8. ROL-07 Student state change is a single `updateMany`.
-9. ROL-08 `GET /api/me/semester-update` for an `unconfirmed` student: pre-filled department and section letter, suggested next level/term (2-I→2-II, 2-II→3-I). Everything can be changed except the approved UV ID.
+9. ROL-08 `GET /api/me/semester-update` for an `unconfirmed` student: pre-filled department and section letter, suggested next level/term (2-I→2-II, 2-II→3-I). Everything on the form can be changed (the UV ID is a profile field, not on the form; spec 24).
 10. ROL-09 `can_graduate` only if the last confirmed term was 4-II; `POST /api/me/graduate` → `graduated`, no join request; otherwise `NOT_FINAL_TERM`.
 11. ROL-10 `POST /api/me/not-enrolled`: stays `unconfirmed`, sets `not_enrolled_semester_id` = current, no reminders, off the overdue list until they send a join request.
 12. ROL-11 `unconfirmed`: profile and one-to-one chat allowed; My routine, live status, free rooms, section group refused (`STATE_NOT_ALLOWED`); the old group stays read-only.
@@ -30,7 +30,7 @@ The super admin makes the draft semester current in one safe transaction. Before
 ## Blockers / open questions
 None of the PRD's open questions blocks spec 14. Decisions I will take (tell me if you disagree):
 - **D1 New module `server/src/modules/rollover/`.** It orchestrates organisation, auth, representatives, enrolments, routine, rooms. Putting it in `organisation` would create import cycles (those modules already import organisation). Precedent: `join`, `representatives`, `enrolments` are modules beyond the CLAUDE.md list. Each other module gets one new exported service function; nothing reads another module's collection.
-- **D2 Withdraw old pending join requests at rollover.** A request still `pending` against the archived semester would block the student's new request (`REQUEST_ALREADY_OPEN`, unique pending index). The transaction sets them `withdrawn` and deletes their undecided UV claims (same as `withdrawRequest`). Counted in the summary as `requests_withdrawn` (one extra field beyond the spec's five).
+- **D2 Withdraw old pending join requests at rollover.** A request still `pending` against the archived semester would block the student's new request (`REQUEST_ALREADY_OPEN`, unique pending index). The transaction sets them `withdrawn` (same as `withdrawRequest`). Counted in the summary as `requests_withdrawn` (one extra field beyond the spec's five).
 - **D3 Draft CR/DCR whose account is no longer eligible** (deactivated/graduated since being named): role row stays, no enrolment, not activated, not counted.
 - **D4 No current semester** (all archived or first ever): make-current still works (nothing to archive); the first-ever bootstrap (spec 04) stays as it is.
 - **D5 14-day list = exported service only** (`listOverdueUnconfirmed`), no HTTP route; spec 18 adds the endpoint and screen. The readiness panel on the admin dashboard card is spec 18; here it is a standalone page `/admin/rollover`.
@@ -79,7 +79,7 @@ Jobs: `semester.reminders` daily 09:00 (`Asia/Dhaka`) sends day 7 and day 14 rem
 
 ## UI
 - Rollover page: one card per department (code, four items with ✔/✘ text + counts, ready badge), "Make current" (super admin only). Pressing it opens a confirmation; a not-ready answer from the server shows the department names and reasons and asks for a second confirmation, then resubmits with `confirm_not_ready`. Success shows the summary counts. Dept admin sees their own card only, no button.
-- Semester update page: intro with the new semester name, the pre-filled join form (department, section, group; UV ID hidden once approved), rejection notice reused, "I have completed my degree" (only when `can_graduate`, with confirm), "Not enrolled this semester" (with confirm), sign out. Account-state screens: the old holding page route is replaced; pending request → waiting page (D6).
+- Semester update page: intro with the new semester name, the pre-filled join form (department, section, group), rejection notice reused, "I have completed my degree" (only when `can_graduate`, with confirm), "Not enrolled this semester" (with confirm), sign out. Account-state screens: the old holding page route is replaced; pending request → waiting page (D6).
 - Strings only through `t()`; labels on every icon-only status; 360 px, ✔/✘ also carry text.
 
 ## Tests (map to checklist numbers)

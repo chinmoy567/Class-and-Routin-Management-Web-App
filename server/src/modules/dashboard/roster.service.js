@@ -3,9 +3,9 @@ import { assertCan, stateIn } from '../../policy/index.js';
 import { AppError, notFound } from '../../lib/errors.js';
 import { currentSemester } from '../organisation/index.js';
 import { getSectionBrief, listGroupsOfSections } from '../routine/index.js';
-import { listAcceptedOfSection, approvedUvIds } from '../enrolments/index.js';
+import { listAcceptedOfSection } from '../enrolments/index.js';
 import { sectionsTaughtBy } from '../teachers/index.js';
-import { studentSummaries } from '../auth/index.js';
+import { studentSummaries, uvIdsOf } from '../auth/index.js';
 
 export async function getSectionRoster(actor, sectionId) {
   if (!stateIn(actor, 'active')) {
@@ -26,7 +26,7 @@ export async function getSectionRoster(actor, sectionId) {
   const ids = enrolments.map((e) => String(e.user_id));
   const [people, uvIds, groups] = await Promise.all([
     studentSummaries(ids),
-    approvedUvIds(ids),
+    uvIdsOf(ids), // DSH-13: the roster is one of the places the UV ID may be shown
     listGroupsOfSections([section.id]),
   ]);
   const groupLabel = new Map(groups.map((g) => [g.id, g.label]));

@@ -134,11 +134,16 @@ async function sendAlreadyRegistered(email, hmac) {
 /**
  * AUTH-04 to AUTH-08. The answer is the same whether or not the address already has an account;
  * an existing address gets an "you already have an account" email instead of a second account.
+ * Spec 24: a student may use any email domain but must solve the CAPTCHA (OS-01 to OS-03); the
+ * allowed-domain list applies to teachers only (OS-13). Both checks run before the account lookup,
+ * so neither reveals whether an address is registered.
  */
 export async function signUp(input) {
   const { kind, full_name, email, password } = input;
-  const domain = email.split('@')[1];
-  if (!(await isDomainAllowed(domain))) {
+  if (kind === 'student' && !(await verifyCaptcha(input.captcha))) {
+    throw new AppError(403, 'CAPTCHA_REQUIRED', 'Complete the check to continue.');
+  }
+  if (kind === 'teacher' && !(await isDomainAllowed(email.split('@')[1]))) {
     throw new AppError(400, 'EMAIL_DOMAIN_NOT_ALLOWED', 'Use your university email address.', {
       email: 'Use your university email address.',
     });

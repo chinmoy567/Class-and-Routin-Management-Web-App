@@ -44,7 +44,7 @@ Numbers are the spec's AUTH IDs. `[A]` marks a spec acceptance test.
 2. **AUTH-02** One email, one account (unique `email_hmac`).
 3. **AUTH-03** Email and phone only encrypted; never returned except to the owner.
 4. **AUTH-04** Sign-up fields; teacher gives an active department and a 1–10 letter short code, upper-cased.
-5. **AUTH-05** Domain must be on the allowed list, no subdomains: `400 EMAIL_DOMAIN_NOT_ALLOWED`. [A] `x@gmail.com` → 400, `x@baiust.ac.bd` → 202.
+5. **AUTH-05** (changed by spec 24) A teacher's domain must be on the allowed list, no subdomains: `400 EMAIL_DOMAIN_NOT_ALLOWED`. A student may use any domain and must send a solved CAPTCHA (`403 CAPTCHA_REQUIRED`). [A] student `x@gmail.com` → 202, teacher `x@gmail.com` → 400, teacher `x@baiust.ac.bd` → 202.
 6. **AUTH-06** Password 8–128 chars, a letter and a number, argon2id.
 7. **AUTH-07** New account `email_unverified`; verification email; link 24 h, once.
 8. **AUTH-08** Existing email → same 202 and an `already_registered` email; never reveals registration. [A] twice with the same email: same response, one account.
@@ -67,7 +67,7 @@ Numbers are the spec's AUTH IDs. `[A]` marks a spec acceptance test.
 25. **AUTH-25** Forgot password: always the same 202; link 1 h, once; 3/hour per account, 10/hour per IP.
 26. **AUTH-26** Reset sets the new hash, ends all sessions, emails `password_changed`.
 27. **AUTH-27** Signed-in password change needs the current password; AUTH-23 applies.
-28. **AUTH-28** Super admin lists/adds/removes allowed domains; at least one remains; each change audited.
+28. **AUTH-28** Super admin lists/adds/removes allowed domains (they govern teacher sign-up only, spec 24); at least one remains; each change audited.
 29. **AUTH-29** `GET /api/auth/me` → `{ user, roles, next }`. [A] `next` correct for each state.
 30. **Privacy/security from CLAUDE.md:** CSRF on every state-changing call (already global); no email/phone/token/code in logs or responses; admin accounts need the second step every sign-in; first-action-wins and one-time tokens via conditional updates.
 31. **Permissions table:** anyone for sign-up/verify/sign-in/forgot; any signed-in signable account for change password, sign out, `/me`; super admin only for domains.
@@ -148,7 +148,7 @@ All under `/api`, responses `{ data }` / `{ error: { code, message, fields? } }`
 |---|---|---|---|
 | `GET /auth/csrf` | anyone | none | exists |
 | `GET /auth/captcha` | anyone | none | new; IP rate limited |
-| `POST /auth/signup` | anyone; limit 5/h/IP | `signupBody` | 202 same body for new and existing email; `EMAIL_DOMAIN_NOT_ALLOWED`; teacher needs active department; both paths do the same argon2 work |
+| `POST /auth/signup` | anyone; limit 5/h/IP | `signupBody` | 202 same body for new and existing email; student needs a valid CAPTCHA (`CAPTCHA_REQUIRED`); teacher needs an allowed domain (`EMAIL_DOMAIN_NOT_ALLOWED`) and an active department; both paths do the same argon2 work |
 | `POST /auth/verify` | anyone | `verifyBody` | consume token, set state; `TOKEN_INVALID` |
 | `POST /auth/verify/resend` | anyone; 3/h per `email_hmac` | `resendBody` | always 202 for valid input; only an `email_unverified` account gets a mail; cancels old tokens |
 | `POST /auth/login` | anyone | `loginBody` | throttle (account + IP), CAPTCHA once required, constant-shape errors, dummy hash for unknown email, regenerate session, admin → `second_step_pending`; `ACCOUNT_DISABLED`; returns `{ next }`; failed-login owner email |
@@ -225,7 +225,7 @@ Traceability: every `it()` begins with its AUTH ID, and the final report lists e
 
 ## Out of scope
 
-Join form and UV ID claim (spec 10); teacher approval and short-code linking (spec 06); granting/removing admin roles and the reset of a lost TOTP/password by another admin (spec 03); changing email, phone, photo and the profile page (spec 02); the admin screen for allowed domains (spec 18); real department lookup (spec 03); semester-scoped roles (specs 04/09); full email catalogue, batching, bounces (spec 15); Turnstile/hCaptcha; replay protection for used TOTP codes; throttling the current-password check on `/me/password`; Playwright journeys; commits.
+Join form (spec 10); teacher approval and short-code linking (spec 06); granting/removing admin roles and the reset of a lost TOTP/password by another admin (spec 03); changing email, phone, photo and the profile page (spec 02); the admin screen for allowed domains (spec 18); real department lookup (spec 03); semester-scoped roles (specs 04/09); full email catalogue, batching, bounces (spec 15); Turnstile/hCaptcha; replay protection for used TOTP codes; throttling the current-password check on `/me/password`; Playwright journeys; commits.
 
 ## Verification
 

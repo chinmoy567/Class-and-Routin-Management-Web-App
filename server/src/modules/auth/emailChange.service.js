@@ -25,7 +25,8 @@ export async function requestEmailChange(actor, newEmail) {
   const limit = await hit('email-change', String(actor._id), { windowMs: HOUR, limit: 3 });
   if (!limit.allowed) throw rateLimited(limit.retryAfter);
 
-  if (!(await isDomainAllowed(newEmail.split('@')[1]))) {
+  // PRF-05 (spec 24): the allowed-domain list applies to teachers only.
+  if (actor.kind === 'teacher' && !(await isDomainAllowed(newEmail.split('@')[1]))) {
     throw new AppError(400, 'EMAIL_DOMAIN_NOT_ALLOWED', 'Use your university email address.', {
       new_email: 'Use your university email address.',
     });

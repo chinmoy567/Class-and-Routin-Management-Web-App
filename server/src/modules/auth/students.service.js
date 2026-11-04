@@ -59,23 +59,23 @@ export async function findEligibleStudents(q, departmentId, limit = 20) {
   if (departmentId) {
     filter.$or = [{ department_id: departmentId }, { department_id: { $exists: false } }];
   }
-  const rows = await User.find(filter).select('full_name photo_file_id state').limit(limit).lean();
+  const rows = await User.find(filter)
+    .select('full_name photo_file_id state uv_id')
+    .limit(limit)
+    .lean();
   return rows.map((u) => ({
     id: String(u._id),
     full_name: u.full_name,
     photo_url: photoUrl(u),
-    uv_id: null, // spec 10 fills this from the approved UV ID claim
+    uv_id: u.uv_id ?? null, // PRF-10: admins may see it (PRD Privacy of the UV ID)
     state: u.state,
   }));
 }
 
-const BLOCK_AFTER = 5;
-const BLOCK_MS = 24 * 60 * 60 * 1000;
-
 /** Spec 10: what the join logic needs to know about the student. Never email or phone. */
 export async function studentForJoin(userId, session) {
   const u = await User.findById(userId)
-    .select('kind state full_name department_id claim_rejections confirmed_semester_id')
+    .select('kind state full_name department_id confirmed_semester_id')
     .session(session ?? null)
     .lean();
   return u
@@ -85,47 +85,38 @@ export async function studentForJoin(userId, session) {
         state: u.state,
         full_name: u.full_name,
         department_id: u.department_id ? String(u.department_id) : null,
-        blocked_until: u.claim_rejections?.blocked_until ?? null,
       }
     : null;
 }
 
-/** JR-08: when the student may claim again, or null. */
-export async function claimBlockedUntil(userId) {
-  const u = await User.findById(userId).select('claim_rejections').lean();
-  const until = u?.claim_rejections?.blocked_until;
-  return until && until > clock.now() ? until : null;
+/**
+ * PRF-10 (spec 24): each student's optional UV ID, keyed by user id string. Callers return it only
+ * to the roles in the PRD's Privacy of the UV ID rule: the section's CR/DCR, the department admin,
+ * and a teacher on the roster of a section they teach.
+ */
+export async function uvIdsOf(userIds) {
+  const rows = await User.find({ _id: { $in: userIds }, uv_id: { $exists: true } })
+    .select('uv_id')
+    .lean();
+  return new Map(rows.filter((r) => r.uv_id).map((r) => [String(r._id), r.uv_id]));
 }
 
-/** JR-08: count one rejected claim. The fifth starts a 24-hour block and the count starts again. */
-export async function countClaimRejection(userId, session) {
-  const now = clock.now();
-  const u = await User.findOneAndUpdate(
-    { _id: userId },
-    { $inc: { 'claim_rejections.count': 1 } },
-    { new: true, session },
-  )
-    .select('claim_rejections')
+/** ADM-12: students whose profile UV ID (spaces and dashes removed) contains the digits. */
+export async function studentIdsByUvId(q, limit = 50) {
+  const digits = String(q).replace(/[\s-]/g, '');
+  if (!/^\d{2,20}$/.test(digits)) return [];
+  const rows = await User.find({ kind: 'student', uv_id: { $regex: digits } })
+    .select('_id')
+    .limit(limit)
     .lean();
-  if (u?.claim_rejections?.count >= BLOCK_AFTER) {
-    await User.updateOne(
-      { _id: userId },
-      {
-        $set: {
-          'claim_rejections.count': 0,
-          'claim_rejections.blocked_until': new Date(now.getTime() + BLOCK_MS),
-        },
-      },
-      { session },
-    );
-  }
+  return rows.map((r) => String(r._id));
 }
 
 /** JR-01: the name given on the first request. */
 export const setStudentName = (userId, fullName, session) =>
   User.updateOne({ _id: userId }, { $set: { full_name: fullName } }, { session });
 
-/** JR-19: a revoked claim sends the account back to waiting. */
+/** JR-19: a student removed from their section goes back to waiting (`claim_pending`). */
 export const sendStudentBackToWaiting = (userId, session) =>
   User.updateOne(
     { _id: userId, kind: 'student', state: { $in: ['active', 'unconfirmed'] } },

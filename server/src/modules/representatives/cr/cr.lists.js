@@ -1,9 +1,8 @@
 // CRD-DSH-03, CRD-DSH-04, CRD-DSH-08: the roster, the unconfirmed students and the flags of one
 // section. Nothing here carries a phone or an email.
-import { studentCandidates, studentSummaries } from '../../auth/index.js';
+import { studentCandidates, studentSummaries, uvIdsOf } from '../../auth/index.js';
 import {
   acceptedUserIdsOf,
-  approvedUvIds,
   enrolmentsOfSection,
   listAcceptedOfSection,
 } from '../../enrolments/index.js';
@@ -13,13 +12,13 @@ import { Flag } from './flag.model.js';
 
 const NEVER_REMINDED_STATES = ['graduated', 'deactivated'];
 
-/** CRD-DSH-03: every accepted student of the section, with UV ID, group and confirmation. */
+/** CRD-DSH-03: every accepted student of the section, with the profile UV ID, group and confirmation. */
 export async function rosterOf(section, semester) {
   const enrolments = await listAcceptedOfSection(section.id, semester.id);
   const ids = enrolments.map((e) => String(e.user_id));
   const [people, uvIds, groups] = await Promise.all([
     studentSummaries(ids),
-    approvedUvIds(ids),
+    uvIdsOf(ids),
     listGroupsOfSections([section.id]),
   ]);
   const groupLabel = new Map(groups.map((g) => [g.id, g.label]));

@@ -9,14 +9,15 @@ stateDiagram-v2
     Rejected --> Pending : re-apply
   }
   state "Student path" as SP {
-    NoClaim --> AwaitingCR : submit join form
-    AwaitingCR --> NoClaim : rejected (reason)
+    ClaimPending --> AwaitingCR : submit join form
+    AwaitingCR --> ClaimPending : rejected (reason)
     AwaitingCR --> Active_S : CR/DCR accepts
+    Active_S --> ClaimPending : admin removes from section
     Active_S --> Unconfirmed : semester rollover
     Unconfirmed --> AwaitingCR : submit new join form
   }
   Verified --> Pending : teacher
-  Verified --> NoClaim : student
+  Verified --> ClaimPending : student (any email)
 
   Active_T --> Suspended : admin suspends
   Active_S --> Suspended : admin suspends
@@ -27,6 +28,10 @@ stateDiagram-v2
   Deactivated --> Active_S : undo (history kept)
   Deactivated --> Active_T : undo (history kept)
 
+  note left of ClaimPending
+    claim_pending = verified, not yet
+    accepted into a section (no UV ID claim)
+  end note
   note right of Verified
     5 wrong passwords → locked 15 min
     in any state (not a separate lifecycle)

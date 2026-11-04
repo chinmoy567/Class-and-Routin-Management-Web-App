@@ -1,15 +1,17 @@
-%% State — join request / UV ID claim
+%% State — join request (enrolment). No UV ID claim (spec 24)
 stateDiagram-v2
   [*] --> Pending : student submits
-  Pending --> Blocked : UV ID already used
-  Blocked --> [*]
+  [*] --> Escalated : submitted by a CR/DCR
+  Pending --> Withdrawn : student withdraws
+  Withdrawn --> [*]
   Pending --> Accepted : CR/DCR accepts (first wins)
   Pending --> Rejected : CR/DCR rejects with reason
   Pending --> Escalated : no action within 3 days
   Escalated --> Accepted : dept admin accepts
   Escalated --> Rejected : dept admin rejects
-  Rejected --> [*] : student may re-apply\n(5 rejections → 24 h block)
-  Accepted --> Revoked : admin revokes wrong claim
+  Rejected --> Accepted : admin reverses an appeal
+  Rejected --> [*] : student may re-apply\n(no rejection limit)
+  Accepted --> Revoked : admin removes student from section (reason)
   Accepted --> Superseded : semester rollover
   Revoked --> [*]
   Superseded --> [*]

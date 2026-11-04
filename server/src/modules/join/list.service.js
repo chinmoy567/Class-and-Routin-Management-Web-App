@@ -1,6 +1,8 @@
-// JR-07, JR-09: lists of join requests for the people who decide them.
-import { Enrolment, UvClaim } from '../enrolments/index.js';
-import { getEmailAddress, studentSummaries } from '../auth/index.js';
+// JR-09: lists of join requests for the people who decide them. Each row carries the student's
+// optional profile UV ID (spec 24): only the section's CR/DCR and the department's admins reach
+// these lists, which is what the PRD's Privacy of the UV ID rule allows.
+import { Enrolment } from '../enrolments/index.js';
+import { getEmailAddress, studentSummaries, uvIdsOf } from '../auth/index.js';
 import { getGroupBrief, getSectionBrief } from '../routine/index.js';
 import { departmentNames } from '../organisation/index.js';
 import { assertCan, hasRole, isAdminOf } from '../../policy/index.js';
@@ -8,24 +10,10 @@ import { authorise, loadSectionOr404, sectionLetters } from './common.js';
 
 const LIMIT = 200;
 
-/** Pending claims per cleaned ID, so two claims for the same ID can both show the badge. */
-async function duplicateCounts(claims) {
-  const norms = [...new Set(claims.map((c) => c.uv_id_norm))];
-  if (!norms.length) return new Map();
-  const rows = await UvClaim.aggregate([
-    { $match: { uv_id_norm: { $in: norms }, status: 'pending' } },
-    { $group: { _id: '$uv_id_norm', n: { $sum: 1 } } },
-  ]);
-  return new Map(rows.map((r) => [r._id, r.n]));
-}
-
 /** Turn enrolments into list rows. `withEmail` is the CR/DCR privacy exception. */
 async function rows(enrolments, { withEmail }) {
-  const people = await studentSummaries(enrolments.map((e) => e.user_id));
-  const claimIds = enrolments.map((e) => e.uv_claim_id).filter(Boolean);
-  const claims = await UvClaim.find({ _id: { $in: claimIds } }).lean();
-  const claimById = new Map(claims.map((c) => [String(c._id), c]));
-  const dups = await duplicateCounts(claims);
+  const userIds = enrolments.map((e) => e.user_id);
+  const [people, uvIds] = await Promise.all([studentSummaries(userIds), uvIdsOf(userIds)]);
   const deptIds = [...new Set(enrolments.map((e) => String(e.department_id)))];
   const depts = await departmentNames(deptIds);
   const sections = new Map();
@@ -35,7 +23,6 @@ async function rows(enrolments, { withEmail }) {
   }
   const out = [];
   for (const e of enrolments) {
-    const claim = e.uv_claim_id ? claimById.get(String(e.uv_claim_id)) : null;
     const section = sections.get(String(e.section_id));
     const group = e.group_id ? await getGroupBrief(String(e.group_id)) : null;
     const person = people.get(String(e.user_id));
@@ -45,8 +32,7 @@ async function rows(enrolments, { withEmail }) {
       full_name: person?.full_name ?? '',
       photo_url: person?.photo_url ?? null,
       ...(withEmail && { email: await getEmailAddress(e.user_id) }),
-      uv_id: claim?.uv_id_text ?? null,
-      duplicate_pending_claim: claim ? (dups.get(claim.uv_id_norm) ?? 0) > 1 : false,
+      uv_id: uvIds.get(String(e.user_id)) ?? null,
       department: depts.get(String(e.department_id))?.code ?? '',
       section: section
         ? {
@@ -100,7 +86,7 @@ function scopeDepartments(actor, departmentId) {
   ];
 }
 
-/** Admin cards: escalated requests, rejected requests, open appeals, CR/DCR claims. No email. */
+/** Admin cards: escalated requests (including a CR/DCR's own), rejected requests, open appeals. No email. */
 export async function listForAdmin(
   actor,
   { department_id, view },
@@ -110,27 +96,6 @@ export async function listForAdmin(
   assertCan(actor, 'join.admin_any');
   const depts = scopeDepartments(actor, department_id);
   const deptFilter = depts ? { department_id: { $in: depts } } : {};
-  if (view === 'claims') {
-    const withRequest = await Enrolment.distinct('uv_claim_id', { uv_claim_id: { $exists: true } });
-    const claims = await UvClaim.find({
-      status: 'pending',
-      _id: { $nin: withRequest },
-      ...deptFilter,
-    })
-      .sort({ created_at: dir })
-      .limit(limit)
-      .lean();
-    const people = await studentSummaries(claims.map((c) => c.user_id));
-    const dups = await duplicateCounts(claims);
-    return claims.map((c) => ({
-      id: String(c._id),
-      user_id: String(c.user_id),
-      full_name: people.get(String(c.user_id))?.full_name ?? '',
-      uv_id: c.uv_id_text,
-      duplicate_pending_claim: (dups.get(c.uv_id_norm) ?? 0) > 1,
-      created_at: c.created_at,
-    }));
-  }
   const filters = {
     escalated: { status: 'pending', escalated_at: { $exists: true } },
     rejected: { status: 'rejected' },

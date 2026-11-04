@@ -4,13 +4,13 @@ R1 · Status: Done · Depends on: 00 · PRD: Users & roles, Account states and a
 
 ## Goal
 
-People can create a student or teacher account with a university email, verify it, sign in, recover their password and stay signed in safely. Admins also pass a second step. The account state decides where each person lands.
+People can create a student account with any email, or a teacher account with a university email, verify it, sign in, recover their password and stay signed in safely. Admins also pass a second step. The account state decides where each person lands.
 
 ## Scope
 
 **In:** sign-up (student, teacher), email verification, sign-in, throttling and CAPTCHA, second step (TOTP plus an emailed code as fallback), sessions and timeouts, sign-out, password reset, password change, allowed email domains, the `/me` endpoint, routing by account state.
 
-**Out:** the join form and UV ID claim (spec 10), teacher approval (spec 06), granting admin roles (spec 03), changing your email and profile fields (spec 02).
+**Out:** the join form (spec 10), the optional profile UV ID (spec 02), teacher approval (spec 06), granting admin roles (spec 03), changing your email and profile fields (spec 02).
 
 ## Requirements
 
@@ -20,15 +20,15 @@ People can create a student or teacher account with a university email, verify i
 - **AUTH-03** Email and phone are stored only encrypted (`email_enc`, `phone_enc`), and `email_hmac` is used for lookups. Neither field is ever returned except to the owner (and the two exceptions in spec 06 and spec 10).
 
 ### Sign-up
-- **AUTH-04** Sign-up asks for kind (student or teacher), full name, email and password. A teacher also gives a department (from the active department list) and a short code (1–10 letters, upper-cased).
-- **AUTH-05** The email domain must be on the allowed list (starting with `baiust.ac.bd`). Otherwise the server returns `400 EMAIL_DOMAIN_NOT_ALLOWED`. Subdomains are not allowed unless listed.
+- **AUTH-04** Sign-up asks for kind (student or teacher), full name, email and password. A teacher also gives a department (from the active department list) and a short code (1–10 letters, upper-cased). A student must also send a solved CAPTCHA (`captcha: { id, solution }`, the same proof-of-work as AUTH-14); without a valid one the server returns `403 CAPTCHA_REQUIRED` (spec 24 OS-02). Teacher sign-up has no CAPTCHA.
+- **AUTH-05** Changed by spec 24 (OS-01, OS-03): a **student** may use any email domain; a university address gets no special treatment. A **teacher**'s email domain must be on the allowed list (starting with `baiust.ac.bd`). Otherwise the server returns `400 EMAIL_DOMAIN_NOT_ALLOWED`. Subdomains are not allowed unless listed.
 - **AUTH-06** The password has at least 8 characters, with at least one letter and one number, and at most 128 characters. It is hashed with argon2id.
 - **AUTH-07** The new account is `email_unverified` and a verification email is sent. The link lasts 24 hours and works once.
 - **AUTH-08** If the email already belongs to an account, the response is the same "check your email" success, and that address gets an "you already have an account" email instead. Sign-up never reveals whether an email is registered.
 - **AUTH-09** Sign-up is rate limited to 5 per hour per IP.
 
 ### Verification
-- **AUTH-10** Opening a valid verification link marks the email verified and moves the account: student → `claim_pending`, teacher → `pending`. An expired or used link shows "link expired" with a button to send a new one.
+- **AUTH-10** Opening a valid verification link marks the email verified and moves the account: student → `claim_pending` (meaning "verified, no accepted join request"; the name is kept, spec 24), teacher → `pending`. Email verification is a student's only identity check. An expired or used link shows "link expired" with a button to send a new one.
 - **AUTH-11** "Resend verification" is limited to 3 per hour per account, and each new link cancels the old ones.
 
 ### Sign-in
@@ -56,10 +56,10 @@ People can create a student or teacher account with a university email, verify i
 - **AUTH-27** A signed-in user can change their password by giving the current one. AUTH-23 applies.
 
 ### Allowed domains
-- **AUTH-28** A super admin can list, add and remove allowed email domains. At least one must remain. Each change is audited.
+- **AUTH-28** A super admin can list, add and remove allowed email domains. They govern **teacher** sign-up (and a teacher's email change, spec 02) only. At least one must remain. Each change is audited.
 
 ### Where people land
-- **AUTH-29** `GET /api/auth/me` returns the user's public profile, kind, state, roles in effect, and `next` = the screen to show: `verify-email`, `second-step`, `setup-totp`, `join-form` (`claim_pending` with no open request), `waiting-approval` (`claim_pending` with an open request, or a `pending` teacher), `semester-update` (`unconfirmed`), or `dashboard`.
+- **AUTH-29** `GET /api/auth/me` returns the user's public profile, kind, state, roles in effect, and `next` = the screen to show: `verify-email`, `second-step`, `setup-totp`, `join-form` (`claim_pending` with no open request; the join form has no UV ID), `waiting-approval` (`claim_pending` with an open request, or a `pending` teacher), `semester-update` (`unconfirmed`), or `dashboard`.
 
 ## Permissions
 
@@ -84,7 +84,7 @@ People can create a student or teacher account with a university email, verify i
 |---|---|---|---|---|
 | `GET /api/auth/csrf` | anyone | none | `{ token }` | none |
 | `GET /api/auth/captcha` | anyone | none | `{ id, prefix, bits }` | `RATE_LIMITED` |
-| `POST /api/auth/signup` | anyone | kind, full_name, email, password, department_id?, short_code? | 202 "check your email" | `VALIDATION_ERROR`, `EMAIL_DOMAIN_NOT_ALLOWED`, `RATE_LIMITED` |
+| `POST /api/auth/signup` | anyone | kind, full_name, email, password, captcha (student), department_id? and short_code? (teacher) | 202 "check your email" | `VALIDATION_ERROR`, `CAPTCHA_REQUIRED` (student), `EMAIL_DOMAIN_NOT_ALLOWED` (teacher), `RATE_LIMITED` |
 | `POST /api/auth/verify` | anyone | token | 200 `{ next }` | `TOKEN_INVALID` (expired or used) |
 | `POST /api/auth/verify/resend` | anyone | email | 202 | `RATE_LIMITED` |
 | `POST /api/auth/login` | anyone | email, password, captcha? (`{ id, solution }`) | 200 `{ next }` | `INVALID_CREDENTIALS`, `ACCOUNT_DISABLED`, `CAPTCHA_REQUIRED` (403), `RATE_LIMITED` |
@@ -110,7 +110,8 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 
 ## Acceptance tests
 
-- AUTH-05: sign-up with `x@gmail.com` → `400 EMAIL_DOMAIN_NOT_ALLOWED`. With `x@baiust.ac.bd` → 202.
+- AUTH-05 (spec 24 OS-01): a student with `x@gmail.com` → 202. A teacher with `x@gmail.com` → `400 EMAIL_DOMAIN_NOT_ALLOWED`. A teacher with `x@baiust.ac.bd` → 202.
+- AUTH-04 (spec 24 OS-02): a student sign-up with no CAPTCHA, or a wrong one → `403 CAPTCHA_REQUIRED`.
 - AUTH-08: signing up twice with the same email gives the same response both times, and only one account exists.
 - AUTH-10: a verified student is `claim_pending`, and a verified teacher is `pending`.
 - AUTH-10: a verification link used after 24 h 1 min → `TOKEN_INVALID`. Used twice → second use `TOKEN_INVALID`.
@@ -131,6 +132,7 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 - **Decision:** the foundation's `user.name` becomes `full_name`; its `reset_token_*` fields are replaced by `one_time_token`. Department existence at sign-up goes through `organisation.isActiveDepartment`, a stub until spec 03. `next` uses a hook (`registerOpenJoinRequestCheck`) for "open join request" until spec 10.
 - **Decision:** resend and reset limits (AUTH-11, AUTH-25) are keyed by the email HMAC, so a `429` never reveals whether an address is registered.
 - **Open (PRD Open question 1):** whether university mail accepts the sender. This blocks launch, not development.
+- **Decision (spec 24):** student sign-up is open to any email domain and always needs the CAPTCHA; the domain list applies to teachers only.
 
 ## Tasks
 
@@ -142,6 +144,7 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 - [x] Second step: TOTP setup and confirm, code check, email-code fallback, lockout after 5 wrong codes
 - [x] Forgot and reset password, change password
 - [x] Allowed domains admin endpoints + audit
+- [x] Spec 24: domain gate for teachers only, CAPTCHA required on student sign-up
 - [x] `/api/auth/me` with `next`
 - [x] Client screens and the route guard
 - [x] Tests for every AUTH requirement

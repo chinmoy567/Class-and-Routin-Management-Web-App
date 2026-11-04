@@ -11,23 +11,19 @@ export {
   withdrawPendingOfSemester,
   listAcceptedOfSection,
   countAcceptedBySection,
-  approvedUvIds,
   enrolmentsOfSection,
   acceptedUserIdsOf,
   enrolledUserIdsOfDepartments,
-  userIdsByUvId,
   currentEnrolmentsOf,
-  approvedClaimsOf,
   departmentOfStudent,
 } from './enrolment.service.js';
 export { Enrolment } from './enrolment.model.js';
-export { UvClaim } from './uvclaim.model.js';
 export { groupInUse } from './enrolment.service.js';
 
-// EML-08: escalated ID claims (join requests the CR or DCR could not handle), for the admin digest.
+// EML-08: escalated join requests (the CR or DCR did not decide in time), for the admin digest.
 registerDigestProvider({
-  key: 'escalated_id_claims',
-  labelKey: 'digest.escalated_id_claims',
+  key: 'escalated_join_requests',
+  labelKey: 'digest.escalated_join_requests',
   count: countEscalatedPending,
 });
 

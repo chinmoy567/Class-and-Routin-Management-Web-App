@@ -7,7 +7,7 @@ export async function getProfile(req, res) {
 }
 
 export async function patchProfile(req, res) {
-  res.json({ data: await profile.updatePhone(req.user, req.body.phone) });
+  res.json({ data: await profile.updateProfile(req.user, req.body) });
 }
 
 export async function publicProfile(req, res) {

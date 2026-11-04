@@ -32,8 +32,7 @@ export const ERROR_CODES = Object.freeze({
   GROUP_IN_USE: { code: 'GROUP_IN_USE', status: 409 },
   ROLE_LIMIT: { code: 'ROLE_LIMIT', status: 409 },
   REQUEST_ALREADY_OPEN: { code: 'REQUEST_ALREADY_OPEN', status: 409 },
-  UV_ID_TAKEN: { code: 'UV_ID_TAKEN', status: 409 },
-  CLAIM_BLOCKED: { code: 'CLAIM_BLOCKED', status: 429 },
+
   SECTION_CLOSED: { code: 'SECTION_CLOSED', status: 409 },
   SLOT_NOT_ON_DATE: { code: 'SLOT_NOT_ON_DATE', status: 409 },
   TOO_LATE: { code: 'TOO_LATE', status: 409 },
@@ -76,8 +75,7 @@ export const SLOT_INVALID = 'SLOT_INVALID';
 export const GROUP_IN_USE = 'GROUP_IN_USE';
 export const ROLE_LIMIT = 'ROLE_LIMIT';
 export const REQUEST_ALREADY_OPEN = 'REQUEST_ALREADY_OPEN';
-export const UV_ID_TAKEN = 'UV_ID_TAKEN';
-export const CLAIM_BLOCKED = 'CLAIM_BLOCKED';
+
 export const SECTION_CLOSED = 'SECTION_CLOSED';
 export const SLOT_NOT_ON_DATE = 'SLOT_NOT_ON_DATE';
 export const TOO_LATE = 'TOO_LATE';

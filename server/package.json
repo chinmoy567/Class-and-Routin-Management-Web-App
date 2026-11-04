@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "test": "vitest run",
     "build": "echo server has no build step",
-    "seed:super-admin": "node --env-file=.env scripts/seed-super-admin.js"
+    "seed:super-admin": "node --env-file=.env scripts/seed-super-admin.js",
+    "migrate:drop-uv-claims": "node --env-file=.env scripts/migrate-drop-uv-claims.js"
   },
   "dependencies": {
     "@crm/shared": "^0.1.0",

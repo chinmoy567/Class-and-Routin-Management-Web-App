@@ -2,14 +2,12 @@ import { Router } from 'express';
 import {
   adminJoinQuery,
   appealDecisionBody,
-  claimDecisionBody,
   createEnrolmentBody,
   enrolmentIdParam,
   enrolmentGroupBody,
   joinDecisionBody,
   joinRequestsQuery,
-  ownClaimBody,
-  revokeBody,
+  removeFromSectionBody,
   sectionIdParam,
 } from '@crm/shared';
 import { validate } from '../../lib/validate.js';
@@ -27,7 +25,6 @@ joinRouter.post(
   c.withdraw,
 );
 joinRouter.get('/me/join-request', requireAuth, c.mine);
-joinRouter.post('/me/uv-claim', requireAuth, validate({ body: ownClaimBody }), c.ownClaim);
 joinRouter.get(
   '/sections/:id/join-requests',
   requireAuth,
@@ -59,16 +56,10 @@ joinRouter.post(
   c.appealDecision,
 );
 joinRouter.post(
-  '/admin/uv-claims/:id/revoke',
+  '/admin/enrolments/:id/remove',
   requireAuth,
-  validate({ params: enrolmentIdParam, body: revokeBody }),
-  c.revoke,
-);
-joinRouter.post(
-  '/admin/uv-claims/:id/decision',
-  requireAuth,
-  validate({ params: enrolmentIdParam, body: claimDecisionBody }),
-  c.claimDecision,
+  validate({ params: enrolmentIdParam, body: removeFromSectionBody }),
+  c.removeFromSection,
 );
 joinRouter.get(
   '/admin/join-requests',

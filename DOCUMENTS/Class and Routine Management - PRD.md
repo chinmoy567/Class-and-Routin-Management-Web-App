@@ -12,7 +12,7 @@ CRs, DCRs and teachers can request a free classroom at least 12 hours ahead, whi
 
 ## Glossary
 
-- **UV ID:** the student's institutional ID, issued offline by the university and unique to one student.
+- **UV ID:** the student's institutional ID, issued offline by the university. In this system it is only an optional, unchecked field on the student's profile that helps the CR or DCR recognise them (see Joining a section).
 - **Level and term:** a student's place in the degree, for example 2-II is Level 2, Term II. A student moves up one term each semester.
 - **Semester:** a named six-month period such as Spring 2026 or Fall 2026. Routines, CR/DCR roles and confirmations are tied to a semester. "Term" always means the academic step (I or II), never the calendar period.
 - **Section and group:** a section is department + level + term + section letter (for example CSE 2-II-A). A group (G1, G2, …) is a split of a section for sessional (lab) classes only.
@@ -44,22 +44,22 @@ There are no elective courses to model: the university fixes every student's cou
 
 ## Users & roles
 
-There are two kinds of person account: **teacher** and **student**. **Admin** is a role added to an account, not a separate login. Admin has two levels, **super admin** (university-wide) and **department admin** (one department only), so no single person holds all the control. A department admin is usually a teacher of that department: they keep one account, with one email and password, that holds both the teacher role and the admin role. A super admin who does not teach has a staff account that holds only the admin role. CR and DCR are not separate account types — they are students given an extra role by their department admin, so everything a student can do, a CR or DCR can do too, plus the dashboard for their own section (including approving their classmates' UV ID claims).
+There are two kinds of person account: **teacher** and **student**. **Admin** is a role added to an account, not a separate login. Admin has two levels, **super admin** (university-wide) and **department admin** (one department only), so no single person holds all the control. A department admin is usually a teacher of that department: they keep one account, with one email and password, that holds both the teacher role and the admin role. A super admin who does not teach has a staff account that holds only the admin role. CR and DCR are not separate account types — they are students given an extra role by their department admin, so everything a student can do, a CR or DCR can do too, plus the dashboard for their own section (including accepting or rejecting their classmates' join requests).
 
 | Role | Signs in with | Can do | Cannot do |
 | --- | --- | --- | --- |
-| Super admin (at least two accounts) | University email + password + second step (first one seeded; others granted by a super admin) | University-wide work: create and remove departments, create and remove department admins and other super admins, set the allowed email domains, create semesters and run the rollover, fix cross-department problems, read the full audit log, recover a department that has no admin. Can also do anything a department admin can, in any department | Be self-created from the sign-up page; remove the last super admin; read users' private messages |
-| Department admin (one or more per department) | University email + password + second step (role granted by a super admin) | For their own department only: approve/reject teacher registrations, choose and remove each section's CR and DCR, approve ID claims that no CR/DCR can handle, handle CR/DCR flags and removal requests, deactivate students and teachers, reset student passwords, import and edit routines, manage classrooms, link teacher short codes, read their department's audit log | Act on another department; create or remove admins; create departments or semesters; be self-created from the sign-up page |
+| Super admin (at least two accounts) | University email + password + second step (first one seeded; others granted by a super admin) | University-wide work: create and remove departments, create and remove department admins and other super admins, set the allowed email domains for teacher sign-up, create semesters and run the rollover, fix cross-department problems, read the full audit log, recover a department that has no admin. Can also do anything a department admin can, in any department | Be self-created from the sign-up page; remove the last super admin; read users' private messages |
+| Department admin (one or more per department) | University email + password + second step (role granted by a super admin) | For their own department only: approve/reject teacher registrations, choose and remove each section's CR and DCR, decide join requests that no CR/DCR handled, remove a student from a section, handle CR/DCR flags and removal requests, deactivate students and teachers, reset student passwords, import and edit routines, manage classrooms, link teacher short codes, read their department's audit log | Act on another department; create or remove admins; create departments or semesters; be self-created from the sign-up page |
 | Teacher (after admin approval) | University email + password | Edit own profile, chat one-to-one, share files, view own teaching routine, see which rooms are free, request a free room (12-hour rule; the room's department admin decides), see the roster of sections they teach. Later release: see the in-class/free status and "free now" list of those sections, and send announcements to them | Approve CR/DCR, publish routines, see students of sections they do not teach, use the app before the admin approves the account |
-| Student | University email + password (the UV ID is claimed after sign-up) | Edit own profile, claim their UV ID, and once the CR or DCR approves the claim: chat one-to-one, use the section group, share files, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, or use anything their account state does not allow (see Account states and access) |
-| CR (student chosen by the department admin) | Same as student | Everything a student can, plus **request a free classroom** (the room's department admin decides), use the **CR/DCR dashboard** for their own section, and approve or reject UV ID claims from students of that section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
+| Student | Any verified email + password | Edit own profile (including an optional UV ID), send a join request to a section, and once the CR or DCR accepts it: chat one-to-one, use the section group, share files, view own level–term–section–group routine | Publish routines, approve others, apply to be CR/DCR, or use anything their account state does not allow (see Account states and access) |
+| CR (student chosen by the department admin) | Same as student | Everything a student can, plus **request a free classroom** (the room's department admin decides), use the **CR/DCR dashboard** for their own section, and accept or reject join requests from students of that section | Approve CR/DCR or teachers, publish or edit routines, delete or deactivate accounts, see other sections' students |
 | DCR (student chosen by the department admin) | Same as student | Same as CR | Same as CR |
 
 Notes:
 
 - **Only the department admin of that department, or a super admin, approves or assigns teachers, CR and DCR; no other role can.** Teachers, students, CR and DCR have no way to approve, assign or remove these roles.
 - A section has one CR and up to two DCRs. The system should block a second CR or a third DCR for the same section and tell the admin why.
-- The UV ID is the student's institutional ID, issued offline and unique. Students do not pick it; they enter it after signing up to claim it, and the CR or DCR of their section approves the claim (see Student ID claim).
+- The UV ID is the student's institutional ID, issued offline. The system never checks it and does not need it: a student may write it on their profile so the CR or DCR of their section can recognise them (see Joining a section).
 - The first super admin is seeded by whoever installs the system, and a second super admin must be created soon after so there is always a backup. Every other admin role is granted by a super admin to an existing, verified account. There is no public admin sign-up.
 - **One person, one account.** An email belongs to exactly one account. An account can hold several roles (teacher + department admin, or student + CR). Any account that holds an admin role must pass the second step at every sign-in.
 
@@ -72,11 +72,13 @@ Each account is in exactly one state. The state, not the screen, decides what th
 | State | Meaning | How it is entered | How it is left |
 | --- | --- | --- | --- |
 | `email_unverified` | Signed up, email not verified yet | Sign-up | Clicks the verification link → `claim_pending` |
-| `claim_pending` | First-ever join request sent and waiting, or not yet sent | Email verified | CR/DCR accepts → `active`. A rejection keeps the account here so the student can apply again |
+| `claim_pending` | Email verified, no accepted join request: the first request is waiting, or not yet sent | Email verified, or the admin removes the student from their section | CR/DCR accepts → `active`. A rejection keeps the account here so the student can apply again |
 | `active` | Accepted into a section for the current semester | First acceptance, or re-acceptance after rollover | Rollover → `unconfirmed`. Graduation → `graduated` |
 | `unconfirmed` | Was accepted in an earlier semester but not yet for the current one. Includes students on a break | A semester becomes current | CR/DCR accepts the new join request → `active` |
 | `graduated` | Finished the degree | The student picks "I have completed my degree" on the update screen (only offered after 4-II), or the admin marks them | Admin can reverse it |
 | `deactivated` | Removed by an admin. History is kept | Admin action | Admin reactivates |
+
+The name `claim_pending` is kept from an earlier design with a UV ID claim; it now means only "verified, not yet accepted into a section". There is no claim.
 
 **Teacher states:** `email_unverified` → `pending` (waiting for admin approval) → `active`. A teacher can also be `suspended` or `deactivated` by the admin.
 
@@ -101,15 +103,15 @@ Each account is in exactly one state. The state, not the screen, decides what th
 
 ## Authentication & onboarding
 
-Each role claims its account differently, but all land in the same profile editor afterward.
+Each role gets its account differently, but all land in the same profile editor afterward.
 
 - **Teacher** signs up with a **university email + password** and verifies the email. The university email is their login from the start. The account then stays **pending** until the admin approves it (see Teacher approval); a pending teacher can sign in only to see a "waiting for admin approval" screen.
-- **Student** signs up with a **university email + password** and verifies the email, like a teacher. After that they claim their unique UV ID in their profile (see Student ID claim). The email is used to sign in, for password recovery, and for the automatic messages the system sends to students.
+- **Student** signs up with **any email address** (university or personal) **+ password** and verifies the email. Verifying the email is the only identity check, and a university address gets no special treatment. Student sign-up always asks for the CAPTCHA, because it is open to any address. After that the student sends a join request to a section (see Joining a section). The email is used to sign in, for password recovery, and for the automatic messages the system sends to students.
 - **Admin** (super admin or department admin) does not sign up as an admin. The first super admin's account is seeded at install. Every other admin role is granted by a super admin to an existing verified account. An account with an admin role signs in with its email and password, plus a second step.
 
 First-login flow for a new teacher: sign up and verify email → wait for admin approval → complete profile → land on the dashboard.
 
-First-login flow for a new student: sign up and verify email → fill in the join form (name, UV ID, department, level, term, section, sessional group; phone and photo optional) → the request goes to the CR and DCR of that section → wait for them to accept → land on the dashboard.
+First-login flow for a new student: sign up and verify email → fill in the join form (name, department, level, term, section, sessional group; phone, photo and UV ID are optional profile fields) → the request goes to the CR and DCR of that section → wait for them to accept → land on the dashboard.
 
 At the start of every new semester, a returning student must submit a new join form with their new level, term, section and sessional group, and the CR and DCR of that section accept it again (see Semesters and student updates and Sessional groups).
 
@@ -119,40 +121,40 @@ Password rules and recovery:
 - **Sign-in throttling** replaces a hard account lock, because a hard lock would let anyone lock out a known user. Throttling is counted per account and per IP address. After 5 wrong tries, each new try waits longer (1 s, 2 s, 4 s … up to 5 minutes) and a CAPTCHA is shown. The account is never locked outright. The owner is emailed after 10 failed tries in an hour.
 - Teacher and student recovery are both by email link. Because a student's email is required, every student can recover their own password. Admin reset remains only as a fallback for a student whose email address no longer works.
 
-Required university email (students and teachers):
+Required email (students and teachers):
 
-- Students and teachers must sign up with an email address on the university's domain; the allowed domain or domains are set by a super admin, starting with `baiust.ac.bd`. Other addresses, such as personal Gmail, are rejected at sign-up.
+- Teachers must sign up with an email address on the university's domain; the allowed domain or domains are set by a super admin, starting with `baiust.ac.bd`. Other addresses, such as personal Gmail, are rejected at teacher sign-up.
+- Students can sign up with any email address. The allowed-domain list does not apply to them.
 - A student cannot sign in until they verify their email by clicking a link sent to that address.
-- Each email can belong to only one student account.
-- A student can change their email later, but the new address must also be a university address and must be verified before it replaces the old one. If an email stops working (bounces), the student is asked to update it at next login.
+- Each email can belong to only one account.
+- A user can change their email later. The new address must be verified before it replaces the old one, and a teacher's new address must also be on an allowed domain. If an email stops working (bounces), the user is asked to update it at next login.
 - The email is used to send the student automatic messages from the system. All automatic emails come from one system sender address on a university-approved domain, sent through a transactional email provider with SPF, DKIM and DMARC set up. Whether this works must be confirmed before development (see Open questions).
 - **Transactional email is part of the first release.** The emails are: email verification, password reset, join request accepted or rejected, semester update reminder, room request result, class cancelled, and routine changed. Announcements are added when announcements ship (later release). Students cannot turn these off, and chat messages are never emailed.
 - **Batching:** routine-change emails are combined into one "your routine changed" email per person per import or per hour of edits, never one email per changed slot. All email goes through a queue with retries.
 - **Link and code lifetimes:** an email verification link lasts 24 hours, a password reset link 1 hour, and an admin second-step code 10 minutes. Every link and code works only once.
 - **Sessions:** a student or teacher session ends after 14 days without use. An admin session ends after 30 minutes idle or 12 hours in total. All sessions of an account end when its password changes or the account is deactivated.
 
-### Student ID claim
+### Joining a section
 
-A student's email only proves they own an inbox. The UV ID proves who they are at the university. Because UV IDs are sequential and easy to guess, a student does not become a student by typing an ID; the CR or DCR of their section has to approve it. The CR and DCR know their classmates, so they do not need a student list.
+A student's email only proves they own an inbox. The system does not check who a student is at the university: the CR or DCR of the section decides whether the student belongs there. The CR and DCR know their classmates, so they do not need a student list or an ID check.
 
-1. After verifying their email, the student fills in the **join form** in their profile: name, UV ID, department, level, term, section, and sessional group (if they know it). The student chooses these themselves, but only from sections that already have a CR assigned by the admin.
-2. The only automatic check is that the UV ID is not already **approved** for another account. If it is, the request is blocked and the admin is told. A pending claim does **not** reserve the ID, so a student who guesses someone else's ID cannot block the real owner. If several pending claims name the same ID, each one shows a "duplicate pending claim" badge to the CR, DCR and admin. The system does not check the ID against any ID range or student list.
-   - **ID format:** the UV ID is stored as text, with spaces and dashes removed and leading zeros kept. For the duplicate check only, leading zeros are ignored, because Excel drops them (`0822310205101077` and `822310205101077` are the same ID).
+1. After verifying their email, the student fills in the **join form**: name, department, level, term, section, and sessional group (if they know it). The student chooses these themselves, but only from sections that already have a CR assigned by the admin. The join form has no UV ID.
+2. **UV ID on the profile (optional):** a student may write their UV ID on their profile so the CR or DCR can recognise them. It is stored as text with spaces and dashes removed and leading zeros kept, 1 to 20 digits, or left empty. It is not unique and is never checked against anything; the student can change or clear it at any time. Who can see it is set in the Privacy rule.
 3. The request goes to the CR and DCRs of the department, level, term and section the student chose, as a **pending join request**. Until it is accepted the student sees a "waiting for approval" screen. They can edit their profile and message the CR and DCRs of that section about the request. They cannot see the routine, rooms, the section group or anyone else in chat (see Account states and access).
-4. The CR or DCR sees the student's name, email, photo, UV ID, and the department, level, term, section and group they asked for. They decide whether the student belongs in that section, and can accept, reject (a reason is required for a rejection), or accept with a corrected sessional group. Whoever acts first decides, and the student is told by email.
+4. The CR or DCR sees the student's name, email, photo, UV ID (if the student gave one on their profile), and the department, level, term, section and group they asked for. They decide whether the student belongs in that section, and can accept, reject (a reason is required for a rejection), or accept with a corrected sessional group. Whoever acts first decides, and the student is told by email.
 5. On acceptance the account becomes active and the student enters that section; the routine appears automatically. The sessional group affects only sessional (lab) classes; theory classes depend on level, term and section only.
 6. If the student chose the wrong section, the CR or DCR rejects the request with a reason and the student applies again to the right section.
 
 Rules:
 
-- A CR or DCR does not submit a join request for the section they lead: the admin's assignment is their approval (they must still have signed up and verified their email).
+- A CR or DCR does not submit a join request for the section they lead: the admin's assignment is their approval (they must still have signed up and verified their email). If a CR or DCR does send a join request, it goes straight to the department admin, never to themselves.
+- A student has at most one open join request at a time.
 - A section with no CR is closed: it does not appear on the join form, and students cannot send a request to it until the admin has chosen its CR. DCRs are optional and can be added later.
-- If nobody acts on a claim within 3 days, it moves to the department admin of that department.
+- If nobody acts on a join request within 3 days, it moves to the department admin of that department.
 - A student who failed a term cannot move up. Each semester they submit the join form again for the same level and term, and choose the section and group they will attend. The CR and DCR know who the repeat students are, so they accept them like any other student; no extra check is needed.
-- If someone else claimed a student's ID, the real student reports it. The admin checks in person, can revoke the wrong claim, and the action is logged.
-- A student who has 5 claims rejected is blocked from claiming for 24 hours. A rejected student can apply again, to the right section or with a corrected form, but cannot claim a UV ID that is already approved for another account.
-- When the CR or DCR accepts a claim, any other pending claims for the same UV ID are rejected automatically with the reason "ID approved for another account", and the admin is told.
-- Every claim, approval, rejection and revocation is logged with who and when.
+- A rejected student can apply again, to the right section or with a corrected form. There is no limit on how many rejections a student can get; the one-open-request rule, the sign-up and sign-in rate limits, and the admin's power to deactivate an account handle abuse.
+- If a student is in the wrong section (for example someone joined a section they do not belong to), the department admin can **remove the student from the section**. A reason is required. The membership ends and the account goes back to the waiting state, so the student can send a new join request.
+- Every join request, acceptance, rejection, group change and removal from a section is logged with who and when.
 
 ## Core features
 
@@ -167,7 +169,7 @@ A dashboard card whose feature is in a later release is hidden until that releas
 
 | # | Feature | What it does | Who | Release |
 | --- | --- | --- | --- | --- |
-| F1 | Profile editor | Edit phone and profile picture; submit the join form (name, UV ID, department, level, term, section, sessional group) for the CR/DCR to accept; **required, verified university email** (add and change); view CR/DCR status | Teacher, Student | R1 |
+| F1 | Profile editor | Edit phone, profile picture and (students) an optional UV ID; submit the join form (name, department, level, term, section, sessional group) for the CR/DCR to accept; **required, verified email** (add and change; a university email for teachers); view CR/DCR status | Teacher, Student | R1 |
 | F1a | Semester update | At the start of each semester (for example Spring 2026, then Fall 2026) the student must submit a new join form with their department, level, term, section and sessional group, and the CR/DCR of that section accept it. Until then the student is `unconfirmed` (see Account states and access) | Student | R1 |
 | F1b | Sessional group assignment | The CR or DCR sets or corrects each student's sessional (lab) group (G1, G2, G3, …) when accepting the join request, and can change it later (logged); the group affects only sessional classes, never theory classes | CR, DCR | R1 |
 | F2 | Direct messaging | One-to-one chat between users allowed by their account states, found by name search or from a profile; timestamps and sent/delivered/seen status (see Chat) | Teacher, Student | R3 |
@@ -175,8 +177,8 @@ A dashboard card whose feature is in a later release is hidden until that releas
 | F3 | Section group | One group per section per semester, created automatically when the CR is named; accepted students are added automatically; teachers are not members; closed at rollover (see Chat) | Student, CR, DCR | R3 |
 | F4 | CR/DCR assignment | The department admin chooses each section's CR and DCRs by hand (one CR, up to two DCRs); students do not apply | Department admin | R1 |
 | F4a | Teacher registration approval | A new teacher account is held as pending until the department admin approves or rejects it | Teacher, Department admin | R1 |
-| F4b | Student ID claim approval | A student submits a join form (UV ID, department, level, term, section, sessional group) after signing up; the request goes to that section's CR and DCR, who accept, reject, or correct the group | Student, CR, DCR | R1 |
-| F5 | Approval dashboard | Department admin sees their department's pending teacher registrations and ID claims that need the admin, and manages CR/DCR assignments | Department admin | R1 |
+| F4b | Join request approval | A student submits a join form (department, level, term, section, sessional group) after signing up; the request goes to that section's CR and DCR, who accept, reject, or correct the group | Student, CR, DCR | R1 |
+| F5 | Approval dashboard | Department admin sees their department's pending teacher registrations and join requests that need the admin, manages CR/DCR assignments, and can remove a student from a section | Department admin | R1 |
 | F5a | Admin dashboard and controls | One home page for each admin showing everything that needs attention in their scope (a department admin sees their department, a super admin sees all), plus the tools to manage semesters, routines, teachers, CR/DCR, students, classrooms, calendar events and departments, with an audit log | Department admin, Super admin | R1 |
 | F5b | Admin accounts and scope | Super admin grants and removes department admin and super admin roles; every admin action is limited to the admin's own department (super admin: all); at least two super admins always exist | Super admin | R1 |
 | F6 | Routine publishing | Department admin uploads the routine template and edits any slot their department owns on a routine page (add, edit, delete), then publishes routines per level–term–section | Department admin | R1 |
@@ -187,7 +189,7 @@ A dashboard card whose feature is in a later release is hidden until that releas
 | F7d | Teacher announcements | A teacher sends a message to a section or lab group they teach | Teacher | Later |
 | F8 | Free-room view | Pick a date (this week or next week) and a time range and see which classrooms are free then, not only right now. Rooms whose availability is not known are shown as "Availability unknown" (see Classroom booking rules) | Everyone with `active` state | R1 |
 | F9 | Room request | Request a free room for a dated time range, this week or next week, only if ≥ 12 hours ahead, with a note and a target section; a requester may send several requests. The room's department admin approves one request per room and time; approving cancels the requester's own overlapping requests and rejects other requests that overlap the same room and time (see Classroom booking rules) | CR, DCR, Teacher (requesters); Department admin, Super admin (deciders) | R2 |
-| F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, room requests) and act (request and cancel rooms, approve student ID claims, change groups, flag problems). Room request parts arrive in R2 and announcements later | CR, DCR | R1 |
+| F9a | CR/DCR dashboard | A section-only dashboard for CR and DCR to monitor their section (roster, unconfirmed students, routine, live status, room requests) and act (request and cancel rooms, accept or reject join requests, change groups, flag problems). Room request parts arrive in R2 and announcements later | CR, DCR | R1 |
 | F9b | Section announcements | CR/DCR sends a message to the whole section or to one lab group | CR, DCR | Later |
 | F9c | Student removal request | CR/DCR asks the department admin to deactivate a student; only the admin acts on it | CR, DCR, Department admin | Later |
 | F10 | File sharing | Send PDF, Word, PowerPoint, Excel, text and image files (up to 5 MB) in one-to-one chats and section groups | Teacher, Student | R3 |
@@ -209,7 +211,7 @@ Admins run the system. This section collects the admin duties, which are describ
 - **Department admin:** works for one department only. Each department has at least one, appointed by a super admin; a department can have more than one so absence does not block it.
 - Admin roles cannot be obtained from the sign-up page.
 - Every admin signs in with their own university email and password, plus a second step, because these accounts control everyone else's access. The second step is an authenticator-app code (TOTP), with an emailed one-time code as the fallback. A department admin who loses their password or second step is reset by a super admin, and a super admin by another super admin; every reset is logged. The owner names the second super admin at install, and a super admin appoints each department's first admin.
-- **Emails to admins:** the first version has no admin reports or exports. Admins get only these system emails: their second-step code, password reset, and a **digest of waiting items** at 08:00 and 17:00 institution time whenever something is waiting (room requests, sorted by decision cutoff; teacher registrations; escalated ID claims; flags). Super admins are also emailed at once when a department has no active admin. Everything else is on the admin dashboard.
+- **Emails to admins:** the first version has no admin reports or exports. Admins get only these system emails: their second-step code, password reset, and a **digest of waiting items** at 08:00 and 17:00 institution time whenever something is waiting (room requests, sorted by decision cutoff; teacher registrations; escalated join requests; flags). Super admins are also emailed at once when a department has no active admin. Everything else is on the admin dashboard.
 - Every admin action is checked on the server against the admin's department: a department admin cannot see or change another department's teachers, sections, students, rooms or routines.
 - **Recovery:** if a department has no active admin, super admins are alerted and can act for it or appoint a new one. The last super admin cannot be removed or demoted.
 
@@ -217,7 +219,7 @@ Admins run the system. This section collects the admin duties, which are describ
 
 - Create, rename and retire departments.
 - Grant and remove department admin and super admin roles.
-- Set the allowed university email domains.
+- Set the allowed university email domains for teacher sign-up.
 - Create semesters (as drafts), make one current after checking department readiness, and archive the old one.
 - Keep university-wide calendar events.
 - Fix problems that cross departments, such as a teacher who works in two departments.
@@ -228,7 +230,7 @@ Admins run the system. This section collects the admin duties, which are describ
 A department admin sees these cards for their department only; a super admin sees them for every department, with a department filter. Cards show what needs attention, newest first:
 
 - **Teacher registrations waiting** for approval (F4a), with approve and reject.
-- **ID claims that need the admin:** claims no CR or DCR acted on in time.
+- **Join requests that need the admin:** join requests no CR or DCR acted on in time, and join requests sent by a section's own CR or DCR.
 - **Reports from CR and DCR:** flags and removal requests.
 - **Routine problems:** the errors and warnings from the last import that are still open.
 - **Room requests waiting:** requests for rooms the admin owns, grouped by room and slot, oldest first. For each, the admin sees the requester's section or department, the note, and the requester's other requests for the same time.
@@ -243,7 +245,7 @@ A department admin sees these cards for their department only; a super admin see
 - **Routines:** upload the import template and check the preview, edit any slot on the routine edit page, and publish (see Routine file import, Import template and checks, Routine edit page).
 - **Teachers:** approve or reject registrations, suspend or remove a teacher, and link each teacher account to its department and short code (see Teacher approval).
 - **CR and DCR:** choose and remove them for each section (see CR/DCR assignment).
-- **Students:** search for a student, deactivate an account, mark a student graduated, handle a request such as "someone took my UV ID", set a student's sessional group by hand, and see members removed from section groups (see CR/DCR dashboard).
+- **Students:** search for a student, deactivate an account, mark a student graduated, remove a student from a section (with a reason; the student goes back to the waiting state), set a student's sessional group by hand, and see members removed from section groups (see CR/DCR dashboard).
 - **Classrooms:** the **only place where rooms are created**. Each department admin keeps their own department's rooms: a canonical room code (for example `311`, `LR-407B`), type (classroom or lab), and **aliases** (spellings used in sheets, such as `RN: 311` or `LR-407B: AI Lab`). The owning department's admin can add **sharing departments**. A shared room's requests can be decided by the admin of any department that owns or shares it (the first decision is final); a super admin handles disputes. Room capacity is not tracked. The routine import never creates rooms.
 - **Room requests:** approve one request and reject the others for each room and slot (see Classroom booking rules).
 - **Cancel a single class:** cancel one slot their department owns on one date (for example when a teacher is sick). The affected students and teacher are emailed, and the room becomes free for that slot. The routine itself is not changed.
@@ -290,7 +292,7 @@ The dashboard is the first page an `active` student sees after login. Everything
 
 - **CR and DCRs** of the student's section, with a button to message them (R3).
 - **Courses this semester** with the full name of the teacher of the student's group for each course, taken from the routine, so group-specific teachers are shown correctly.
-- **ID claim status** while the claim is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
+- **Join request status** while a request is pending or rejected, and a link to the CR/DCR dashboard if the student holds the role.
 
 **6. Profile reminders**
 
@@ -326,7 +328,7 @@ The dashboard is the first page an approved teacher sees after login (a pending 
 **3. Students**
 
 - **"Free now" list and student status (F14; later release):** students currently free or in class, filterable by level, term, section and group. For a teacher it covers only the sections they teach.
-- **Section roster:** for each section the teacher teaches, the students with name, UV ID and lab group. A teacher cannot open the roster of a section they do not teach.
+- **Section roster:** for each section the teacher teaches, the students with name, UV ID (if the student gave one) and lab group. A teacher cannot open the roster of a section they do not teach.
 
 **4. Rooms (F8, F9)**
 
@@ -365,7 +367,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 **Monitor (read-only views)**
 
-- **Section roster:** every student in the section with name, UV ID, lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are never shown here (see Privacy for the one exception on join requests).
+- **Section roster:** every student in the section with name, UV ID (if the student gave one), lab group, profile photo, and whether their profile is confirmed for this semester. Phone and email are never shown here (see Privacy for the one exception on join requests).
 - **Unconfirmed students:** students who have not done the semester update, with a button to send them a reminder (limited to one reminder per student per day).
 - **Section routine:** the published routine for the section, today's classes first, and which classes are happening now.
 - **Live status:** whether the section, and each lab group, is in class or free right now, with the countdown (F12/F13).
@@ -377,7 +379,7 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 
 - **Request a free room** for the section under the 12-hour rule (F9), several rooms if wanted, each with a note, and **cancel** the section's own request or approved room.
 - **Send an announcement** to the whole section or to one lab group (F9b; later release). Announcements are also emailed to those students and are logged with the sender. They need no review before sending; the admin can see and remove them afterward.
-- **Accept or reject join requests** from students of their section, and set each student's sessional group (see Student ID claim). The CR and DCR use what they know about their classmates; no student list or ID range is checked.
+- **Accept or reject join requests** from students of their section, and set each student's sessional group (see Joining a section). The CR and DCR use what they know about their classmates; no student list or ID is checked.
 - **Change a student's sessional group** at any time during the semester. The change is logged, and the student is emailed.
 - **Flag a problem to the department admin** (up to 5 a day), for example a student in the wrong section or group, a missing student, or a routine mistake. The admin sees the flag with who raised it and when.
 - **Request removal of a student** (F9c; later release), up to 5 a day. The request says who and why. It does not delete anything, and the student is not told about the request.
@@ -471,7 +473,7 @@ Rules:
 
 The department admin chooses each section's CR and DCRs by hand. Students do not apply, because the admin knows who should lead each section.
 
-1. The department admin opens the section (for example 3-II-A, Fall 2026) and picks a student who has signed up and verified their email. No approved ID claim is needed first: the admin knows who should lead the section, and the admin's choice is the approval.
+1. The department admin opens the section (for example 3-II-A, Fall 2026) and picks a student who has signed up and verified their email. No accepted join request is needed first: the admin knows who should lead the section, and the admin's choice is the approval.
 2. The admin sets the role: CR or DCR.
 3. The system blocks a second CR, or a third DCR, in the same section and tells the admin why.
 4. The student sees the role on their profile and gets the CR/DCR dashboard. The assignment is logged with who and when.
@@ -631,7 +633,7 @@ Theory classes are for the whole section, but sessional (lab) courses are split 
 How a student's group is decided:
 
 1. A student's routine is decided in this order: **level → term → section → group**.
-2. The student chooses level, term and section on the join form and may suggest their group. The CR or DCR who accepts the request decides the final group, because they know which group each classmate belongs to. The system does not check the UV ID against any ID range.
+2. The student chooses level, term and section on the join form and may suggest their group. The CR or DCR who accepts the request decides the final group, because they know which group each classmate belongs to. The system does not check any student ID.
 3. The list of groups for each section (G1, G2, …) comes from the imported routine Excel sheet, so the CR or DCR picks from groups that really exist for that section.
 4. The group applies only to sessional (lab) courses. Theory classes depend only on level, term and section.
 5. A lab slot tagged with a group (such as `CSE-422 (G1)`) is shown only to students whose group matches, with that group's teacher (full name), time and room. Slots for the whole section (no group tag) are shown to everyone in it.
@@ -792,19 +794,20 @@ Countdown (F13):
 
 - **Security.** Passwords hashed with argon2id. All traffic over HTTPS, with HSTS. Role checks enforced on the server, not just hidden in the UI: a student cannot reach admin actions by guessing a URL. CSRF protection on every change. Sign-in throttling as described under Authentication & onboarding.
 - **Privacy.** A user's phone number and email are visible only to that user on their own profile. No other user can see them, including students, CR, DCR, teachers and admins; there is no setting to share them. There are only two exceptions, both limited to the person deciding a request: the CR or DCR sees a student's email on that student's join request, and the admin sees a teacher's email on that teacher's registration request. Everywhere else (rosters, profiles, chat, admin lists) admins see only whether an email is verified or bouncing, never the address. Email is used only to identify the user, for recovery, and for the system's own automatic messages to that user, never shared externally.
+- **Privacy of the UV ID.** A student's optional UV ID is visible to the student on their own profile, and otherwise only to: the CR and DCRs of the student's section (on that student's join request and on the section roster), the department admin of that section's department, and a teacher on the roster of a section they teach. It never appears in chat, public profiles, search results for other roles, or other students' views.
 - **Stored data.** Passwords are hashed (bcrypt or argon2) and cannot be read back. Email and phone cannot be hashed for storage, because the system must read them back to send mail and to show them to the owner; they are stored encrypted, with the key kept outside the database. A separate **keyed hash (HMAC-SHA256, with a secret key kept outside the database)** of the lower-cased email is used to check that an address is not already taken and to find the account at sign-in. A plain hash is not used, because university emails are easy to guess and a plain hash could be reversed.
-- **Authorization.** Every routine-edit, approval and booking action is checked against the caller's account state, role and scope (a CR can request rooms and approve their own section's ID claims; only a department admin, for their own department, or a super admin chooses CR/DCR). Every admin action is also checked against the admin's department. All checks go through one central policy function, `can(user, action, resource)`. Every role has tests that try to reach other sections' and departments' data. "Sections a teacher teaches" is always worked out on the server from the routine, never taken from what the page sends.
+- **Authorization.** Every routine-edit, approval and booking action is checked against the caller's account state, role and scope (a CR can request rooms and decide their own section's join requests; only a department admin, for their own department, or a super admin chooses CR/DCR). Every admin action is also checked against the admin's department. All checks go through one central policy function, `can(user, action, resource)`. Every role has tests that try to reach other sections' and departments' data. "Sections a teacher teaches" is always worked out on the server from the routine, never taken from what the page sends.
 - **Performance.** Each section's weekly routine is cached and cleared on publish or edit, so the 08:30 peak is served from the cache. Live status and countdown are computed on the page (see Live class status).
 - **Platform.** Responsive web app that can be installed on the home screen (PWA), and works on phone and desktop browsers. No native app in the first version.
 - **Availability & data.** Backups as in Targets. Archived routines are kept, and chat history is kept as set under Privacy and retention.
 - **Background jobs.** These run in a job queue, with retries and a record of any job that failed:
   - booking expiry at 2 h before the start time,
-  - claim escalation after 3 days,
+  - join request escalation after 3 days,
   - email sending and digests,
   - malware scanning of files,
   - the nightly retention purge,
   - the rollover.
-- **Auditability.** Admin approvals, rejections, CR/DCR assignments, ID claim approvals and revocations, routine publishes, creation or removal of admin accounts, chat suspensions, and every admin view of reported chat messages are logged with who and when.
+- **Auditability.** Admin approvals, rejections, CR/DCR assignments, join request decisions, removals of a student from a section, routine publishes, creation or removal of admin accounts, chat suspensions, and every admin view of reported chat messages are logged with who and when.
 
 ## Technical approach
 
@@ -826,14 +829,13 @@ This is the recommended approach for a team of 2–3 developers, one institution
 
 | Collection | Key fields and constraints |
 | --- | --- |
-| `user` | id, kind (student, teacher, staff), state, `email_enc`, `email_hmac` (unique), `phone_enc`, `password_hash` |
+| `user` | id, kind (student, teacher, staff), state, `email_enc`, `email_hmac` (unique), `phone_enc`, `password_hash`, `uv_id`? (students; optional, not unique) |
 | `user_role` | user_id, role (super_admin, dept_admin, teacher, cr, dcr), department_id?, section_id?, semester_id? |
 | `department` | id, code (unique), name, retired |
 | `semester` | id, name, status (draft, current, archived), start_date, end_date. **At most one current** (partial unique index) |
 | `section` | semester_id, department_id, level, term, letter. Unique on all five |
 | `section_group` | section_id, label. Unique per section |
-| `enrolment` | user_id, semester_id, section_id, group_id?, status (pending, accepted, rejected), decided_by, decided_at. **At most one accepted per user per semester** |
-| `uv_claim` | user_id, uv_id_text, uv_id_norm, status. **Unique uv_id_norm where status = approved** (pending claims do not reserve) |
+| `enrolment` | user_id, semester_id, section_id, group_id?, status (pending, accepted, rejected, withdrawn, revoked), decided_by, decided_at. **At most one accepted per user per semester** |
 | `teacher` | department_id, short_code, full_name, user_id?. Unique (department_id, short_code); user_id unique when set |
 | `room` | id, code (unique), type, owner_department_id |
 | `room_share` | room_id, department_id |
@@ -851,14 +853,14 @@ This is the recommended approach for a team of 2–3 developers, one institution
 
 **Concurrency rules**
 
-- Every "first action wins" decision (join request, ID claim, room request) is a conditional update, such as `findOneAndUpdate({ _id, status: 'pending' }, { $set: { status: 'accepted' } })`. If no document matches, the user sees "already decided".
+- Every "first action wins" decision (join request, room request) is a conditional update, such as `findOneAndUpdate({ _id, status: 'pending' }, { $set: { status: 'accepted' } })`. If no document matches, the user sees "already decided".
 - The 3-request limit is counted in the same transaction as the insert, after first writing to the requester's document (for example, increasing a counter on it), so two requests sent at once cannot both pass the check.
 - Approving a booking happens in one transaction: approve, insert its `room_slot_lock` documents, cancel the requester's overlapping requests, and reject other requests overlapping the same room and time. The unique index on `room_slot_lock` is the last line of defence: if any block is already taken, the transaction fails.
 
 **Key API surface** (REST; exact shapes are decided in the API spec)
 
 - Auth: `POST /auth/signup`, `/auth/verify`, `/auth/login`, `/auth/second-step`, `/auth/reset`
-- Join and claims: `POST /enrolments`, `POST /enrolments/{id}/decision`, `PATCH /enrolments/{id}/group`
+- Join requests: `POST /enrolments`, `POST /enrolments/{id}/decision`, `PATCH /enrolments/{id}/group`
 - Import: `POST /semesters/{id}/imports` (upload) → `GET /imports/{id}/preview` (errors, warnings, diff) → `POST /imports/{id}/publish`
 - Routine: `GET /me/routine?from=&to=` (slots, cancellations, bookings, events and server time), `PUT/POST/DELETE /slots/{id}`
 - Calendar: `GET/POST/PATCH /calendar-events`, `POST /slots/{id}/cancellations`
@@ -875,10 +877,13 @@ These cover the rule-heavy parts. Each one becomes an automated test. Times are 
 - Given a `claim_pending` student who applied to CSE 2-II-A, when they message that section's CR, then it is delivered. When they message anyone else, then it is refused.
 - Given an `unconfirmed` student, when they send a one-to-one message, then it is delivered. When they open My routine, then they see the update screen.
 
-**UV ID claims**
+**Sign-up and joining a section**
 
-- Given student A's pending claim for `0822310205101077`, when student B claims `822310205101077`, then both claims are pending with a "duplicate pending claim" badge.
-- When the CR accepts A's claim, then B's claim is rejected automatically and the admin is told.
+- Given a student signs up with `x@gmail.com`, then the sign-up is accepted and a verification email is sent. Given a teacher signs up with `x@gmail.com`, then it is refused because the domain is not allowed.
+- Given a student signs up without the CAPTCHA, then it is refused.
+- Given a join request that contains a UV ID, then it is refused as invalid. Given two students who write the same UV ID on their profiles, then both are saved.
+- Given a pending join request to CSE 2-II-A, when its CR and DCR decide it at the same moment, then exactly one decision is applied and the other sees "already decided".
+- Given an admin of EEE, when they try to remove a CSE student from a section, then it is refused.
 
 **Booking**
 
@@ -917,3 +922,7 @@ These must be answered before the related work starts. Each has an owner.
 5. **Hosting and budget. Owner: project owner.** University server or a rented VPS, and who pays for the email provider and storage?
 
 New questions are added here as they come up.
+
+**Decided**
+
+- **Open student sign-up, no UV ID claim (decided by the project owner, Nov 2026).** Students sign up with any email address, and email verification is the only identity check. The UV ID claim and its rules (uniqueness, duplicate badge, automatic rejection of duplicates, the 5-rejection block, admin revocation) are removed. The UV ID is now an optional, unchecked profile field. Teachers still need a university email and admin approval. This also narrows Open question 1: students no longer need a university mailbox; it still applies to teachers and to mail delivery.
