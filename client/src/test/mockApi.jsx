@@ -17,6 +17,8 @@ const reply = (status, body, headers = {}) => ({
 });
 
 export const ok = (data) => reply(200, { data });
+/** A response whose body is not wrapped in `data` (CAL-13's confirmation answer, a 204). */
+export const raw = (body, status = 200) => reply(status, body);
 export const fail = (status, code, extra = {}, headers = {}) =>
   reply(status, { error: { code, message: code, ...extra } }, headers);
 

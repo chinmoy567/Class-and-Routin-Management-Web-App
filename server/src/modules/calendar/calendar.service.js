@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { SOCKET_EVENTS } from '@crm/shared/enums';
+import { eventProblems, slotRuns } from '@crm/shared';
 import { CalendarEvent, ClassCancellation } from './calendar.model.js';
 import { assertCan } from '../../policy/index.js';
 import { AppError, notFound } from '../../lib/errors.js';
@@ -9,7 +10,7 @@ import { afterCommit } from '../../lib/db.js';
 import { record } from '../audit/index.js';
 import { enqueue } from '../notifications/index.js';
 import { currentSemester } from '../organisation/index.js';
-import { RoutineSlot, RoutineSlotTeacher } from '../routine/index.js';
+import { RoutineSlot, RoutineSlotTeacher, Section } from '../routine/index.js';
 import { linkedUserIds } from '../teachers/index.js';
 import { getAudienceForSections } from './hooks.js';
 
@@ -145,6 +146,29 @@ export async function updateCalendarEvent(actor, id, body) {
   const newTo = body.to_date ?? event.to_date;
   const newDeptId = body.scope !== undefined ? scopeDeptId(body.scope) : deptId;
 
+  // CAL-02: a scope change must also be allowed for the scope it moves to.
+  if (body.scope !== undefined) {
+    assertCan(actor, 'calendar.event.manage', { scope_department_id: newDeptId });
+  }
+
+  // CAL-01, CAL-03: the merged event must still be valid (a partial body alone can't tell).
+  const merged = {
+    scope: newDeptId ?? 'university',
+    from_date: newFrom,
+    to_date: newTo,
+    kind: body.kind ?? event.kind,
+    cutoff_min: body.cutoff_min !== undefined ? body.cutoff_min : event.cutoff_min,
+  };
+  const problems = eventProblems(merged);
+  if (problems.length) {
+    throw new AppError(
+      400,
+      'VALIDATION_ERROR',
+      'Some fields are invalid.',
+      Object.fromEntries(problems),
+    );
+  }
+
   if (!body.confirm) {
     const affected = await affectedBookings(newFrom, newTo, newDeptId);
     if (affected.length) {
@@ -230,6 +254,29 @@ export async function cancelClass(actor, slotId, { date, reason }) {
     throw new AppError(409, 'SLOT_NOT_ON_DATE', 'That date is outside the current semester.');
   }
 
+  // CAL-10: the date must not already be stopped by a calendar event (holiday, exam, a cutoff the
+  // class starts after). The section's department decides, as in CAL-08.
+  const section = await Section.findById(slot.section_id).select('department_id').lean();
+  const departmentId = section?.department_id ?? slot.owner_department_id;
+  const events = await getEventsForDepartment(departmentId, date, date);
+  const run = slotRuns(
+    {
+      slot_id: slot._id,
+      start_min: slot.start_min,
+      end_min: slot.end_min,
+      department_id: departmentId,
+    },
+    date,
+    {
+      events,
+      cancellations: [],
+      semester: { start_date: semester.start_date, end_date: semester.end_date },
+    },
+  );
+  if (run.status !== 'runs') {
+    throw new AppError(409, 'SLOT_NOT_ON_DATE', 'A calendar event stops this slot on that date.');
+  }
+
   let cancellation;
   try {
     cancellation = await ClassCancellation.create({
@@ -296,11 +343,14 @@ async function notifyCancellationChange(slot, date, verb, cancellationId) {
     section_id: sectionId,
   });
 
-  await afterCommit(async () => {
-    // Teachers on the slot
-    const links = await RoutineSlotTeacher.find({ slot_id: slot._id }).lean();
-    const teacherUserIds = await linkedUserIds(links.map((l) => l.teacher_id));
+  // Teachers on the slot
+  const links = await RoutineSlotTeacher.find({ slot_id: slot._id }).lean();
+  const teacherUserIds = await linkedUserIds(links.map((l) => l.teacher_id));
+  for (const uid of teacherUserIds) {
+    emitAfterCommit(`user:${uid}`, SOCKET_EVENTS.ROUTINE_CHANGED, { section_id: sectionId });
+  }
 
+  await afterCommit(async () => {
     // Students of the section (via registered audience providers)
     const studentUserIds = await getAudienceForSections([sectionId]);
 

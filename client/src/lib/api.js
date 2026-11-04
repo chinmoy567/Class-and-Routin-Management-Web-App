@@ -51,7 +51,12 @@ async function parse(res) {
  * The single fetch wrapper (FND-31). Sends the session cookie, adds the CSRF header to every
  * non-GET request, and turns `{ error }` into a thrown ApiError. Returns the response `data`.
  */
-export async function api(path, { method = 'GET', body, headers = {} } = {}) {
+export async function api(path, opts) {
+  return (await apiBody(path, opts))?.data;
+}
+
+/** As `api`, but returns the whole response body, for answers that are not wrapped in `data`. */
+export async function apiBody(path, { method = 'GET', body, headers = {} } = {}) {
   const init = { method, credentials: 'include', headers: { ...headers } };
   if (method !== 'GET') init.headers['X-CSRF-Token'] = await getCsrfToken();
   if (body instanceof Blob) {
@@ -73,6 +78,5 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
       res = await fetch(`/api${path}`, init);
     }
   }
-  const parsed = await parse(res);
-  return parsed?.data;
+  return parse(res);
 }

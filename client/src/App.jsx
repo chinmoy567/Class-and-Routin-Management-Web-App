@@ -29,6 +29,7 @@ import { TeacherRegistrationsPage } from '@/routes/admin/TeacherRegistrationsPag
 import { TeachersPage } from '@/routes/admin/TeachersPage.jsx';
 import { RoutineImportPage } from '@/routes/admin/RoutineImportPage.jsx';
 import { RoutineEditPage } from '@/routes/admin/RoutineEditPage.jsx';
+import { CalendarPage } from '@/routes/admin/CalendarPage.jsx';
 import { RepresentativesPage } from '@/routes/admin/RepresentativesPage.jsx';
 import { TeacherRejectedPage } from '@/routes/TeacherRejectedPage.jsx';
 import { ConfirmEmailPage } from '@/routes/ConfirmEmailPage.jsx';
@@ -90,6 +91,7 @@ export function AppRoutes() {
             <Route path="/admin/teachers" element={<TeachersPage />} />
             <Route path="/admin/routine-import" element={<RoutineImportPage />} />
             <Route path="/admin/routine-edit" element={<RoutineEditPage />} />
+            <Route path="/admin/calendar" element={<CalendarPage />} />
             <Route path="/admin/representatives" element={<RepresentativesPage />} />
             <Route path="/admin/rollover" element={<RolloverPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />

@@ -6,16 +6,25 @@ import {
   connectTestDb,
   drainMail,
   disconnectTestDb,
+  fixClock,
   loginAs,
   startTestMail,
   stopTestMail,
 } from '../../../../test/harness.js';
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { setEmitter } from '../../../lib/events.js';
+import { clock } from '../../../lib/time.js';
 import { renderTemplate } from '../../notifications/templates/index.js';
 import { Semester } from '../../organisation/index.js';
 import { list as auditList } from '../../audit/index.js';
-import { RoutineSlot, Section, resetRoutineHooks } from '../../routine/index.js';
+import {
+  RoutineSlot,
+  RoutineSlotTeacher,
+  Section,
+  resetRoutineHooks,
+} from '../../routine/index.js';
+import { Enrolment, acceptedStudentUserIdsOfSections } from '../../enrolments/index.js';
+import { Teacher } from '../../teachers/index.js';
 import { registerCalendarAudienceProvider, resetCalendarAudienceProviders } from '../hooks.js';
 import { CalendarEvent, ClassCancellation, resetBookingAffectedProviders } from '../index.js';
 
@@ -522,5 +531,239 @@ describe('CAL-02 list events', () => {
     const agent = await loginAs(null, app);
     const res = await agent.get('/api/calendar-events');
     expect(res.status).toBe(401);
+  });
+});
+
+// ── Spec 11 verification: scope, validity, cancellation rules and notices ───
+
+describe('CAL-02 scope changes by a department admin', () => {
+  it('[CAL-02] dept admin cannot move own department event to university scope → 403', async () => {
+    const cse = await createDepartment();
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
+    const cseAdmin = await asDeptAdmin(cse);
+    const res = await cseAdmin.patch(`/api/calendar-events/${ev.id}`).send({ scope: 'university' });
+    expect(res.status).toBe(403);
+    expect((await CalendarEvent.findById(ev.id).lean()).scope_department_id).toBeTruthy();
+  });
+
+  it('[CAL-02] dept admin cannot move own department event to another department → 403', async () => {
+    const cse = await createDepartment();
+    const eee = await createDepartment();
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
+    const cseAdmin = await asDeptAdmin(cse);
+    const res = await cseAdmin.patch(`/api/calendar-events/${ev.id}`).send({ scope: eee.id });
+    expect(res.status).toBe(403);
+    expect(String((await CalendarEvent.findById(ev.id).lean()).scope_department_id)).toBe(
+      String(cse._id),
+    );
+  });
+
+  it("[CAL-02] dept admin cannot delete another department's event → 403", async () => {
+    const cse = await createDepartment();
+    const eee = await createDepartment();
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
+    const eeeAdmin = await asDeptAdmin(eee);
+    const res = await eeeAdmin.delete(`/api/calendar-events/${ev.id}`);
+    expect(res.status).toBe(403);
+    expect(await CalendarEvent.countDocuments()).toBe(1);
+  });
+
+  it('[CAL-02] a student asking for another department events gets none of them', async () => {
+    const cse = await createDepartment();
+    const eee = await createDepartment();
+    const sup = await asSuper();
+    await sup
+      .post('/api/calendar-events')
+      .send(baseEvent(eee.id, { kind: 'dept_event', label: 'EEE FEST' }));
+    const student = await asStudent(cse);
+    const res = await student.get(`/api/calendar-events?department_id=${eee.id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((e) => e.label)).not.toContain('EEE FEST');
+  });
+
+  it('[CAL-02] a claim_pending student cannot list events → 403', async () => {
+    const cse = await createDepartment();
+    const pending = await loginAs(
+      await makeUser({ kind: 'student', state: 'claim_pending', departmentId: cse._id }),
+      app,
+    );
+    const res = await pending.get('/api/calendar-events');
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('CAL-01 edits keep every event valid', () => {
+  it('[CAL-01] a PATCH that moves from_date after the stored to_date → 400', async () => {
+    const sup = await asSuper();
+    const ev = (await sup.post('/api/calendar-events').send(baseEvent('university'))).body.data;
+    const res = await sup.patch(`/api/calendar-events/${ev.id}`).send({ from_date: '2027-06-20' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect((await CalendarEvent.findById(ev.id).lean()).from_date).toBe('2027-06-07');
+  });
+
+  it('[CAL-01] changing a stored early_closing to holiday while keeping its cutoff → 400', async () => {
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(
+          baseEvent('university', { kind: 'early_closing', label: 'Campus Day', cutoff_min: 720 }),
+        )
+    ).body.data;
+    const res = await sup.patch(`/api/calendar-events/${ev.id}`).send({ kind: 'holiday' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('[CAL-01] the same change is accepted when the cutoff is cleared in the same request', async () => {
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(
+          baseEvent('university', { kind: 'early_closing', label: 'Campus Day', cutoff_min: 720 }),
+        )
+    ).body.data;
+    const res = await sup
+      .patch(`/api/calendar-events/${ev.id}`)
+      .send({ kind: 'holiday', cutoff_min: null });
+    expect(res.status).toBe(200);
+    expect(res.body.data.kind).toBe('holiday');
+  });
+
+  it('[CAL-03] a dept_event cannot be moved to university scope by a super admin → 400', async () => {
+    const cse = await createDepartment();
+    const sup = await asSuper();
+    const ev = (
+      await sup
+        .post('/api/calendar-events')
+        .send(baseEvent(cse.id, { kind: 'dept_event', label: 'CSE FEST' }))
+    ).body.data;
+    const res = await sup.patch(`/api/calendar-events/${ev.id}`).send({ scope: 'university' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('CAL-10 cancellation only on a date the slot runs', () => {
+  it('[CAL-10] cancelling a slot on a date a holiday stops → SLOT_NOT_ON_DATE', async () => {
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot } = await makeSlot(cse, sem, { day_of_week: 1 });
+    const sup = await asSuper();
+    await sup
+      .post('/api/calendar-events')
+      .send(baseEvent('university', { kind: 'holiday', label: 'Eid' }));
+    const agent = await asDeptAdmin(cse);
+    const res = await agent
+      .post(`/api/slots/${slot._id}/cancellations`)
+      .send({ date: '2027-06-07', reason: 'Test' });
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('SLOT_NOT_ON_DATE');
+    expect(await ClassCancellation.countDocuments()).toBe(0);
+  });
+});
+
+describe('CAL-10 concurrency', () => {
+  it('[CAL-10] two admins cancel the same slot and date at once: one 201, one CONFLICT', async () => {
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot } = await makeSlot(cse, sem, { day_of_week: 1 });
+    const a = await asDeptAdmin(cse);
+    const b = await asDeptAdmin(cse);
+    const url = `/api/slots/${slot._id}/cancellations`;
+    const [r1, r2] = await Promise.all([
+      a.post(url).send({ date: '2027-06-07', reason: 'one' }),
+      b.post(url).send({ date: '2027-06-07', reason: 'two' }),
+    ]);
+    expect([r1.status, r2.status].sort()).toEqual([201, 409]);
+    expect(await ClassCancellation.countDocuments()).toBe(1);
+  });
+});
+
+describe('CAL-11 cancellation notices reach students and teachers', () => {
+  beforeEach(() => {
+    registerCalendarAudienceProvider(acceptedStudentUserIdsOfSections);
+  });
+
+  it('[CAL-11] students with an accepted enrolment in the section are emailed', async () => {
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot, section } = await makeSlot(cse, sem, { day_of_week: 1 });
+    const student = await makeUser({ kind: 'student', state: 'active', departmentId: cse._id });
+    await Enrolment.create({
+      user_id: student._id,
+      semester_id: sem.id,
+      section_id: section._id,
+      department_id: cse._id,
+      status: 'accepted',
+    });
+    const agent = await asDeptAdmin(cse);
+    const res = await agent
+      .post(`/api/slots/${slot._id}/cancellations`)
+      .send({ date: '2027-06-07', reason: 'sick' });
+    expect(res.status).toBe(201);
+    const mail = (await drainMail()).filter((m) => m.to === student.email);
+    expect(mail).toHaveLength(1);
+  });
+
+  it('[CAL-11] the slot teacher is sent routine.changed on their own user room', async () => {
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot } = await makeSlot(cse, sem, { day_of_week: 1 });
+    const teacherUser = await makeUser({ kind: 'teacher', state: 'active', departmentId: cse._id });
+    const teacher = await Teacher.create({
+      department_id: cse._id,
+      short_code: 'ABC',
+      full_name: 'Teacher',
+      user_id: teacherUser._id,
+    });
+    await RoutineSlotTeacher.create({ slot_id: slot._id, teacher_id: teacher._id });
+
+    const emitted = [];
+    setEmitter((room, event) => emitted.push({ room, event }));
+    const agent = await asDeptAdmin(cse);
+    await agent
+      .post(`/api/slots/${slot._id}/cancellations`)
+      .send({ date: '2027-06-07', reason: 'sick' });
+    expect(
+      emitted.some((e) => e.room === `user:${teacherUser._id}` && e.event === 'routine.changed'),
+    ).toBe(true);
+  });
+});
+
+describe('CAL-12 undo after the class has started', () => {
+  afterEach(() => clock.reset());
+
+  it('[CAL-12] undo once the class has started → 409 TOO_LATE and the cancellation stays', async () => {
+    // Monday 2027-06-07 09:30 Asia/Dhaka: the 09:00 class has started. The clock is fixed before
+    // sign-in, so the session is created at the same instant the undo is attempted.
+    fixClock('2027-06-07T03:30:00Z');
+    const cse = await createDepartment();
+    const sem = await makeSemester();
+    const { slot } = await makeSlot(cse, sem, { day_of_week: 1, start_min: 540, end_min: 600 });
+    const agent = await asDeptAdmin(cse);
+    await agent
+      .post(`/api/slots/${slot._id}/cancellations`)
+      .send({ date: '2027-06-07', reason: 'sick' });
+    const res = await agent.delete(`/api/slots/${slot._id}/cancellations/2027-06-07`);
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('TOO_LATE');
+    expect(await ClassCancellation.countDocuments()).toBe(1);
   });
 });

@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button.jsx';
 import { fetchAdminSemesters } from '@/features/admin/api.js';
+import { useCurrentSemester } from '@/features/admin/hooks.js';
 import { FormError } from '@/features/auth/components/FormError.jsx';
+import { CancelClassDialog } from '@/features/calendar/components/CancelClassDialog.jsx';
 import { DeleteConfirm } from '@/features/routine-edit/components/DeleteConfirm.jsx';
 import { SectionManager } from '@/features/routine-edit/components/SectionManager.jsx';
 import { SlotDialog } from '@/features/routine-edit/components/SlotDialog.jsx';
@@ -57,6 +59,8 @@ function Editor({ semesterId, section, departmentId }) {
   const [dialog, setDialog] = useState(null); // { slot } where slot is null when adding
   const [deleting, setDeleting] = useState(null);
   const [conflict, setConflict] = useState(false);
+  const [cancelling, setCancelling] = useState(null); // a slot, while its cancel dialog is open
+  const currentSemester = useCurrentSemester().data ?? null;
 
   if (grid.isPending) return <p>{t('routineEdit.loading')}</p>;
   if (grid.isError) {
@@ -129,6 +133,14 @@ function Editor({ semesterId, section, departmentId }) {
           }
         />
       )}
+      {cancelling && currentSemester && (
+        <CancelClassDialog
+          key={cancelling.id}
+          slot={cancelling}
+          semester={currentSemester}
+          onClose={() => setCancelling(null)}
+        />
+      )}
       <WeekGrid
         slots={slots}
         onEdit={(slot) => {
@@ -140,6 +152,11 @@ function Editor({ semesterId, section, departmentId }) {
           del.reset();
           setDeleting(slot);
         }}
+        onCancelClass={
+          info.semester_status === 'current' && currentSemester
+            ? (slot) => setCancelling(slot)
+            : undefined
+        }
       />
       {open && (
         <SectionManager semesterId={semesterId} departmentId={departmentId} section={info} />

@@ -7,7 +7,7 @@ function onDay(slots, day) {
   return slots.filter((s) => s.day_of_week === day);
 }
 
-function SlotCard({ slot, onEdit, onDelete }) {
+function SlotCard({ slot, onEdit, onDelete, onCancelClass }) {
   const teachers = slot.teachers === 'TBA' ? 'TBA' : slot.teachers.join(', ');
   return (
     <li
@@ -38,6 +38,11 @@ function SlotCard({ slot, onEdit, onDelete }) {
             {t('routineEdit.delete')}
             <span className="sr-only"> {slot.course_code}</span>
           </Button>
+          {onCancelClass && (
+            <Button type="button" variant="secondary" onClick={() => onCancelClass(slot)}>
+              {t('calendar.cancelClass.button')} <span className="sr-only">{slot.course_code}</span>
+            </Button>
+          )}
         </div>
       ) : (
         <p className="font-medium">
@@ -49,8 +54,11 @@ function SlotCard({ slot, onEdit, onDelete }) {
   );
 }
 
-/** EDT-01: Sunday to Thursday. A day list on phones, five columns from `lg` up. */
-export function WeekGrid({ slots, onEdit, onDelete }) {
+/**
+ * EDT-01: Sunday to Thursday. A day list on phones, five columns from `lg` up.
+ * `onCancelClass` is passed only while the semester is current (CAL-10 applies to published slots).
+ */
+export function WeekGrid({ slots, onEdit, onDelete, onCancelClass }) {
   return (
     <div className="grid gap-4 lg:grid-cols-5">
       {DAYS.map((day) => {
@@ -65,7 +73,13 @@ export function WeekGrid({ slots, onEdit, onDelete }) {
             ) : (
               <ul className="space-y-2">
                 {list.map((s) => (
-                  <SlotCard key={s.id} slot={s} onEdit={onEdit} onDelete={onDelete} />
+                  <SlotCard
+                    key={s.id}
+                    slot={s}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onCancelClass={onCancelClass}
+                  />
                 ))}
               </ul>
             )}

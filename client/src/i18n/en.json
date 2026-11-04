@@ -18,6 +18,7 @@
     "adminTeachers": "Teachers",
     "adminRoutineImport": "Routine import",
     "adminRoutineEdit": "Routine edit",
+    "adminCalendar": "Calendar",
     "adminRepresentatives": "CR / DCR",
     "routine": "My Routine",
     "freeRooms": "Free rooms",
@@ -699,6 +700,85 @@
       "4": "Thursday",
       "5": "Friday",
       "6": "Saturday"
+    }
+  },
+  "calendar": {
+    "title": "University calendar",
+    "loading": "Loading events…",
+    "retry": "Try again",
+    "empty": "No calendar events in this range.",
+    "noSemester": "There is no current semester, so the list shows every event.",
+    "from": "From",
+    "to": "To",
+    "add": "Add event",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "close": "Close",
+    "scope": "Scope",
+    "scopeUniversity": "University",
+    "kind": "Kind",
+    "label": "Label",
+    "labelHint": "Shown in live status, for example \"Mid-term exam\".",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "cutoff": "Cutoff time",
+    "cutoffHint": "Classes stop at this time on those days.",
+    "dialogAdd": "Add a calendar event",
+    "dialogEdit": "Edit a calendar event",
+    "kinds": {
+      "holiday": "Holiday",
+      "prep_leave": "Preparatory leave",
+      "exam": "Exam",
+      "early_closing": "Early closing",
+      "dept_event": "Department event"
+    },
+    "scopeOf": {
+      "university": "University",
+      "department": "Department {code}"
+    },
+    "dates": "{from} to {to}",
+    "deleteConfirm": {
+      "title": "Delete this event?",
+      "body": "\"{label}\" ({dates}) will be removed.",
+      "confirm": "Delete",
+      "keep": "Keep it"
+    },
+    "affected": {
+      "title": "Existing bookings will be affected",
+      "body": "Saving this event affects {count} approved room bookings.",
+      "saveAnyway": "Save and cancel those bookings"
+    },
+    "errors": {
+      "dateOrder": "The end date must be on or after the start date.",
+      "cutoffRequired": "Enter a cutoff time for this kind.",
+      "cutoffFormat": "Enter a time like 12:00.",
+      "cutoffNotAllowed": "This kind does not take a cutoff time.",
+      "deptScope": "A department event must belong to a department.",
+      "labelRequired": "Enter a label (up to 80 characters).",
+      "dateRequired": "Enter a date as YYYY-MM-DD.",
+      "scopeRequired": "Choose a scope."
+    },
+    "cancelClass": {
+      "button": "Cancel class",
+      "restoreButton": "Restore class",
+      "title": "Cancel one class",
+      "restoreTitle": "Restore one cancelled class",
+      "body": "{course} on {day} {start}–{end}. Only this date is affected.",
+      "date": "Date",
+      "dateHint": "Pick a {day} in the current semester.",
+      "reason": "Reason",
+      "reasonRequired": "Enter a reason (up to 500 characters).",
+      "weekdayError": "That date is not a {day}.",
+      "rangeError": "That date is outside the current semester.",
+      "cancel": "Cancel this class",
+      "restore": "Restore this class",
+      "keep": "Keep it",
+      "done": "The class is cancelled for that date.",
+      "restored": "The class runs again on that date.",
+      "conflict": "That class is already cancelled on that date."
     }
   },
   "routineEdit": {

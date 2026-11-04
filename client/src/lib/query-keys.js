@@ -53,4 +53,6 @@ export const qk = {
   adminFlags: (status, departmentId) => ['admin', 'flags', status, departmentId],
   adminJoinList: (view, departmentId) => ['admin', 'join-list', view, departmentId],
   adminAudit: (params) => ['admin', 'audit', params],
+  calendarAll: () => ['admin', 'calendar'],
+  calendarEvents: (params) => ['admin', 'calendar', 'events', params],
 };

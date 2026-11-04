@@ -46,6 +46,7 @@ const ADMIN_ITEMS = [
   { to: '/admin/teachers', labelKey: 'nav.adminTeachers', icon: GraduationCap },
   { to: '/admin/routine-import', labelKey: 'nav.adminRoutineImport', icon: FileUp },
   { to: '/admin/routine-edit', labelKey: 'nav.adminRoutineEdit', icon: CalendarCog },
+  { to: '/admin/calendar', labelKey: 'nav.adminCalendar', icon: CalendarDays },
   { to: '/admin/representatives', labelKey: 'nav.adminRepresentatives', icon: UsersRound },
   { to: '/admin/rollover', labelKey: 'nav.adminRollover', icon: ClipboardCheck },
 ];
