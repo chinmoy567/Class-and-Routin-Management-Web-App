@@ -157,10 +157,7 @@ describe('not enrolled this semester (ROL-10)', () => {
     });
     const agent = await as(user);
     await agent.post('/api/me/not-enrolled');
-    const sent = await agent.post('/api/enrolments').send({
-      section_id: String(open._id),
-      uv_id: '0822310205101077',
-    });
+    const sent = await agent.post('/api/enrolments').send({ section_id: String(open._id) });
     expect(sent.status).toBe(201);
     const row = await User.findById(user._id).lean();
     expect(row.not_enrolled_semester_id).toBeUndefined();

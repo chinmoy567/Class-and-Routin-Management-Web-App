@@ -12,7 +12,7 @@ import {
   useGraduateStudent,
   useIssueTempPassword,
   useReactivateStudent,
-  useRevokeUvClaim,
+  useRemoveFromSection,
   useSectionGroups,
   useSetStudentGroup,
   useStudentSearch,
@@ -157,13 +157,13 @@ function StudentRow({ student, onTemp, onConfirm }) {
             {t('admin.students.actions.tempPassword')}
           </Button>
         )}
-        {student.uv_claim_id && (
+        {student.enrolment?.status === 'accepted' && student.section && (
           <Button
             type="button"
             variant="secondary"
-            onClick={() => onConfirm({ kind: 'revoke', student })}
+            onClick={() => onConfirm({ kind: 'remove', student })}
           >
-            {t('admin.students.actions.revokeClaim')}
+            {t('admin.students.actions.removeFromSection')}
           </Button>
         )}
       </div>
@@ -184,7 +184,7 @@ export function AdminStudentsPage() {
   const [shownPassword, setShownPassword] = useState(null);
   const search = useStudentSearch({ q, department_id: departmentId });
   const deactivate = useDeactivateStudent();
-  const revoke = useRevokeUvClaim();
+  const remove = useRemoveFromSection();
   const searchId = useId();
 
   const rows = search.data ?? [];
@@ -247,19 +247,22 @@ export function AdminStudentsPage() {
           }
         />
       )}
-      {dialog?.kind === 'revoke' && (
+      {dialog?.kind === 'remove' && (
         <ConfirmDialog
-          title={t('admin.students.actions.revokeClaim')}
-          body={t('admin.students.confirmRevoke', { name: dialog.student.full_name })}
-          confirmLabel={t('admin.students.actions.revokeClaim')}
+          title={t('admin.students.actions.removeFromSection')}
+          body={t('admin.students.confirmRemove', {
+            name: dialog.student.full_name,
+            section: dialog.student.section.label,
+          })}
+          confirmLabel={t('admin.students.actions.removeFromSection')}
           withReason
-          reasonLabel={t('admin.students.revokeReason')}
-          pending={revoke.isPending}
-          error={errorMessage(revoke.error)}
+          reasonLabel={t('admin.students.removeReason')}
+          pending={remove.isPending}
+          error={errorMessage(remove.error)}
           onCancel={closeDialog}
           onConfirm={(reason) =>
-            revoke.mutate(
-              { claimId: dialog.student.uv_claim_id, reason },
+            remove.mutate(
+              { enrolmentId: dialog.student.enrolment.id, reason },
               { onSuccess: closeDialog },
             )
           }

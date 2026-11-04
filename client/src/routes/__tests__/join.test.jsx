@@ -38,7 +38,6 @@ const waitingRequest = (over = {}) => ({
   reason: null,
   appeal: null,
   section: { id: 'sec1', name: 'CSE 2-II-A' },
-  uv_id: { text: '0822', status: 'pending' },
   representatives: [{ user_id: 'u9', role: 'cr', full_name: 'Cara CR', photo_url: null }],
   ...over,
 });
@@ -58,7 +57,7 @@ describe('join form (spec 10)', () => {
     expect(screen.queryByLabelText('Section')).not.toBeInTheDocument();
   });
 
-  it('JR-01 sends the name, UV ID, section and group, then moves to the waiting screen', async () => {
+  it('JR-01 OS-06 sends the name, section and group (never a UV ID), then moves to the waiting screen', async () => {
     let sent = false;
     const calls = mockApi({
       'GET /api/auth/me': [
@@ -74,56 +73,38 @@ describe('join form (spec 10)', () => {
     });
     renderApp('/join');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('UV ID'), '0822 3102');
-    await user.selectOptions(screen.getByLabelText('Department'), 'd1');
+    await user.selectOptions(await screen.findByLabelText('Department'), 'd1');
+    expect(screen.queryByLabelText(/UV ID/)).not.toBeInTheDocument();
     await user.selectOptions(await screen.findByLabelText('Section'), 'sec1');
     await user.selectOptions(await screen.findByLabelText('Lab group (optional)'), 'g1');
     await user.click(screen.getByRole('button', { name: 'Send request' }));
     expect(await screen.findByRole('heading', { name: 'Waiting for approval' })).toBeVisible();
     const post = calls.find((c) => c.method === 'POST' && c.url === '/api/enrolments');
-    expect(post.body).toMatchObject({
+    expect(post.body).toEqual({
       section_id: 'sec1',
       group_id: 'g1',
-      uv_id: '0822 3102',
       full_name: 'Rafi Ahmed',
     });
   });
 
-  it('JR-06 UV_ID_TAKEN and REQUEST_ALREADY_OPEN show a plain message', async () => {
+  it('JR-02 REQUEST_ALREADY_OPEN shows a plain message', async () => {
     mockApi({
       'GET /api/auth/me': meResponse('join-form', { state: 'claim_pending' }),
       'GET /api/join/options': ok(options),
       'GET /api/me/join-request': ok(null),
-      'POST /api/enrolments': fail(409, 'UV_ID_TAKEN'),
+      'POST /api/enrolments': fail(409, 'REQUEST_ALREADY_OPEN'),
     });
     renderApp('/join');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('UV ID'), '123');
-    await user.selectOptions(screen.getByLabelText('Department'), 'd1');
+    await user.selectOptions(await screen.findByLabelText('Department'), 'd1');
     await user.selectOptions(await screen.findByLabelText('Section'), 'sec1');
     await user.click(screen.getByRole('button', { name: 'Send request' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'already approved for another account',
+      'You already have a request waiting',
     );
   });
 
-  it('JR-01 a UV ID that is not 1 to 20 digits is caught on the form and nothing is sent', async () => {
-    const calls = mockApi({
-      'GET /api/auth/me': meResponse('join-form', { state: 'claim_pending' }),
-      'GET /api/join/options': ok(options),
-      'GET /api/me/join-request': ok(null),
-    });
-    renderApp('/join');
-    const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('UV ID'), 'abc');
-    await user.selectOptions(screen.getByLabelText('Department'), 'd1');
-    await user.selectOptions(await screen.findByLabelText('Section'), 'sec1');
-    await user.click(screen.getByRole('button', { name: 'Send request' }));
-    expect(await screen.findByText('Enter your UV ID (1 to 20 digits).')).toBeVisible();
-    expect(calls.some((c) => c.method === 'POST')).toBe(false);
-  });
-
-  it('JR-20 a rejected request shows the reason and a one-tap appeal; the UV ID is asked again', async () => {
+  it('JR-20 a rejected request shows the reason and a one-tap appeal; there is still no UV ID field', async () => {
     const calls = mockApi({
       'GET /api/auth/me': meResponse('join-form', { state: 'claim_pending' }),
       'GET /api/join/options': ok(options),
@@ -132,7 +113,6 @@ describe('join form (spec 10)', () => {
           waitingRequest({
             status: 'rejected',
             reason: 'Wrong batch',
-            uv_id: { text: '1', status: 'rejected' },
           }),
         ),
         ok(
@@ -140,7 +120,6 @@ describe('join form (spec 10)', () => {
             status: 'rejected',
             reason: 'Wrong batch',
             appeal: { status: 'open' },
-            uv_id: { text: '1', status: 'rejected' },
           }),
         ),
       ],
@@ -148,7 +127,7 @@ describe('join form (spec 10)', () => {
     });
     renderApp('/join');
     expect(await screen.findByText('Wrong batch')).toBeVisible();
-    expect(screen.getByLabelText('UV ID')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/UV ID/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Ask the admin to review' }));
     expect(await screen.findByText('Your appeal was sent to the admin.')).toBeVisible();
     expect(calls.some((c) => c.url === '/api/enrolments/e1/appeal')).toBe(true);
@@ -177,7 +156,7 @@ describe('waiting screen (JR-21)', () => {
     await waitFor(() =>
       expect(calls.some((c) => c.url === '/api/enrolments/e1/withdraw')).toBe(true),
     );
-    expect(await screen.findByLabelText('UV ID')).toBeVisible();
+    expect(await screen.findByLabelText('Department')).toBeVisible();
   });
 
   it('JR-14 an escalated request says it is with the admin', async () => {

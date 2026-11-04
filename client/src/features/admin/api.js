@@ -51,8 +51,9 @@ export const issueTempPassword = (id) =>
 export const fetchSectionGroups = (sectionId) => api(`/cr/sections/${sectionId}/overview`);
 export const setStudentGroup = ({ enrolmentId, group_id }) =>
   api(`/enrolments/${enrolmentId}/group`, { method: 'PATCH', body: { group_id } });
-export const revokeUvClaim = ({ claimId, reason }) =>
-  api(`/admin/uv-claims/${claimId}/revoke`, { method: 'POST', body: { reason } });
+/** JR-19 (spec 24 OS-11): remove a student from their section. */
+export const removeFromSection = ({ enrolmentId, reason }) =>
+  api(`/admin/enrolments/${enrolmentId}/remove`, { method: 'POST', body: { reason } });
 
 export const fetchAdminFlags = ({ status, department_id }) =>
   api(`/admin/flags${qs({ status, department_id })}`);
@@ -72,6 +73,3 @@ export const fetchAuditLog = (params) => api(`/admin/audit${qs(params)}`);
 /** JR-14: an admin decides an escalated request. Accepting takes an optional group. */
 export const decideEscalatedJoin = ({ enrolmentId, ...body }) =>
   api(`/enrolments/${enrolmentId}/decision`, { method: 'POST', body });
-/** JR-18: an admin decides a CR or DCR's own UV ID claim. */
-export const decideOwnClaim = ({ claimId, ...body }) =>
-  api(`/admin/uv-claims/${claimId}/decision`, { method: 'POST', body });

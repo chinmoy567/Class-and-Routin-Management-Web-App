@@ -8,7 +8,6 @@ import {
   useAdminDepartments,
   useDecideAppeal,
   useDecideEscalatedJoin,
-  useDecideOwnClaim,
   useDecideRegistrationFromDashboard,
 } from '../hooks.js';
 import { formatDhaka } from '@/lib/time';
@@ -124,31 +123,26 @@ export function TeacherRegistrationsCard({ id, card }) {
   );
 }
 
-/** ADM-02: escalated join requests and CR/DCR UV ID claims. The admin decides them here. */
-export function IdClaimsCard({ id, card }) {
+/**
+ * ADM-02: join requests that need the admin (escalated ones, including a CR/DCR's own request).
+ * The admin decides them here. The UV ID is the optional profile field (spec 24); the admin of the
+ * department may see it.
+ */
+export function JoinRequestsNeedAdminCard({ id, card }) {
   const escalated = useDecideEscalatedJoin();
-  const claim = useDecideOwnClaim();
   const [rejecting, setRejecting] = useState(null);
-  const pending = escalated.isPending || claim.isPending;
-  const decideItem = (item, body) => {
-    if (item.kind === 'escalated') escalated.mutate({ enrolmentId: item.id, ...body });
-    else
-      claim.mutate({
-        claimId: item.id,
-        ...(body.decision === 'accept' ? { decision: 'approve' } : body),
-      });
-  };
+  const pending = escalated.isPending;
+  const decideItem = (item, body) => escalated.mutate({ enrolmentId: item.id, ...body });
   return (
-    <DashboardCard id={id} title={t('admin.dashboard.cards.idClaims')}>
+    <DashboardCard id={id} title={t('admin.dashboard.cards.joinRequests')}>
       <Empty count={card.count} />
       <ul className={listClass}>
         {card.items.map((item) => (
           <li key={`${item.kind}-${item.id}`} className={rowClass}>
             <p className="font-medium">{item.full_name}</p>
             <p className="text-muted-foreground">
-              {t(`admin.dashboard.itemKinds.${item.kind === 'claim' ? 'claim' : 'escalated'}`)}
-              {item.uv_id ? ` · UV ID ${item.uv_id}` : ''}
-              {item.duplicate_pending_claim ? ` · ${t('admin.dashboard.duplicateClaim')}` : ''}
+              {t('admin.dashboard.itemKinds.escalated')}
+              {item.uv_id ? ` · ${t('admin.dashboard.uvId', { uvId: item.uv_id })}` : ''}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button

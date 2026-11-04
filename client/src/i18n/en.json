@@ -31,7 +31,7 @@
   },
   "emailBanner": {
     "title": "Your email address is not working",
-    "body": "We could not deliver mail to your address. Please give us a new university email.",
+    "body": "We could not deliver mail to your address. Please give us a new email address.",
     "action": "Change my email"
   },
   "profile": {
@@ -85,10 +85,17 @@
       "save": "Save phone",
       "saved": "Your phone number was saved."
     },
+    "uvId": {
+      "title": "UV ID",
+      "label": "UV ID (optional)",
+      "hint": "Your university student ID, if you want your CR, DCR, teachers and department admin to recognise you. Digits only; spaces and dashes are removed. Nobody checks it, and you can change or clear it at any time.",
+      "save": "Save UV ID",
+      "saved": "Your UV ID was saved."
+    },
     "email": {
       "title": "Change your email",
       "current": "Your email is {email}.",
-      "newLabel": "New university email",
+      "newLabel": "New email",
       "hint": "We send a link to the new address. Your old address stays in use until you open it.",
       "submit": "Send the link",
       "sent": "We sent a link to the new address. It works once and lasts 24 hours."
@@ -223,8 +230,6 @@
     "GROUP_IN_USE": "A class or a student still uses this group.",
     "ROLE_LIMIT": "This section already has that many representatives.",
     "REQUEST_ALREADY_OPEN": "You already have a request waiting. Withdraw it to send another.",
-    "UV_ID_TAKEN": "This UV ID is already approved for another account. Your department admin has been told.",
-    "CLAIM_BLOCKED": "Too many UV ID claims were rejected. Please try again later.",
     "SECTION_CLOSED": "This section is not open for join requests yet.",
     "SLOT_NOT_ON_DATE": "This class does not run on that date.",
     "TOO_LATE": "The class has already started. The cancellation cannot be undone.",
@@ -262,6 +267,9 @@
       "phone": {
         "error": "Enter a Bangladeshi mobile number, for example 01712345678."
       },
+      "uv_id": {
+        "error": "Enter 1 to 20 digits, or leave it empty."
+      },
       "new_email": {
         "error": "Enter a valid email address."
       },
@@ -278,8 +286,11 @@
       "student": "Student",
       "teacher": "Teacher",
       "fullName": "Full name",
-      "email": "University email",
-      "emailHint": "Use your university address, for example name@baiust.ac.bd.",
+      "email": "Email",
+      "emailHint": "Teachers: use your university address, for example name@baiust.ac.bd.",
+      "emailHintStudent": "Any email address you can open, university or personal.",
+      "captchaNote": "Student sign-up includes a short automatic security check. Your browser does it for you; it takes a few seconds.",
+      "captchaWorking": "Running the security check…",
       "password": "Password",
       "passwordHint": "At least 8 characters, with a letter and a number.",
       "department": "Department",
@@ -303,7 +314,7 @@
       "signIn": "Sign in to continue",
       "expiredTitle": "This link has expired",
       "expired": "The link has expired or was already used. Enter your email and we will send a new one.",
-      "email": "University email",
+      "email": "Email",
       "resend": "Send a new link",
       "resent": "If that address needs confirming, a new link is on its way."
     },
@@ -315,7 +326,7 @@
     },
     "login": {
       "title": "Sign in",
-      "email": "University email",
+      "email": "Email",
       "password": "Password",
       "submit": "Sign in",
       "forgot": "Forgot your password?",
@@ -344,8 +355,8 @@
     },
     "forgot": {
       "title": "Forgot your password?",
-      "body": "Enter your university email. If there is an account, we will send a link that lasts 1 hour.",
-      "email": "University email",
+      "body": "Enter your email. If there is an account, we will send a link that lasts 1 hour.",
+      "email": "Email",
       "submit": "Send the link",
       "sent": "If the account exists, we sent a link. Check your email.",
       "back": "Back to sign in"
@@ -508,7 +519,7 @@
       "notReleased": "Room requests arrive in a later release.",
       "cards": {
         "teacherRegistrations": "Teacher registrations waiting",
-        "idClaims": "ID claims that need the admin",
+        "joinRequests": "Join requests that need the admin",
         "flags": "Reports from CR and DCR",
         "rejections": "Rejected requests and appeals",
         "routineProblems": "Routine problems",
@@ -529,18 +540,17 @@
       "superWarning": "Fewer than two super admins exist. Appoint a backup super admin.",
       "itemKinds": {
         "escalated": "Escalated",
-        "claim": "CR/DCR claim",
         "appeal": "Appeal open",
         "rejected": "Rejected",
         "issue": "Import issue",
         "cross_department": "Duplicate with another department",
         "created_by_other": "Section created by {department} import"
       },
-      "duplicateClaim": "Duplicate pending claim"
+      "uvId": "UV ID {uvId}"
     },
     "students": {
       "title": "Students",
-      "searchLabel": "Search by name or UV ID",
+      "searchLabel": "Search by name or profile UV ID",
       "searchHint": "Type at least two characters.",
       "none": "No students match.",
       "emailStatus": {
@@ -568,13 +578,13 @@
         "ungraduate": "Undo graduation",
         "tempPassword": "Temporary password",
         "setGroup": "Set group",
-        "revokeClaim": "Revoke UV ID"
+        "removeFromSection": "Remove from section"
       },
       "reason": "Reason",
       "reasonError": "Give a reason of 5 to 500 characters.",
       "confirmDeactivate": "Deactivate {name}? Their sessions end and they cannot sign in until reactivated.",
-      "confirmRevoke": "Revoke the UV ID of {name}? The account goes back to waiting for approval.",
-      "revokeReason": "Reason for revoking",
+      "confirmRemove": "Remove {name} from {section}? Their membership ends and the account goes back to waiting for approval. They can send a new join request.",
+      "removeReason": "Reason for removing",
       "tempTitle": "Temporary password for {name}",
       "tempShown": "Copy this password now. It is shown once and cannot be seen again. The student must choose a new password at their next sign-in.",
       "tempCopy": "Copy",
@@ -946,8 +956,6 @@
     "title": "Join your section",
     "intro": "Choose your department, section and (if you have one) lab group. Your CR or DCR will answer your request.",
     "fullName": "Full name",
-    "uvId": "UV ID",
-    "uvIdHint": "Digits only. Spaces and dashes are fine.",
     "department": "Department",
     "section": "Section",
     "group": "Lab group (optional)",
@@ -956,8 +964,7 @@
     "settingUp": "Your department is still setting up this semester.",
     "submit": "Send request",
     "fieldError": {
-      "full_name": "Enter a name of 2 to 100 characters.",
-      "uv_id": "Enter your UV ID (1 to 20 digits)."
+      "full_name": "Enter a name of 2 to 100 characters."
     },
     "rejected": {
       "title": "Your last request was not accepted.",
@@ -1181,7 +1188,7 @@
       "heading": "Roster",
       "empty": "No students in this section yet.",
       "uv": "UV ID {id}",
-      "noUv": "No UV ID yet",
+      "noUv": "No UV ID given",
       "confirmed": "Confirmed for this semester",
       "notConfirmed": "Not confirmed",
       "groupFor": "Group for {name}"

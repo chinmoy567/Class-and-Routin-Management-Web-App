@@ -1,6 +1,6 @@
 # 24: Open student sign-up, no UV ID claim
 
-R1 · Status: Planned · Depends on: 01, 02, 10 · PRD: Users & roles, Account states and access, Authentication & onboarding, Student ID claim (to be rewritten) · Diagrams: 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request, 19-state-account
+R1 · Status: Done · Depends on: 01, 02, 10 · PRD: Users & roles, Account states and access, Authentication & onboarding, Joining a section, Non-functional requirements (Privacy of the UV ID), Open questions (Decided) · Diagrams: 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request, 19-state-account
 
 ## Goal
 
@@ -10,8 +10,11 @@ A student signs up with any email, verifies it, and sends a join request to a se
 
 This spec changes these requirements. Where it conflicts with them, this spec wins. The old specs and the PRD are edited to match (step 1 of `implementation-plan/24-open-signup-no-id-plan.md`).
 
-- Spec 01: AUTH-05 (domain gate), AUTH-10 (student lands in `claim_pending`), AUTH-28 (domain list scope), AUTH-29 (`join-form`).
-- Spec 10: JR-01 (UV ID in the form), JR-05 to JR-08, JR-11 (claim approval), JR-12, JR-18, JR-19, and the `uv_claim` data and API rows.
+- Spec 01: AUTH-04 (student CAPTCHA), AUTH-05 (domain gate), AUTH-10 (student lands in `claim_pending`), AUTH-28 (domain list scope), AUTH-29 (`join-form`).
+- Spec 02: PRF-05 (domain check on email change for teachers only), PRF-07, PRF-08; new PRF-10 (the profile UV ID).
+- Spec 10: JR-01 (UV ID in the form), JR-05 to JR-08 (removed), JR-09, JR-11 (claim approval), JR-12, JR-13, JR-18, JR-19 (now "remove from a section"), JR-21, and the `uv_claim` data and API rows.
+- Spec 18: ADM-02 (card renamed "Join requests that need the admin", API key `join_requests`), ADM-12, ADM-16, ADM-21.
+- Specs 09, 14, 15, 16, 17 and (not built) 20: wording only.
 
 ## Requirements
 
@@ -47,18 +50,19 @@ This spec changes these requirements. Where it conflicts with them, this spec wi
 - OS-01: student `x@gmail.com` → 202. Teacher `x@gmail.com` → `EMAIL_DOMAIN_NOT_ALLOWED`. Teacher `x@baiust.ac.bd` → 202.
 - OS-02: student sign-up with no CAPTCHA → `CAPTCHA_REQUIRED`.
 - OS-04: a verified student can open the join form; before verifying, they cannot.
-- OS-05: saving `08 22-3102` stores `0822 3102` without separators; 21 digits → `VALIDATION_ERROR`; two students may hold the same value.
+- OS-05: saving `08 22-3102` stores `08223102`; 21 digits → `VALIDATION_ERROR`; two students may hold the same value; an empty value or `null` clears it.
 - OS-06: a join request with `uv_id` → `VALIDATION_ERROR`.
 - OS-07: the CR of 2-II-A sees the `uv_id` of an applicant to 2-II-A and gets `404` for 2-II-B's requests; a teacher of another section never sees it; a student never sees another student's.
 - OS-08: the removed routes return `404`.
 - OS-09: CR and DCR decide the same request at once → one `200`, one `ALREADY_DECIDED`.
-- OS-11: an admin of another department cannot remove a student (`403`).
+- OS-11: an admin of another department cannot remove a student (`403`). The department admin removes one with a reason: enrolment `revoked`, account `claim_pending`, audited `join.remove`.
+- OS-12: a request from a student with a CR/DCR role in effect is escalated when it is created.
 
 ## Tasks
 
-- [ ] PRD, specs 01, 02, 09, 10, 16, 17, 18, 20, 21 edited to match
-- [ ] Diagrams updated and re-rendered
-- [ ] Server: sign-up rules, CAPTCHA, join schema, remove claim code, profile `uv_id`, roster and request responses
-- [ ] Client: sign-up, join page, profile field, roster and admin screens
-- [ ] One-off script: copy approved claims to `user.uv_id`, drop `uv_claim`
-- [ ] Tests for every OS requirement; remove tests for the dropped rules
+- [x] PRD, specs 01, 02, 09, 10, 14, 15, 16, 17, 18, 20 and the matching plans edited to match (spec 21 needed no change)
+- [x] Diagrams 01, 02, 04, 05, 06, 09, 15, 19, 20, 24 updated and re-rendered (SVG and PNG)
+- [x] Server: sign-up rules, CAPTCHA, join schema, remove claim code, profile `uv_id`, roster and request responses, admin "remove from section"
+- [x] Client: sign-up, join page, profile field, roster and admin screens
+- [x] One-off script `server/scripts/migrate-drop-uv-claims.js` (`--dry-run`): copy approved claims to `user.uv_id`, drop `uv_claim` (written and tested, **not run** against any database)
+- [x] Tests for every OS requirement; tests for the dropped rules removed or rewritten

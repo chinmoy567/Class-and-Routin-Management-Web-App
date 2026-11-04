@@ -109,7 +109,7 @@ describe('admin digest (EML-08)', () => {
     expect(await drainMail()).toHaveLength(1);
   });
 
-  it('EML-08 escalated ID claims count only in their own department, and only once escalated', async () => {
+  it('EML-08 escalated join requests count only in their own department, and only once escalated', async () => {
     const cse = await createDepartment({ code: 'CSE', name: 'Computer Science' });
     const eee = await createDepartment({ code: 'EEE', name: 'Electrical' });
     const student = await makeUser({ kind: 'student', state: 'active' });
@@ -124,7 +124,7 @@ describe('admin digest (EML-08)', () => {
     await Enrolment.create({ ...base, user_id: other._id, department_id: eee._id }); // not escalated: not counted
     const inEee = await buildDigest({ departmentIds: [String(eee._id)] });
     const inCse = await buildDigest({ departmentIds: [String(cse._id)] });
-    expect(inEee).toEqual([expect.objectContaining({ key: 'escalated_id_claims', count: 1 })]);
+    expect(inEee).toEqual([expect.objectContaining({ key: 'escalated_join_requests', count: 1 })]);
     expect(inCse).toEqual([]);
   });
 

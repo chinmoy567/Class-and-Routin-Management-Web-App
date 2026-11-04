@@ -260,16 +260,6 @@ http://localhost:5173",
 
 Open the app: http://localhost:5173",
   },
-  "uv_id_conflict": {
-    "html": "<p>Hello,</p><p>The UV ID sample-uv_id is involved in a claim problem for sample-section: sample-detail</p><p>Review it here:<br>http://localhost:5173</p>",
-    "subject": "A UV ID claim needs your attention",
-    "text": "Hello,
-
-The UV ID sample-uv_id is involved in a claim problem for sample-section: sample-detail
-
-Review it here:
-http://localhost:5173",
-  },
   "verify_email": {
     "html": "<p>Hello Ayesha Rahman,</p><p>Open this link to confirm your email address. It works once and lasts 24 hours:<br>http://localhost:5173</p><p>If you did not sign up, ignore this email.</p>",
     "subject": "Confirm your email address",

@@ -1,6 +1,11 @@
 # Plan 24: Open sign-up, no UV ID
 
-Status: **Draft, waiting for approval.** No code has been changed.
+Status: **Done.** Built as described in `.claude/specs/24-open-signup-no-id.md`. Where this draft differs from the brief the owner gave on 2026-11-05, the brief won:
+
+- Step 2 "Remove UV ID from roster, search and dashboard responses" → the UV ID now comes from the **profile** and is still shown to the section's CR/DCR, the department admin and a teacher on the roster of a section they teach (PRD Privacy of the UV ID).
+- Decision 4 "rejection limits renamed to join request rejections" → there is **no** count-based block at all (OS-10).
+- Migration "drop `uv_claim` and unset `uv_id_*`" → the script first copies each approved claim's UV ID into `user.uv_id`, then drops the collection (`npm run migrate:drop-uv-claims -w @crm/server -- --dry-run`).
+- "Keep revoke a student's membership" → built as `POST /api/admin/enrolments/:id/remove` (spec 10 JR-19).
 
 ## Change in one paragraph
 

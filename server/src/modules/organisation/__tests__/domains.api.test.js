@@ -8,7 +8,12 @@ import {
   loginAs,
   signIn,
 } from '../../../../test/harness.js';
-import { TEST_PASSWORD, makeDepartment, makeUser } from '../../../../test/factories.js';
+import {
+  TEST_PASSWORD,
+  createDepartment,
+  makeDepartment,
+  makeUser,
+} from '../../../../test/factories.js';
 import { AllowedDomain } from '../organisation.model.js';
 import { addAllowedDomain, isDomainAllowed } from '../index.js';
 import { list as auditList } from '../../audit/index.js';
@@ -116,13 +121,20 @@ describe('allowed email domains (AUTH-28)', () => {
     expect(await auditList({ action: /^allowed_domain\./ })).toHaveLength(0);
   });
 
-  it('AUTH-05 AUTH-28 sign-up follows the list: an added domain is accepted, a removed one is refused', async () => {
+  it('AUTH-05 AUTH-28 teacher sign-up follows the list: an added domain is accepted, a removed one is refused', async () => {
     const agent = await loginAs(await superAdmin(), app);
     const anon = await loginAs(null, app);
+    const dept = await createDepartment();
+    // Spec 24: the list governs teacher sign-up only.
     const signup = (email) =>
-      anon
-        .post('/api/auth/signup')
-        .send({ kind: 'student', full_name: 'Sam Roy', email, password: 'secret-pass-1' });
+      anon.post('/api/auth/signup').send({
+        kind: 'teacher',
+        full_name: 'Sam Roy',
+        email,
+        password: 'secret-pass-1',
+        department_id: String(dept._id),
+        short_code: 'SR',
+      });
     expect((await signup('a@new.ac.bd')).body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
     await agent.post('/api/admin/email-domains').send({ domain: 'new.ac.bd' });
     expect(await isDomainAllowed('new.ac.bd')).toBe(true);

@@ -12,7 +12,7 @@ import { createDepartment, makeId, makeUser } from '../../../../test/factories.j
 import { Semester } from '../../organisation/index.js';
 import { RoutineSlot, RoutineSlotTeacher, Section, SectionGroup } from '../../routine/index.js';
 import { clearAll as clearRoutineCache } from '../../routine/routine-cache.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { Teacher } from '../../teachers/index.js';
 import { Room } from '../../rooms/index.js';
 import { CalendarEvent } from '../../calendar/index.js';
@@ -129,25 +129,16 @@ async function enrol(user, w, { section = w.section, group = null } = {}) {
   });
 }
 
-async function claimUv(user, w, text) {
-  return UvClaim.create({
-    user_id: user._id,
-    department_id: w.dept._id,
-    uv_id_text: text,
-    uv_id_norm: text.replace(/^0+/, ''),
-    status: 'approved',
-  });
-}
+// Spec 24: the UV ID is an optional profile field (not unique, never checked).
+const setUvId = (user, text) => User.updateOne({ _id: user._id }, { $set: { uv_id: text } });
 
 const student = (w, opts = {}) =>
   makeUser({ kind: 'student', state: 'active', departmentId: w.dept._id, ...opts });
 
-// Each call gets its own UV ID, because an approved ID belongs to one account only.
-let uvCounter = 0;
 async function activeStudent(w, group = w.g2) {
   const user = await student(w, { name: 'Rahim Uddin' });
   await enrol(user, w, { group });
-  await claimUv(user, w, `08223102051${String(uvCounter++).padStart(5, '0')}`);
+  await setUvId(user, '0822310205100001');
   return user;
 }
 
@@ -353,7 +344,7 @@ describe('DSH-09 my section', () => {
     const w = await world();
     const cr = await student(w, { name: 'Karim CR' });
     await enrol(cr, w, { group: w.g1 });
-    await UvClaim.create({ user_id: cr._id, uv_id_text: '1', uv_id_norm: '1', status: 'approved' });
+    await setUvId(cr, '99887766');
     const { UserRole } = await import('../../auth/index.js');
     await UserRole.create({
       user_id: cr._id,
@@ -366,6 +357,8 @@ describe('DSH-09 my section', () => {
     const d = (await get(viewer)).body.data;
     expect(d.representatives).toEqual([expect.objectContaining({ role: 'cr', name: 'Karim CR' })]);
     expect(d.section.my_role).toBeNull();
+    // OS-07: a student never sees another student's UV ID
+    expect(JSON.stringify(d)).not.toContain('99887766');
   });
 
   it('DSH-09 a student who holds the CR role sees their own role on the section', async () => {
@@ -497,14 +490,14 @@ describe('DSH-13 section rosters', () => {
     const w = await world();
     const rahim = await student(w, { name: 'Rahim Uddin' });
     await enrol(rahim, w, { group: w.g1 });
-    await claimUv(rahim, w, '0822310205101077');
+    await setUvId(rahim, '0822310205101077');
     const karim = await student(w, { name: 'Karim Hasan' });
     await enrol(karim, w, { group: w.g2 });
-    await claimUv(karim, w, '0822310205101078');
+    await setUvId(karim, '0822310205101078');
     return { w, rahim, karim };
   }
 
-  it('DSH-13 a teacher of the section gets the roster: name, UV ID and group only', async () => {
+  it('DSH-13 and OS-07 a teacher of the section gets the roster: name, profile UV ID and group only', async () => {
     const { w } = await rosterWorld();
     const teacher = await activeTeacher(w, w.ab);
     const res = await (await loginAs(teacher, app)).get(`/api/sections/${w.section._id}/roster`);
@@ -523,6 +516,11 @@ describe('DSH-13 section rosters', () => {
     const res = await (await loginAs(teacher, app)).get(`/api/sections/${w.sectionB._id}/roster`);
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');
+    // OS-07: a teacher who does not teach this section never sees its UV IDs
+    const stranger = await makeUser({ kind: 'teacher', state: 'active', departmentId: w.dept._id });
+    const other = await (await loginAs(stranger, app)).get(`/api/sections/${w.section._id}/roster`);
+    expect(other.status).toBe(404);
+    expect(JSON.stringify(other.body)).not.toContain('0822310205101077');
   });
 
   it('DSH-13 a student cannot read any roster, not even their own section → 404', async () => {

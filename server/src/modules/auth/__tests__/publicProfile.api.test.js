@@ -37,6 +37,7 @@ describe('GET /api/users/:id (PRF-07)', () => {
       kind: 'student',
       name: 'Nila Rahman',
       phone: '+8801712345678',
+      uv_id: '0822310205101077',
       roles: [{ role: 'cr' }],
     });
     const res = await (await asUser(teacher)).get(`/api/users/${student._id}`);
@@ -51,6 +52,9 @@ describe('GET /api/users/:id (PRF-07)', () => {
     for (const key of PRIVATE_KEYS) expect(res.body.data).not.toHaveProperty(key);
     expect(JSON.stringify(res.body)).not.toContain(student.email);
     expect(JSON.stringify(res.body)).not.toContain('1712345678');
+    // PRF-07, OS-07: the UV ID is never on a public profile
+    expect(res.body.data).not.toHaveProperty('uv_id');
+    expect(JSON.stringify(res.body)).not.toContain('0822310205101077');
     expect([...res.body.data.roles].sort()).toEqual(['cr', 'student']);
     expect(res.body.data.full_name).toBe('Nila Rahman');
   });

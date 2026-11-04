@@ -137,6 +137,60 @@ describe('phone form (PRF-03)', () => {
   });
 });
 
+describe('UV ID form (PRF-10, spec 24 OS-05)', () => {
+  it('OS-05 "08 22-3102" is sent as 08223102 and the student is told it was saved', async () => {
+    const calls = mockApi(
+      base(studentProfile({ uv_id: null }), {
+        'PATCH /api/me/profile': ok(studentProfile({ uv_id: '08223102' })),
+      }),
+    );
+    renderApp('/profile');
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('UV ID (optional)'), '08 22-3102');
+    await user.click(screen.getByRole('button', { name: 'Save UV ID' }));
+    expect(await screen.findByText('Your UV ID was saved.')).toBeInTheDocument();
+    expect(sent(calls, 'PATCH', '/api/me/profile')[0].body).toEqual({ uv_id: '08223102' });
+  });
+
+  it('OS-05 21 digits shows a message and nothing is sent', async () => {
+    const calls = mockApi(base(studentProfile({ uv_id: null })));
+    renderApp('/profile');
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('UV ID (optional)'), '1'.repeat(21));
+    await user.click(screen.getByRole('button', { name: 'Save UV ID' }));
+    expect(await screen.findByText('Enter 1 to 20 digits, or leave it empty.')).toBeInTheDocument();
+    expect(sent(calls, 'PATCH', '/api/me/profile')).toHaveLength(0);
+  });
+
+  it('OS-05 an empty box clears the UV ID (null)', async () => {
+    const calls = mockApi(
+      base(studentProfile({ uv_id: '0822' }), {
+        'PATCH /api/me/profile': ok(studentProfile({ uv_id: null })),
+      }),
+    );
+    renderApp('/profile');
+    const user = userEvent.setup();
+    await user.clear(await screen.findByLabelText('UV ID (optional)'));
+    await user.click(screen.getByRole('button', { name: 'Save UV ID' }));
+    await waitFor(() => expect(sent(calls, 'PATCH', '/api/me/profile')).toHaveLength(1));
+    expect(sent(calls, 'PATCH', '/api/me/profile')[0].body).toEqual({ uv_id: null });
+  });
+
+  it('PRF-10 a teacher has no UV ID field', async () => {
+    mockApi(
+      base({
+        ...studentProfile(),
+        kind: 'teacher',
+        student: undefined,
+        teacher: { department_id: null, short_code: null, linked: false },
+      }),
+    );
+    renderApp('/profile');
+    expect(await screen.findByLabelText('Phone number')).toBeInTheDocument();
+    expect(screen.queryByLabelText('UV ID (optional)')).not.toBeInTheDocument();
+  });
+});
+
 describe('photo (PRF-04)', () => {
   const file = (name, type, size = 1000) => {
     const f = new File(['x'], name, { type });
@@ -207,7 +261,7 @@ describe('change email (PRF-05)', () => {
     );
     renderApp('/profile');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('New university email'), 'New@Baiust.ac.bd');
+    await user.type(await screen.findByLabelText('New email'), 'New@Baiust.ac.bd');
     await user.click(screen.getByRole('button', { name: 'Send the link' }));
     expect(await screen.findByText(/We sent a link to the new address/)).toBeInTheDocument();
     expect(sent(calls, 'POST', '/api/me/email')[0].body).toEqual({ new_email: 'new@baiust.ac.bd' });
@@ -217,7 +271,7 @@ describe('change email (PRF-05)', () => {
     const calls = mockApi(base());
     renderApp('/profile');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('New university email'), 'nope');
+    await user.type(await screen.findByLabelText('New email'), 'nope');
     await user.click(screen.getByRole('button', { name: 'Send the link' }));
     expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
     expect(sent(calls, 'POST', '/api/me/email')).toHaveLength(0);
@@ -227,7 +281,7 @@ describe('change email (PRF-05)', () => {
     mockApi(base(studentProfile(), { 'POST /api/me/email': fail(409, 'CONFLICT') }));
     renderApp('/profile');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('New university email'), 'taken@baiust.ac.bd');
+    await user.type(await screen.findByLabelText('New email'), 'taken@baiust.ac.bd');
     await user.click(screen.getByRole('button', { name: 'Send the link' }));
     expect(await screen.findByText(/already exists/)).toBeInTheDocument();
   });

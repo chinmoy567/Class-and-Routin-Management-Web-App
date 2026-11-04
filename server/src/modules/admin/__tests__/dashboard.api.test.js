@@ -12,8 +12,8 @@ import {
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { Semester } from '../../organisation/index.js';
 import { RoutineImport, Section } from '../../routine/index.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
-import { UserRole } from '../../auth/index.js';
+import { Enrolment } from '../../enrolments/index.js';
+import { User, UserRole } from '../../auth/index.js';
 import { AuditLog } from '../../audit/index.js';
 import { Flag } from '../../representatives/cr/flag.model.js';
 import { TeacherRegistration } from '../../teachers/teachers.model.js';
@@ -146,7 +146,7 @@ describe('ADM-11 dashboard scope', () => {
     const res = await dashboard(w.cseAdmin);
     for (const key of [
       'teacher_registrations',
-      'id_claims',
+      'join_requests',
       'flags',
       'rejections_and_appeals',
       'routine_problems',
@@ -186,8 +186,8 @@ describe('ADM-01 teacher registrations', () => {
   });
 });
 
-describe('ADM-02 ID claims that need the admin', () => {
-  it('ADM-02 an escalated join request and a CR claim are listed for the admin of that department', async () => {
+describe('ADM-02 join requests that need the admin', () => {
+  it('ADM-02 escalated join requests are listed for the admin of that department, with the profile UV ID', async () => {
     const w = await world();
     const escalatedUser = await makeUser({
       kind: 'student',
@@ -202,20 +202,16 @@ describe('ADM-02 ID claims that need the admin', () => {
       status: 'pending',
       escalated_at: new Date('2027-04-03T04:00:00Z'),
     });
-    const crUser = await makeUser({ kind: 'student', state: 'active', departmentId: w.cse._id });
-    await UvClaim.create({
-      user_id: crUser._id,
-      department_id: w.cse._id,
-      uv_id_text: '1234567',
-      uv_id_norm: '1234567',
-      status: 'pending',
-    });
+    await User.updateOne({ _id: escalatedUser._id }, { $set: { uv_id: '1234567' } });
     const res = await dashboard(w.cseAdmin);
-    const card = res.body.data.id_claims;
-    expect(card.count).toBe(2);
-    expect(card.items.map((i) => i.kind).sort()).toEqual(['claim', 'escalated']);
+    const card = res.body.data.join_requests;
+    expect(card.count).toBe(1);
+    expect(card.items[0]).toMatchObject({ kind: 'escalated', uv_id: '1234567' });
+    expect(card.items[0]).not.toHaveProperty('duplicate_pending_claim');
+    expect(res.body.data).not.toHaveProperty('id_claims');
     const eeeAdmin = await dashboard(w.eeeAdmin);
-    expect(eeeAdmin.body.data.id_claims.count).toBe(0);
+    expect(eeeAdmin.body.data.join_requests.count).toBe(0);
+    expect(JSON.stringify(eeeAdmin.body)).not.toContain('1234567');
   });
 });
 

@@ -70,10 +70,19 @@ describe('POST /api/me/email (PRF-05)', () => {
     expect(decrypt(user.email_enc)).toBe(me.email);
   });
 
-  it('PRF-05 an address outside the allowed domains → EMAIL_DOMAIN_NOT_ALLOWED', async () => {
-    const res = await request(await loginAs(await makeUser(), app), 'x@gmail.com');
+  it('PRF-05 a teacher changing to an address outside the allowed domains → EMAIL_DOMAIN_NOT_ALLOWED', async () => {
+    const teacher = await makeUser({ kind: 'teacher', state: 'active' });
+    const res = await request(await loginAs(teacher, app), 'x@gmail.com');
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
+  });
+
+  it('PRF-05 spec 24: a student may change to any domain', async () => {
+    const res = await request(
+      await loginAs(await makeUser({ kind: 'student' }), app),
+      'x@gmail.com',
+    );
+    expect(res.status).toBe(202);
   });
 
   it('PRF-05 an address used by another account → CONFLICT', async () => {

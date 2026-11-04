@@ -2,6 +2,7 @@ import { FormError } from '@/features/auth/components/FormError.jsx';
 import { Avatar } from '@/features/profile/components/Avatar.jsx';
 import { ChangeEmailForm } from '@/features/profile/components/ChangeEmailForm.jsx';
 import { PhoneForm } from '@/features/profile/components/PhoneForm.jsx';
+import { UvIdForm } from '@/features/profile/components/UvIdForm.jsx';
 import { PhotoCard } from '@/features/profile/components/PhotoCard.jsx';
 import { useProfile } from '@/features/profile/hooks.js';
 import { t } from '@/lib/i18n';
@@ -65,6 +66,7 @@ export function ProfilePage() {
           )}
           {profile.student && (
             <>
+              <Row label={t('profile.uvId.label')}>{orDash(profile.uv_id)}</Row>
               <Row label={t('profile.student.level')}>{orDash(profile.student.level)}</Row>
               <Row label={t('profile.student.term')}>{orDash(profile.student.term)}</Row>
               <Row label={t('profile.student.section')}>{orDash(profile.student.section)}</Row>
@@ -99,6 +101,15 @@ export function ProfilePage() {
         </h2>
         <PhoneForm phone={profile.phone} />
       </section>
+
+      {profile.kind === 'student' && (
+        <section aria-labelledby="uvid-heading" className="space-y-3">
+          <h2 id="uvid-heading" className="text-lg font-medium">
+            {t('profile.uvId.title')}
+          </h2>
+          <UvIdForm uvId={profile.uv_id} />
+        </section>
+      )}
 
       <section id="email" aria-labelledby="email-heading" className="space-y-3">
         <h2 id="email-heading" className="text-lg font-medium">

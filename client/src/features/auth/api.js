@@ -24,7 +24,16 @@ export async function fetchMe() {
   }
 }
 
-export const signUp = (body) => api('/auth/signup', { method: 'POST', body });
+/** AUTH-04, spec 24 OS-02: a student's sign-up always carries a solved CAPTCHA; a teacher's does not. */
+export async function signUp(body) {
+  if (body.kind !== 'student') return api('/auth/signup', { method: 'POST', body });
+  const challenge = await api('/auth/captcha');
+  const solution = await solveChallenge(challenge);
+  return api('/auth/signup', {
+    method: 'POST',
+    body: { ...body, captcha: { id: challenge.id, solution } },
+  });
+}
 export const verifyEmail = (token) => api('/auth/verify', { method: 'POST', body: { token } });
 export const resendVerification = (email) =>
   api('/auth/verify/resend', { method: 'POST', body: { email } });

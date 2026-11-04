@@ -14,7 +14,7 @@ import {
 import { TEST_PASSWORD, createDepartment, makeUser } from '../../../../test/factories.js';
 import { Semester } from '../../organisation/index.js';
 import { Section } from '../../routine/index.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { AuditLog } from '../../audit/index.js';
 import { User } from '../../auth/index.js';
 
@@ -70,6 +70,7 @@ async function world() {
     email: 'rahim@baiust.ac.bd',
     password: TEST_PASSWORD,
     departmentId: cse._id,
+    uv_id: '0822310205101077',
   });
   await Enrolment.create({
     user_id: rahim._id,
@@ -77,13 +78,6 @@ async function world() {
     section_id: section._id,
     department_id: cse._id,
     status: 'accepted',
-  });
-  await UvClaim.create({
-    user_id: rahim._id,
-    department_id: cse._id,
-    uv_id_text: '0822310205101077',
-    uv_id_norm: '822310205101077',
-    status: 'approved',
   });
   const karim = await makeUser({
     kind: 'student',
@@ -125,7 +119,7 @@ describe('ADM-12 student search', () => {
     expectNoContact(res.body);
   });
 
-  it('ADM-12 search by UV ID ignores leading zeros', async () => {
+  it('ADM-12 search by part of the profile UV ID finds the student', async () => {
     const w = await world();
     const agent = await loginAs(w.cseAdmin, app);
     const res = await agent.get('/api/admin/students').query({ q: '822310205' });

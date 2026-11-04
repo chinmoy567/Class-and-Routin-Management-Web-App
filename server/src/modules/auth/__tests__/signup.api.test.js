@@ -9,6 +9,7 @@ import {
   fixClock,
   loginAs,
   resetClock,
+  solveCaptcha,
   startTestMail,
   stopTestMail,
   tokenFrom,
@@ -54,22 +55,81 @@ const teacher = (over = {}) => ({
   short_code: 'sk',
   ...over,
 });
-const signUp = async (body) => (await loginAs(null, app)).post('/api/auth/signup').send(body);
+/** Spec 24 OS-02: a student body gets a solved CAPTCHA unless the test sets `captcha` itself. */
+const signUp = async (body) => {
+  const agent = await loginAs(null, app);
+  const send =
+    body.kind === 'student' && !('captcha' in body)
+      ? { ...body, captcha: await solveCaptcha(agent) }
+      : body;
+  return agent.post('/api/auth/signup').send(send);
+};
 
 describe('sign-up', () => {
-  it('AUTH-05 an address outside the allowed domains is refused, a university one is accepted', async () => {
-    const bad = await signUp(student({ email: 'x@gmail.com' }));
-    expect(bad.status).toBe(400);
-    expect(bad.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
-    const ok = await signUp(student({ email: 'x@baiust.ac.bd' }));
-    expect(ok.status).toBe(202);
+  it('OS-01 AUTH-05 a student may use any email domain; a teacher needs an allowed one', async () => {
+    const gmail = await signUp(student({ email: 'x@gmail.com' }));
+    expect(gmail.status).toBe(202);
+    expect(await User.countDocuments({ kind: 'student' })).toBe(1);
+    const badTeacher = await signUp(teacher({ email: 't@gmail.com' }));
+    expect(badTeacher.status).toBe(400);
+    expect(badTeacher.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
+    expect(await User.countDocuments({ kind: 'teacher' })).toBe(0);
+    const okTeacher = await signUp(teacher({ email: 't@baiust.ac.bd' }));
+    expect(okTeacher.status).toBe(202);
   });
 
-  it('AUTH-05 subdomains are not allowed unless listed', async () => {
-    const res = await signUp(student({ email: 'x@mail.baiust.ac.bd' }));
+  it('OS-03 a university address gets no special treatment for a student', async () => {
+    expect((await signUp(student({ email: 'u@baiust.ac.bd' }))).status).toBe(202);
+    expect((await signUp(student({ email: 'p@outlook.com' }))).status).toBe(202);
+    // both get the same account: unverified student, same verification email
+    const users = await User.find({ kind: 'student' }).lean();
+    expect(users.map((u) => u.state)).toEqual(['email_unverified', 'email_unverified']);
+    const mail = await drainMail();
+    expect(mail.map((m) => m.subject)).toEqual([mail[0].subject, mail[0].subject]);
+  });
+
+  it('OS-02 a student sign-up without a CAPTCHA, or with a wrong one, is CAPTCHA_REQUIRED', async () => {
+    const none = await signUp(student({ captcha: undefined }));
+    expect(none.status).toBe(403);
+    expect(none.body.error.code).toBe('CAPTCHA_REQUIRED');
+    const agent = await loginAs(null, app);
+    const { id } = (await agent.get('/api/auth/captcha')).body.data;
+    const wrong = await agent
+      .post('/api/auth/signup')
+      .send({ ...student(), captcha: { id, solution: 'not-it' } });
+    expect(wrong.status).toBe(403);
+    expect(wrong.body.error.code).toBe('CAPTCHA_REQUIRED');
+    expect(await User.countDocuments()).toBe(0);
+    expect(await drainMail()).toHaveLength(0);
+  });
+
+  it('OS-02 a CAPTCHA works once: reusing a solved one is refused', async () => {
+    const agent = await loginAs(null, app);
+    const captcha = await solveCaptcha(agent);
+    const first = await agent.post('/api/auth/signup').send({ ...student(), captcha });
+    expect(first.status).toBe(202);
+    const again = await agent
+      .post('/api/auth/signup')
+      .send({ ...student({ email: 'second@gmail.com' }), captcha });
+    expect(again.body.error.code).toBe('CAPTCHA_REQUIRED');
+  });
+
+  it('OS-02 OS-13 teacher sign-up keeps its behaviour: no CAPTCHA needed', async () => {
+    expect((await signUp(teacher())).status).toBe(202);
+  });
+
+  it('AUTH-08 OS-02 a student signing up again with a known address gets the same answer', async () => {
+    expect((await signUp(student({ email: 'same@gmail.com' }))).status).toBe(202);
+    const again = await signUp(student({ email: 'same@gmail.com' }));
+    expect(again.status).toBe(202);
+    expect(await User.countDocuments()).toBe(1);
+  });
+
+  it('AUTH-05 a teacher subdomain is not allowed unless listed', async () => {
+    const res = await signUp(teacher({ email: 'x@mail.baiust.ac.bd' }));
     expect(res.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
     await addAllowedDomain('mail.baiust.ac.bd');
-    expect((await signUp(student({ email: 'x@mail.baiust.ac.bd' }))).status).toBe(202);
+    expect((await signUp(teacher({ email: 'x@mail.baiust.ac.bd' }))).status).toBe(202);
   });
 
   it('AUTH-01 AUTH-07 a new account is email_unverified and gets a verification email', async () => {
@@ -165,8 +225,9 @@ describe('sign-up', () => {
 
   it('AUTH-02 AUTH-08 many sign-ups at the same moment create exactly one account', async () => {
     const agents = await Promise.all(Array.from({ length: 4 }, () => loginAs(null, app)));
+    const captchas = await Promise.all(agents.map((a) => solveCaptcha(a)));
     const results = await Promise.all(
-      agents.map((a) => a.post('/api/auth/signup').send(student())),
+      agents.map((a, i) => a.post('/api/auth/signup').send({ ...student(), captcha: captchas[i] })),
     );
     expect(results.every((r) => r.status === 202)).toBe(true);
     expect(await User.countDocuments()).toBe(1);

@@ -14,7 +14,7 @@ describe('sign-up form', () => {
     renderApp('/signup');
     const user = userEvent.setup();
     await user.type(await screen.findByLabelText('Full name'), 'Rafi Ahmed');
-    await user.type(screen.getByLabelText('University email'), 'rafi@baiust.ac.bd');
+    await user.type(screen.getByLabelText('Email'), 'rafi@baiust.ac.bd');
     await user.type(screen.getByLabelText('Password'), 'short');
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     expect(
@@ -40,39 +40,85 @@ describe('sign-up form', () => {
     const user = userEvent.setup();
     await user.click(await screen.findByLabelText('Teacher'));
     await user.type(screen.getByLabelText('Full name'), 'Dr Salma');
-    await user.type(screen.getByLabelText('University email'), 'salma@baiust.ac.bd');
+    await user.type(screen.getByLabelText('Email'), 'salma@baiust.ac.bd');
     await user.type(screen.getByLabelText('Password'), 'secret-pass-1');
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('Choose your department.')).toBeInTheDocument();
     expect(posts(calls, '/api/auth/signup')).toHaveLength(0);
   });
 
-  it('AUTH-07 a good form is sent and the person is told to check their email', async () => {
+  it('AUTH-07 OS-01 OS-02 a student with any email sends the form with a solved CAPTCHA', async () => {
     const calls = mockApi({
       ...signedOut,
+      'GET /api/auth/captcha': ok({ id: 'c1', prefix: 'pfx', bits: 4 }),
       'POST /api/auth/signup': () => ({ ...ok({ accepted: true }), status: 202 }),
     });
     renderApp('/signup');
     const user = userEvent.setup();
     await user.type(await screen.findByLabelText('Full name'), 'Rafi Ahmed');
-    await user.type(screen.getByLabelText('University email'), 'Rafi@Baiust.ac.bd');
+    await user.type(screen.getByLabelText('Email'), 'Rafi@Gmail.com');
     await user.type(screen.getByLabelText('Password'), 'secret-pass-1');
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument();
-    expect(posts(calls, '/api/auth/signup')[0].body).toEqual({
+    const [sent] = posts(calls, '/api/auth/signup');
+    expect(sent.body).toMatchObject({
       kind: 'student',
       full_name: 'Rafi Ahmed',
-      email: 'rafi@baiust.ac.bd',
+      email: 'rafi@gmail.com',
       password: 'secret-pass-1',
+      captcha: { id: 'c1' },
     });
+    expect(sent.body.captcha.solution).toMatch(/^\d+$/);
   });
 
-  it('AUTH-05 a refused email domain shows the translated message', async () => {
-    mockApi({ ...signedOut, 'POST /api/auth/signup': fail(400, 'EMAIL_DOMAIN_NOT_ALLOWED') });
+  it('OS-02 OS-03 a student sees the security-check note and no university-email hint; a teacher sees the hint', async () => {
+    mockApi({ ...signedOut, 'GET /api/departments': ok([]) });
     renderApp('/signup');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('Full name'), 'Rafi Ahmed');
-    await user.type(screen.getByLabelText('University email'), 'rafi@gmail.com');
+    await screen.findByLabelText('Full name');
+    expect(screen.getByTestId('signup-captcha-note')).toBeInTheDocument();
+    expect(screen.queryByText(/use your university address/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Any email address you can open, university or personal.'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Teacher'));
+    expect(await screen.findByText(/Teachers: use your university address/)).toBeInTheDocument();
+    expect(screen.queryByTestId('signup-captcha-note')).not.toBeInTheDocument();
+  });
+
+  it('OS-13 a teacher sign-up is sent without a CAPTCHA', async () => {
+    const calls = mockApi({
+      ...signedOut,
+      'GET /api/departments': ok([{ id: 'a'.repeat(24), name: 'CSE' }]),
+      'POST /api/auth/signup': () => ({ ...ok({ accepted: true }), status: 202 }),
+    });
+    renderApp('/signup');
+    const user = userEvent.setup();
+    await user.click(await screen.findByLabelText('Teacher'));
+    await user.type(screen.getByLabelText('Full name'), 'Dr Salma');
+    await user.type(screen.getByLabelText('Email'), 'salma@baiust.ac.bd');
+    await user.selectOptions(await screen.findByLabelText('Department'), 'a'.repeat(24));
+    await user.type(screen.getByLabelText('Short code'), 'sk');
+    await user.type(screen.getByLabelText('Password'), 'secret-pass-1');
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument();
+    expect(posts(calls, '/api/auth/signup')[0].body.captcha).toBeUndefined();
+    expect(calls.some((c) => String(c.url).includes('/api/auth/captcha'))).toBe(false);
+  });
+
+  it('AUTH-05 a refused teacher email domain shows the translated message', async () => {
+    mockApi({
+      ...signedOut,
+      'GET /api/departments': ok([{ id: 'a'.repeat(24), name: 'CSE' }]),
+      'POST /api/auth/signup': fail(400, 'EMAIL_DOMAIN_NOT_ALLOWED'),
+    });
+    renderApp('/signup');
+    const user = userEvent.setup();
+    await user.click(await screen.findByLabelText('Teacher'));
+    await user.type(screen.getByLabelText('Full name'), 'Dr Salma');
+    await user.type(screen.getByLabelText('Email'), 'salma@gmail.com');
+    await user.selectOptions(await screen.findByLabelText('Department'), 'a'.repeat(24));
+    await user.type(screen.getByLabelText('Short code'), 'sk');
     await user.type(screen.getByLabelText('Password'), 'secret-pass-1');
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -83,7 +129,7 @@ describe('sign-up form', () => {
 
 describe('sign-in form', () => {
   const fill = async (user, password = 'secret-pass-1') => {
-    await user.type(await screen.findByLabelText('University email'), 'rafi@baiust.ac.bd');
+    await user.type(await screen.findByLabelText('Email'), 'rafi@baiust.ac.bd');
     await user.type(screen.getByLabelText('Password'), password);
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
   };
@@ -241,7 +287,7 @@ describe('verify, recovery and password change', () => {
     expect(
       await screen.findByRole('heading', { name: 'This link has expired' }),
     ).toBeInTheDocument();
-    await user.type(screen.getByLabelText('University email'), 'rafi@baiust.ac.bd');
+    await user.type(screen.getByLabelText('Email'), 'rafi@baiust.ac.bd');
     await user.click(screen.getByRole('button', { name: 'Send a new link' }));
     expect(await screen.findByRole('status')).toBeInTheDocument();
     expect(posts(calls, '/api/auth/verify/resend')[0].body).toEqual({ email: 'rafi@baiust.ac.bd' });
@@ -251,7 +297,7 @@ describe('verify, recovery and password change', () => {
     mockApi({ ...signedOut, 'POST /api/auth/reset/request': ok({ accepted: true }) });
     renderApp('/forgot-password');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('University email'), 'anyone@baiust.ac.bd');
+    await user.type(await screen.findByLabelText('Email'), 'anyone@baiust.ac.bd');
     await user.click(screen.getByRole('button', { name: 'Send the link' }));
     expect(await screen.findByRole('status')).toHaveTextContent(
       'If the account exists, we sent a link.',

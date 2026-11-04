@@ -7,7 +7,6 @@ import {
   connectTestDb,
   disconnectTestDb,
   drainMail,
-  fixClock,
   loginAs,
   resetClock,
   startTestMail,
@@ -381,7 +380,9 @@ describe('deciding (JR-09 to JR-12)', () => {
     const e = await Enrolment.findById(a.id).lean();
     expect(['accepted', 'rejected']).toContain(e.status);
     const decided = await auditList({});
-    expect(decided.filter((x) => ['join.accept', 'join.reject'].includes(x.action))).toHaveLength(1);
+    expect(decided.filter((x) => ['join.accept', 'join.reject'].includes(x.action))).toHaveLength(
+      1,
+    );
   });
 
   it('JR-10 a second decision after the first returns ALREADY_DECIDED', async () => {
@@ -415,7 +416,6 @@ describe('deciding (JR-09 to JR-12)', () => {
     expect(list.body.data[0].reason).toBe('Wrong batch');
     expect(JSON.stringify(list.body)).not.toMatch(/@baiust/);
   });
-
 });
 
 describe('who may decide (cross-scope refusals)', () => {
@@ -611,7 +611,10 @@ describe('removal from a section and appeals (JR-19, JR-20)', () => {
     ]);
     const log = await auditList({ action: 'join.remove' });
     expect(log).toHaveLength(1);
-    expect(log[0].new_value).toMatchObject({ status: 'revoked', reason: 'Joined the wrong section' });
+    expect(log[0].new_value).toMatchObject({
+      status: 'revoked',
+      reason: 'Joined the wrong section',
+    });
     // the student can apply again
     expect((await join(await as(a.user), w.secA._id)).status).toBe(201);
   });

@@ -15,7 +15,7 @@ import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { Semester } from '../../organisation/index.js';
 import { RoutineSlot, Section, SectionGroup } from '../../routine/index.js';
 import { clearAll as clearRoutineCache } from '../../routine/routine-cache.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { Room } from '../../rooms/index.js';
 import { User, UserRole } from '../../auth/index.js';
 import { AuditLog } from '../../audit/index.js';
@@ -179,16 +179,9 @@ async function cast(w) {
   const crB = await makeUser({ state: 'active', name: 'Sadia CR-B' });
   await repRole(crB, w, 'cr', w.sectionB);
 
-  const rosterA = await makeUser({ state: 'active', name: 'Anika Roster' });
+  const rosterA = await makeUser({ state: 'active', name: 'Anika Roster', uv_id: '2112345' });
   await enrol(rosterA, w, { group: w.g2 });
   await enrolLast(rosterA, w);
-  await UvClaim.create({
-    user_id: rosterA._id,
-    department_id: w.dept._id,
-    uv_id_text: '2112345',
-    uv_id_norm: '2112345',
-    status: 'approved',
-  });
   const rosterB = await makeUser({ state: 'active', name: 'Bashir Roster' });
   await enrol(rosterB, w);
 

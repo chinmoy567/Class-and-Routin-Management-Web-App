@@ -5,7 +5,7 @@ import { useAdminDashboard } from '@/features/admin/hooks.js';
 import {
   DepartmentFilter,
   FlagsCard,
-  IdClaimsCard,
+  JoinRequestsNeedAdminCard,
   MissingAdminCard,
   RecentActivityCard,
   RejectionsCard,
@@ -38,7 +38,7 @@ export function AdminDashboardPage() {
       {data && (
         <div className="grid gap-4 md:grid-cols-2">
           <TeacherRegistrationsCard id="card-registrations" card={data.teacher_registrations} />
-          <IdClaimsCard id="card-id-claims" card={data.id_claims} />
+          <JoinRequestsNeedAdminCard id="card-join-requests" card={data.join_requests} />
           <FlagsCard id="card-flags" card={data.flags} />
           <RejectionsCard id="card-rejections" card={data.rejections_and_appeals} />
           <RoutineProblemsCard id="card-routine" card={data.routine_problems} />

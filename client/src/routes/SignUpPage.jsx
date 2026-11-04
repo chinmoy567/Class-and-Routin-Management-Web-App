@@ -66,7 +66,7 @@ export function SignUpPage() {
           register={register}
           error={errors.email}
           label={t('auth.signup.email')}
-          hint={t('auth.signup.emailHint')}
+          hint={kind === 'teacher' ? t('auth.signup.emailHint') : t('auth.signup.emailHintStudent')}
           autoComplete="email"
         />
 
@@ -121,6 +121,16 @@ export function SignUpPage() {
           autoComplete="new-password"
         />
 
+        {kind === 'student' && (
+          <p className="text-sm text-muted-foreground" data-testid="signup-captcha-note">
+            {t('auth.signup.captchaNote')}
+          </p>
+        )}
+        {mutation.isPending && kind === 'student' && (
+          <p role="status" aria-live="polite" className="text-sm">
+            {t('auth.signup.captchaWorking')}
+          </p>
+        )}
         <FormError error={mutation.error} />
         <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {t('auth.signup.submit')}

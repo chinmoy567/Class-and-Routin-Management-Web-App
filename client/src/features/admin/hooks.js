@@ -82,7 +82,7 @@ export const useReactivateStudent = () => useAdminMutation(api.reactivateStudent
 export const useGraduateStudent = () => useAdminMutation(api.graduateStudent);
 export const useUngraduateStudent = () => useAdminMutation(api.ungraduateStudent);
 export const useIssueTempPassword = () => useMutation({ mutationFn: api.issueTempPassword });
-export const useRevokeUvClaim = () => useAdminMutation(api.revokeUvClaim);
+export const useRemoveFromSection = () => useAdminMutation(api.removeFromSection);
 export const useSetStudentGroup = () => useAdminMutation(api.setStudentGroup);
 export const useDecideAppeal = () => useAdminMutation(api.decideAppeal);
 export const useDecideRegistrationFromDashboard = () => useAdminMutation(decideRegistrationApi);
@@ -122,4 +122,3 @@ export function useAuditLog(params) {
   });
 }
 export const useDecideEscalatedJoin = () => useAdminMutation(api.decideEscalatedJoin);
-export const useDecideOwnClaim = () => useAdminMutation(api.decideOwnClaim);

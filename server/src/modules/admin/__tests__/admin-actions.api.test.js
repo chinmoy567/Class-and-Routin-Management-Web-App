@@ -13,7 +13,7 @@ import {
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { Semester } from '../../organisation/index.js';
 import { Section, SectionGroup } from '../../routine/index.js';
-import { Enrolment, UvClaim } from '../../enrolments/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { AuditLog } from '../../audit/index.js';
 import { User } from '../../auth/index.js';
 
@@ -63,7 +63,12 @@ async function world() {
     state: 'active',
     roles: [{ role: 'dept_admin', department_id: cse._id }],
   });
-  const cseStudent = await makeUser({ kind: 'student', state: 'active', departmentId: cse._id });
+  const cseStudent = await makeUser({
+    kind: 'student',
+    state: 'active',
+    departmentId: cse._id,
+    uv_id: '111',
+  });
   const eeeStudent = await makeUser({ kind: 'student', state: 'active', departmentId: eee._id });
   const cseEnrol = await Enrolment.create({
     user_id: cseStudent._id,
@@ -78,20 +83,6 @@ async function world() {
     section_id: eeeSection._id,
     department_id: eee._id,
     status: 'accepted',
-  });
-  const cseClaim = await UvClaim.create({
-    user_id: cseStudent._id,
-    department_id: cse._id,
-    uv_id_text: '111',
-    uv_id_norm: '111',
-    status: 'approved',
-  });
-  const eeeClaim = await UvClaim.create({
-    user_id: eeeStudent._id,
-    department_id: eee._id,
-    uv_id_text: '222',
-    uv_id_norm: '222',
-    status: 'approved',
   });
   const eeeAppeal = await Enrolment.create({
     user_id: (await makeUser({ kind: 'student', state: 'claim_pending', departmentId: eee._id }))
@@ -115,8 +106,6 @@ async function world() {
     eeeStudent,
     cseEnrol,
     eeeEnrol,
-    cseClaim,
-    eeeClaim,
     eeeAppeal,
   };
 }
@@ -145,26 +134,28 @@ describe('ADM-16 admin actions stay in the admin department', () => {
     expect((await Enrolment.findById(w.eeeEnrol._id).lean()).group_set_by).toBeUndefined();
   });
 
-  it('ADM-16 a CSE admin revokes a CSE student UV ID with a reason; the account goes back to waiting', async () => {
+  it('ADM-16 and OS-11 a CSE admin removes a CSE student from the section with a reason; the account goes back to waiting', async () => {
     const w = await world();
     const agent = await loginAs(w.cseAdmin, app);
     const res = await agent
-      .post(`/api/admin/uv-claims/${w.cseClaim._id}/revoke`)
+      .post(`/api/admin/enrolments/${w.cseEnrol._id}/remove`)
       .send({ reason: 'Checked in person with the office' });
     expect(res.status).toBe(200);
-    expect((await UvClaim.findById(w.cseClaim._id).lean()).status).toBe('revoked');
+    expect((await Enrolment.findById(w.cseEnrol._id).lean()).status).toBe('revoked');
     expect((await User.findById(w.cseStudent._id).lean()).state).toBe('claim_pending');
-    expect(await AuditLog.countDocuments({ action: 'uv_claim.revoke' })).toBe(1);
+    expect(await AuditLog.countDocuments({ action: 'join.remove' })).toBe(1);
   });
 
-  it('ADM-16 a CSE admin cannot revoke an EEE student UV ID: refused and the claim stays approved', async () => {
+  it('ADM-16 and OS-11 a CSE admin cannot remove an EEE student: 403 and the membership stays', async () => {
     const w = await world();
     const agent = await loginAs(w.cseAdmin, app);
     const res = await agent
-      .post(`/api/admin/uv-claims/${w.eeeClaim._id}/revoke`)
+      .post(`/api/admin/enrolments/${w.eeeEnrol._id}/remove`)
       .send({ reason: 'Not my department' });
     expect(res.status).toBe(403);
-    expect((await UvClaim.findById(w.eeeClaim._id).lean()).status).toBe('approved');
+    expect((await Enrolment.findById(w.eeeEnrol._id).lean()).status).toBe('accepted');
+    expect((await User.findById(w.eeeStudent._id).lean()).state).toBe('active');
+    expect(await AuditLog.countDocuments({ action: 'join.remove' })).toBe(0);
   });
 
   it('ADM-16 a CSE admin cannot decide an EEE appeal: refused and the rejection stays open', async () => {
@@ -200,7 +191,7 @@ describe('ADM-16 admin actions stay in the admin department', () => {
 });
 
 describe('ADM-17 nothing is hard-deleted', () => {
-  it('ADM-17 deactivating keeps the account, its enrolment and its UV ID claim, and the audit shows old and new state', async () => {
+  it('ADM-17 deactivating keeps the account, its enrolment and its profile UV ID, and the audit shows old and new state', async () => {
     const w = await world();
     const agent = await loginAs(w.cseAdmin, app);
     const res = await agent
@@ -209,7 +200,7 @@ describe('ADM-17 nothing is hard-deleted', () => {
     expect(res.status).toBe(200);
     expect(await User.exists({ _id: w.cseStudent._id })).toBeTruthy();
     expect(await Enrolment.exists({ _id: w.cseEnrol._id })).toBeTruthy();
-    expect(await UvClaim.exists({ _id: w.cseClaim._id })).toBeTruthy();
+    expect((await User.findById(w.cseStudent._id).lean()).uv_id).toBe('111');
     const entry = await AuditLog.findOne({ action: 'student.deactivate' }).lean();
     expect(entry.old_value).toEqual({ state: 'active' });
     expect(entry.new_value).toMatchObject({ state: 'deactivated', reason: 'Left the programme' });

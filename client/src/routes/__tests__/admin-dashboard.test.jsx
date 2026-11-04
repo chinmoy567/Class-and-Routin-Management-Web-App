@@ -26,7 +26,7 @@ const dashboard = (over = {}) =>
     scope: { all: false, department_id: null },
     released: { room_requests: false },
     teacher_registrations: empty,
-    id_claims: empty,
+    join_requests: empty,
     flags: empty,
     rejections_and_appeals: empty,
     routine_problems: empty,
@@ -105,13 +105,12 @@ describe('students (spec 18)', () => {
     state: 'active',
     email_status: 'verified',
     uv_id: '0822310205101077',
-    uv_claim_id: 'c1',
     enrolment: { id: 'e1', status: 'accepted' },
     section: { id: 'sec1', label: '2-I-A' },
     group: null,
   };
 
-  it('ADM-12 search results show a name, UV ID and email status, and no address or phone', async () => {
+  it('ADM-12 OS-07 search results show a name, the profile UV ID and email status, and no address or phone', async () => {
     mockApi({
       'GET /api/auth/me': me(cseAdmin, 'teacher'),
       'GET /api/admin/students?q=Rahim': ok([rahim]),
@@ -119,6 +118,7 @@ describe('students (spec 18)', () => {
     renderApp('/admin/students');
     await userEvent.type(await screen.findByRole('searchbox'), 'Rahim');
     expect(await screen.findByText('Rahim Uddin')).toBeInTheDocument();
+    expect(screen.getByText('UV ID: 0822310205101077')).toBeInTheDocument();
     expect(screen.getByText(/Email verified/)).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/@|\+?880/);
   });
@@ -160,16 +160,39 @@ describe('students (spec 18)', () => {
     await waitFor(() => expect(screen.queryByText('Kp7mQ2xT9bLa')).not.toBeInTheDocument());
   });
 
-  it('ADM-21 revoking a UV ID asks for a reason and a confirmation first', async () => {
-    mockApi({
+  it('ADM-21 OS-11 removing a student from a section asks for a reason and a confirmation, then sends it', async () => {
+    const calls = mockApi({
       'GET /api/auth/me': me(cseAdmin, 'teacher'),
       'GET /api/admin/students?q=Rahim': ok([rahim]),
+      'POST /api/admin/enrolments/e1/remove': ok({ id: 'e1', status: 'revoked' }),
     });
     renderApp('/admin/students');
     await userEvent.type(await screen.findByRole('searchbox'), 'Rahim');
-    await userEvent.click(await screen.findByRole('button', { name: 'Revoke UV ID' }));
+    expect(screen.queryByRole('button', { name: /Revoke UV ID/ })).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove from section' }));
     const dialog = await screen.findByRole('alertdialog');
-    expect(within(dialog).getByRole('button', { name: 'Revoke UV ID' })).toBeDisabled();
+    expect(dialog).toHaveTextContent('2-I-A');
+    const confirm = within(dialog).getByRole('button', { name: 'Remove from section' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByRole('textbox'), 'Joined the wrong section');
+    await userEvent.click(confirm);
+    await waitFor(() => {
+      const post = calls.find((c) => c.method === 'POST' && c.url.endsWith('/e1/remove'));
+      expect(post.body).toEqual({ reason: 'Joined the wrong section' });
+    });
+  });
+
+  it('OS-11 a student with no accepted membership has no remove control', async () => {
+    mockApi({
+      'GET /api/auth/me': me(cseAdmin, 'teacher'),
+      'GET /api/admin/students?q=Rahim': ok([
+        { ...rahim, enrolment: { id: 'e1', status: 'pending' }, section: null },
+      ]),
+    });
+    renderApp('/admin/students');
+    await userEvent.type(await screen.findByRole('searchbox'), 'Rahim');
+    expect(await screen.findByText('Rahim Uddin')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove from section' })).not.toBeInTheDocument();
   });
 });
 

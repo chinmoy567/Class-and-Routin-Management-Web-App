@@ -51,9 +51,7 @@ describe('join schemas', () => {
   });
   it('OS-06 a join request with uv_id is refused', () => {
     const id = 'a'.repeat(24);
-    expect(createEnrolmentBody.safeParse({ section_id: id, uv_id: '0822 31' }).success).toBe(
-      false,
-    );
+    expect(createEnrolmentBody.safeParse({ section_id: id, uv_id: '0822 31' }).success).toBe(false);
     expect(createEnrolmentBody.safeParse({ section_id: id }).success).toBe(true);
   });
   it('JR-19 removing a student from a section needs a reason of 5 to 500 characters', () => {

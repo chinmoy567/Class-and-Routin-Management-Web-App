@@ -9,6 +9,7 @@ import {
   fixClock,
   loginAs,
   resetClock,
+  solveCaptcha,
   startTestMail,
   stopTestMail,
   tokenFrom,
@@ -45,7 +46,10 @@ async function signUpAndGetToken(over = {}) {
     password: 'secret-pass-1',
     ...over,
   };
-  await post('/api/auth/signup', body);
+  const agent = await loginAs(null, app);
+  // Spec 24 OS-02: student sign-up needs a solved CAPTCHA.
+  const captcha = body.kind === 'student' ? await solveCaptcha(agent) : undefined;
+  await agent.post('/api/auth/signup').send({ ...body, ...(captcha && { captcha }) });
   const mails = await drainMail();
   clearOutbox();
   return { token: tokenFrom(mails.at(-1)), email: body.email };

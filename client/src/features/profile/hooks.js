@@ -29,6 +29,7 @@ function useProfileMutation(mutationFn) {
 }
 
 export const useUpdatePhone = () => useProfileMutation(api.updatePhone);
+export const useUpdateUvId = () => useProfileMutation(api.updateUvId);
 export const useUploadPhoto = () => useProfileMutation(api.uploadPhoto);
 export const useDeletePhoto = () => useProfileMutation(api.deletePhoto);
 export const useRequestEmailChange = () => useMutation({ mutationFn: api.requestEmailChange });

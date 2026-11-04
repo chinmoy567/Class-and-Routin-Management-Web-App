@@ -1,7 +1,6 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { uvIdSchema } from '@crm/shared';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { FormError } from '@/features/auth/components/FormError.jsx';
@@ -37,16 +36,13 @@ function RejectionNotice({ request }) {
   );
 }
 
-/** JR-01: the name and UV ID are asked only while the student still needs them. */
-function joinSchema({ askUvId }) {
-  return z.object({
-    full_name: z.string().optional(),
-    uv_id: askUvId ? uvIdSchema : z.string().optional(),
-    department_id: z.string(),
-    section_id: z.string().min(1),
-    group_id: z.string().optional(),
-  });
-}
+/** JR-01: the name is asked on the first request only. Spec 24: there is no UV ID on this form. */
+const joinSchema = z.object({
+  full_name: z.string().optional(),
+  department_id: z.string(),
+  section_id: z.string().min(1),
+  group_id: z.string().optional(),
+});
 
 /**
  * The effective choices: what the student picked, or else the spec 14 pre-fill. `undefined`
@@ -69,7 +65,7 @@ function choicesFrom(values, { prefill, departments, accountName }) {
   };
 }
 
-/** JR-01, JR-03, JR-05: the join form. */
+/** JR-01, JR-03: the join form. */
 export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   const options = useJoinOptions();
   const mine = useMyRequest();
@@ -79,7 +75,6 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
 
   const departments = options.data?.departments ?? [];
   const last = mine.data;
-  const needsUvId = last?.uv_id?.status !== 'approved';
   const firstRequest = !last;
   const accountName = me.data?.user?.full_name;
   const context = { prefill, departments, accountName };
@@ -87,7 +82,7 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   const form = useForm({
     resolver: (values, ctx, opts) => {
       const c = choicesFrom(values, context);
-      return zodResolver(joinSchema({ askUvId: needsUvId }))(
+      return zodResolver(joinSchema)(
         { ...values, department_id: c.departmentId, section_id: c.sectionId },
         ctx,
         opts,
@@ -95,14 +90,12 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
     },
     defaultValues: {
       full_name: undefined,
-      uv_id: '',
       department_id: undefined,
       section_id: undefined,
       group_id: undefined,
     },
   });
-  const { control, handleSubmit, setValue, watch, formState } = form;
-  const errors = formState.errors;
+  const { control, handleSubmit, setValue, watch } = form;
   const c = choicesFrom(watch(), context);
   const fields = send.error?.fields ?? {};
 
@@ -115,11 +108,10 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
     );
   }
 
-  const onValid = (values) => {
+  const onValid = () => {
     send.mutate({
       section_id: c.sectionId,
       ...(c.groupId && { group_id: c.groupId }),
-      ...(needsUvId && values.uv_id && { uv_id: values.uv_id }),
       ...(firstRequest && c.fullName && { full_name: c.fullName }),
     });
   };
@@ -149,34 +141,6 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
             />
             {fields.full_name && (
               <p className="text-sm text-destructive">{t('join.fieldError.full_name')}</p>
-            )}
-          </div>
-        )}
-        {needsUvId && (
-          <div className="space-y-1.5">
-            <label htmlFor="join-uv" className="block text-sm font-medium">
-              {t('join.uvId')}
-            </label>
-            <Controller
-              name="uv_id"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  id="join-uv"
-                  inputMode="numeric"
-                  value={field.value ?? ''}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onBlur={field.onBlur}
-                  aria-describedby="join-uv-hint"
-                  aria-invalid={errors.uv_id || fields.uv_id ? 'true' : undefined}
-                />
-              )}
-            />
-            <p id="join-uv-hint" className="text-sm text-muted-foreground">
-              {t('join.uvIdHint')}
-            </p>
-            {(errors.uv_id || fields.uv_id) && (
-              <p className="text-sm text-destructive">{t('join.fieldError.uv_id')}</p>
             )}
           </div>
         )}
