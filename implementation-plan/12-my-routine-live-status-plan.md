@@ -79,7 +79,7 @@ Spec 12 gives every active student and teacher a personalised `GET /api/me/routi
 
 ## Blockers / open questions
 
-The spec's own open question: **"Confirm the exact period columns from the CSE sheet."** The PRD names 08:30–09:25 as the first and 16:35–17:30 as the last. For now define 9 standard periods (08:30–09:25, 09:25–10:20, 10:20–11:15, 11:15–12:10, 12:10–13:05, 13:05–14:00, 14:00–14:55, 14:55–15:50, 15:50–16:45) plus a 10th 16:45–17:30 to cover the last slot — stored in `shared/periods.js` as a constant, easy to adjust without code changes. All other rules are clear; no blocking questions.
+The period columns are settled. The header row of the CSE sheet (`Dept of CSE Routine Spring 2026.xlsx`, tab `ROUTINE`) has nine columns: 08:30–09:25, 09:30–10:25, 10:30–11:25, 11:35–12:30, 12:35–13:30, 13:35–14:30, 14:35–15:30, 15:35–16:30, 16:35–17:30. These are the PERIODS constant in `shared/periods.js`. There is no tenth period. No blocking questions remain.
 
 ---
 
@@ -97,7 +97,7 @@ server/src/modules/routine/__tests__/my-routine.api.test.js
 ### New (shared)
 ```
 shared/liveStatus.js      — pure liveStatus(response, serverNow)
-shared/periods.js         — PERIODS constant (9 × 55-min periods + 1 short)
+shared/periods.js         — PERIODS constant (the 9 sheet columns listed in Blockers)
 shared/__tests__/liveStatus.test.js
 ```
 
@@ -146,7 +146,7 @@ In-memory cache: `Map<string, SlotSummary[]>` — serialisable plain objects, no
 **Auth:** `requireAuth`  
 **Who:** `active` students, `active` teachers — others get `403 STATE_NOT_ALLOWED`  
 **Query Zod schema:** `{ from?: dateString, to?: dateString }`, range max 14 days → `VALIDATION_ERROR`  
-**Default range:** today to `today + 1` (two days, guaranteed to include today plus tomorrow if it's a teaching day)  
+**Range:** `from` and `to` are inclusive, max 14 calendar days (`to − from ≤ 13`). **Default range:** today to the next teaching day (spec RTN-06). The client's status view always requests today to today + 13, so the countdown has data for 14 days ahead.  
 **No audit entry** — read-only endpoint  
 **Response:**
 ```json
@@ -252,6 +252,12 @@ Map to checklist numbers:
 | Teacher kind = 'teaching' | R13, RTN-13 |
 | Publish clears cache; next call gets new slots | R14, RTN-14 |
 | Range > 14 days → 400 VALIDATION_ERROR | R6 |
+| Teacher with no linked record → empty routine | R3, RTN-03 |
+| `graduated`, `email_unverified`, teacher `pending` / `suspended` → 403 | R4, RTN-04 |
+| Student of G2 / another section never gets their slots | R5, RTN-05 |
+| TBA and two-teacher names in response | R7, RTN-07 |
+| Client refetch on `routine.changed`, on tab visible; status ticks without request (fake timers) | R12, RTN-12 |
+| Playwright: day opens on today, Sun–Thu grid, phone tabs, group-missing notice | R16–R19, RTN-16 to RTN-19 |
 
 ---
 

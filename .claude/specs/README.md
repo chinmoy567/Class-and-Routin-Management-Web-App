@@ -31,7 +31,7 @@ Use `/build-feature specs/NN-name.md` to build a spec.
 | 09 | [CR/DCR assignment](09-cr-dcr-assignment.md) | 04, 07 |
 | 10 | [Join requests and ID claims](10-join-requests.md): enrolment, UV ID claim, groups, escalation | 09 |
 | 11 | [University calendar](11-calendar.md): events, single-class cancellation | 04, 07 |
-| 12 | [My routine and live status](12-my-routine-live-status.md) | 10, 11 |
+| 12 | [My routine and live status](12-my-routine-live-status.md) | 04, 05, 06, 07, 10, 11 |
 | 13 | [Free-room view](13-free-room-view.md): read-only | 05, 07, 11 |
 | 14 | [Semester rollover](14-semester-rollover.md): readiness, make current, update screen | 09, 10 |
 | 15 | [Transactional email](15-transactional-email.md): catalogue, batching, bounces, digests | 00, built alongside 01 onwards |
