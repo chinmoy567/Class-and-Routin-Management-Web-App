@@ -1,6 +1,6 @@
 # 07: Routine import
 
-R1 · Status: Draft · Depends on: 04, 05, 06 · PRD: Routine management, Routine file import, Import template and checks, Sessional groups, Technical approach (routine_slot, API Import) · Diagrams: 12-activity-routine-import, 25-routine-resolution
+R1 · Status: In progress · Depends on: 04, 05, 06 · PRD: Routine management, Routine file import, Import template and checks, Sessional groups, Technical approach (routine_slot, API Import) · Diagrams: 12-activity-routine-import, 25-routine-resolution
 
 ## Goal
 

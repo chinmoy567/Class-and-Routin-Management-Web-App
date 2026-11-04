@@ -1,6 +1,6 @@
 # 06: Teachers
 
-R1 · Status: Draft · Depends on: 03 · PRD: Teacher approval, Teacher dashboard (Account, Rules), Admin dashboard and controls (Teachers), Core features (F4a) · Diagrams: 10-activity-teacher-approval, 19-state-account
+R1 · Status: In progress · Depends on: 03 · PRD: Teacher approval, Teacher dashboard (Account, Rules), Admin dashboard and controls (Teachers), Core features (F4a) · Diagrams: 10-activity-teacher-approval, 19-state-account
 
 ## Goal
 

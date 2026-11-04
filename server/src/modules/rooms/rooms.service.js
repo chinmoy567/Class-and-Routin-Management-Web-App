@@ -287,7 +287,11 @@ export async function setShares(actor, id, departmentIds) {
       throw invalid({ department_ids: 'Choose active departments only' });
     }
   }
+  await ensureGuard();
   return withTransaction(async (session) => {
+    // Every share update writes the guard, so two updates of one room run one after the other.
+    // Without it both read the same "before" list and both insert, and the room ends with a mix.
+    await touchGuard(session);
     const before = (await RoomShare.find({ room_id: room._id }).session(session).lean()).map((s) =>
       String(s.department_id),
     );

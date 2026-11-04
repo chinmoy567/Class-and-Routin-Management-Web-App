@@ -1,6 +1,6 @@
 # 05: Classrooms
 
-R1 · Status: Draft · Depends on: 03 · PRD: Admin dashboard and controls (Classrooms), Classroom booking rules (Who decides), Import template and checks (Unknown room) · Diagrams: 05-er-diagram
+R1 · Status: In progress · Depends on: 03 · PRD: Admin dashboard and controls (Classrooms), Classroom booking rules (Who decides), Import template and checks (Unknown room) · Diagrams: 05-er-diagram
 
 ## Goal
 
