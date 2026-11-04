@@ -24,7 +24,8 @@ const querySchema = z
       const days = (toMs - fromMs) / 86_400_000;
       if (days < 0) {
         ctx.addIssue({ code: 'custom', path: ['to'], message: 'to must be >= from' });
-      } else if (days > 14) {
+      } else if (days > 13) {
+        // RTN-06: at most 14 calendar days inclusive, so to − from ≤ 13.
         ctx.addIssue({
           code: 'custom',
           path: ['to'],

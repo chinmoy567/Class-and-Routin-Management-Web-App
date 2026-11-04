@@ -27,9 +27,10 @@ const addDays = (date, n) => {
 };
 
 // RTN-06: the first request asks for the server's default window (no dates). The page then asks
-// for its week, starting from the server's `today`, never from the device clock.
+// for today to today + 13 (its status view, RTN-10), starting from the server's `today`, never
+// from the device clock.
 const DEFAULT_URL = '/api/me/routine';
-const weekUrl = (today) => `/api/me/routine?from=${today}&to=${addDays(today, 6)}`;
+const weekUrl = (today) => `/api/me/routine?from=${today}&to=${addDays(today, 13)}`;
 
 const teacher = { short_code: 'AR', full_name: 'Abdur Rahman' };
 const slot = {

@@ -15,11 +15,12 @@ function addDaysIso(date, n) {
 
 export function MyRoutinePage() {
   // RTN-06, CLAUDE.md time rule: the first request takes the server's default window, which says
-  // what today is in Asia/Dhaka. The week is then asked for from that day, so the device clock
-  // never picks the dates.
+  // what today is in Asia/Dhaka. The status view then asks for today to today + 13, so the
+  // countdown can look 14 days ahead (RTN-10) with no second call. The device clock never picks
+  // the dates.
   const first = useMyRoutine(undefined, undefined);
   const today = first.data?.today;
-  const week = useMyRoutine(today, today ? addDaysIso(today, 6) : undefined, {
+  const week = useMyRoutine(today, today ? addDaysIso(today, 13) : undefined, {
     enabled: Boolean(today),
   });
   useRoutineSocket();
@@ -89,7 +90,8 @@ export function MyRoutinePage() {
       </div>
 
       <div className="md:hidden">
-        <DayList days={routineData.days} today={routineData.today} />
+        {/* The phone list shows one week (today and the next six days); the rest is for the countdown. */}
+        <DayList days={routineData.days.slice(0, 7)} today={routineData.today} />
       </div>
     </section>
   );

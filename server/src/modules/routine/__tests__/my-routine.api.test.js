@@ -213,6 +213,26 @@ describe('RTN-06 response shape', () => {
     expect(res.status).toBe(400);
   });
 
+  it('RTN-06 a 15-day range (to − from = 14) → 400', async () => {
+    const dept = await createDepartment();
+    await makeSemester();
+    const agent = await asActiveStudent(dept);
+    const res = await agent.get('/api/me/routine?from=2027-04-04&to=2027-04-18');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('RTN-06 a 14-day range (to − from = 13) is accepted', async () => {
+    const dept = await createDepartment();
+    await makeSemester();
+    const agent = await asActiveStudent(dept);
+    // Not a 400: the range check passes. This student has no enrolment, so the response is the
+    // empty shape and `days` is not built.
+    const res = await agent.get('/api/me/routine?from=2027-04-04&to=2027-04-17');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data.days)).toBe(true);
+  });
+
   it('RTN-06 to before from → 400', async () => {
     const dept = await createDepartment();
     await makeSemester();

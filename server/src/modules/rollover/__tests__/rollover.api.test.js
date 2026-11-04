@@ -19,6 +19,7 @@ import { Room } from '../../rooms/index.js';
 import { isOpen } from '../../representatives/index.js';
 import { list as auditList } from '../../audit/index.js';
 import { registerRolloverHook, resetRolloverHooks } from '../index.js';
+import { getSectionSlots, setSectionSlots } from '../../routine/routine-cache.js';
 
 let app;
 beforeAll(async () => {
@@ -300,6 +301,19 @@ describe('make current (ROL-03 to ROL-05, [PRD] rollover)', () => {
     });
     await makeCurrent(await as(w.superAdmin), w.draft._id, { confirm_not_ready: ['EEE'] });
     expect(seen).toEqual(['current']);
+  });
+
+  it('RTN-14 making a semester current clears the cached weekly patterns (spec 12)', async () => {
+    const w = await world();
+    setSectionSlots(String(w.draft._id), String(w.cseSection._id), [{ slot_id: 'stale' }]);
+    expect(getSectionSlots(String(w.draft._id), String(w.cseSection._id))).not.toBeNull();
+
+    const res = await makeCurrent(await as(w.superAdmin), w.draft._id, {
+      confirm_not_ready: ['EEE'],
+    });
+    expect(res.status).toBe(200);
+
+    expect(getSectionSlots(String(w.draft._id), String(w.cseSection._id))).toBeNull();
   });
 
   it('ROL-04 if any step fails, nothing changes: the old semester is current and students are active', async () => {

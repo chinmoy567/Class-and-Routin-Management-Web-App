@@ -201,6 +201,30 @@ describe('liveStatus', () => {
     expect(result.next?.date).toBe(sunday);
   });
 
+  // RTN-10: the countdown looks up to 14 days ahead. The client asks for today to today + 13,
+  // so a class 10 days away (Thursday 2027-04-15, from Monday 2027-04-05) is still found.
+  it('RTN-10 free on Monday finds a class 10 days ahead within the 14-day window', () => {
+    const monday = '2027-04-05';
+    const target = '2027-04-15';
+    const days = [];
+    for (let i = 0; i <= 12; i++) {
+      const d = new Date(`${monday}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + i);
+      const date = d.toISOString().slice(0, 10);
+      const wd = d.getUTCDay();
+      if (wd === 5 || wd === 6) {
+        days.push({ date, dayRule: { kind: 'non_teaching_day' }, slots: [] });
+      } else {
+        const slots = date === target ? [makeSlot({ slot_id: 'far', start_min: 510 })] : [];
+        days.push({ date, dayRule: { kind: 'normal' }, slots });
+      }
+    }
+    const payload = makePayload({ semester: SEMESTER, days });
+    const result = liveStatus(payload, bdtMs(monday, 10, 0));
+    expect(result.kind).toBe('free');
+    expect(result.next?.date).toBe(target);
+  });
+
   // RTN-10: countdown skips closed (event) days
   it('RTN-10 free on Thursday evening skips a closed Sunday, finds Monday', () => {
     const thursday = '2027-04-08';
