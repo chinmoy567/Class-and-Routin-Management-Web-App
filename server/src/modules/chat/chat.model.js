@@ -56,15 +56,85 @@ const messageSchema = new Schema(
     deleted_at: { type: Date, default: null },
     deleted_by: oid(),
     created_at: { type: Date, required: true },
+    // SAF-09: held while a report is open (hold_open), then until hold_until.
+    hold_open: { type: Boolean, default: false },
+    hold_until: { type: Date, default: null },
   },
   { collection: 'message' },
 );
+// Spec 22 retention jobs (SAF-12 to SAF-14).
+messageSchema.index({ created_at: 1 });
+messageSchema.index({ deleted_at: 1 }, { sparse: true });
+messageSchema.index({ hold_until: 1 }, { sparse: true });
 messageSchema.index({ conversation_id: 1, created_at: -1 });
 // FIL-08: a link is checked by file id; FIL-10: uploads per user per hour.
 messageSchema.index({ file_id: 1 }, { sparse: true });
 messageSchema.index({ sender_id: 1, file_id: 1, created_at: -1 });
 // CHT, rate limit: sends per user per minute.
 messageSchema.index({ sender_id: 1, created_at: -1 });
+
+// SAF-01: a one-way block. `blocker_id` can't be messaged by `blocked_id` one-to-one.
+const blockSchema = new Schema(
+  {
+    blocker_id: oid({ required: true }),
+    blocked_id: oid({ required: true }),
+    created_at: { type: Date, required: true },
+  },
+  { collection: 'block' },
+);
+blockSchema.index({ blocker_id: 1, blocked_id: 1 }, { unique: true });
+blockSchema.index({ blocked_id: 1 });
+
+// SAF-04, SAF-05, SAF-08: a report of a message or a person, routed when created.
+const reportSchema = new Schema(
+  {
+    reporter_id: oid({ required: true }),
+    target_user_id: oid({ required: true }),
+    message_id: oid(),
+    conversation_id: oid(),
+    category: {
+      type: String,
+      enum: ['harassment', 'spam', 'inappropriate', 'impersonation', 'other'],
+      required: true,
+    },
+    note: { type: String },
+    department_id: oid(),
+    to_super_admins: { type: Boolean, default: false },
+    // SAF-09: the reported message and up to 5 either side, fixed when the report is made.
+    window_ids: [oid()],
+    status: { type: String, enum: ['open', 'closed'], default: 'open' },
+    outcome: { type: String, enum: ['no_action', 'warned', 'suspended', 'message_removed'] },
+    outcome_note: { type: String },
+    closed_by: oid(),
+    closed_at: { type: Date, default: null },
+    hold_until: { type: Date, default: null },
+    created_at: { type: Date, required: true },
+  },
+  { collection: 'report' },
+);
+reportSchema.index({ status: 1, department_id: 1, created_at: -1 });
+reportSchema.index({ reporter_id: 1, created_at: -1 });
+reportSchema.index({ message_id: 1 }, { sparse: true });
+
+// SAF-10: a timed suspension from sending. `user.chat_suspended_until` mirrors the latest one.
+const suspensionSchema = new Schema(
+  {
+    user_id: oid({ required: true }),
+    until: { type: Date, required: true },
+    reason: { type: String, required: true },
+    by: oid({ required: true }),
+    created_at: { type: Date, required: true },
+    lifted_at: { type: Date, default: null },
+    lifted_by: oid(),
+  },
+  { collection: 'chat_suspension' },
+);
+suspensionSchema.index({ user_id: 1, until: -1 });
+
+export const Block = mongoose.models.Block ?? mongoose.model('Block', blockSchema);
+export const Report = mongoose.models.Report ?? mongoose.model('Report', reportSchema);
+export const ChatSuspension =
+  mongoose.models.ChatSuspension ?? mongoose.model('ChatSuspension', suspensionSchema);
 
 export const Conversation =
   mongoose.models.Conversation ?? mongoose.model('Conversation', conversationSchema);

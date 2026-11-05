@@ -22,6 +22,8 @@ import {
   viewMessage,
 } from './chat.context.js';
 import { fileViewsFor } from './chat.files.view.js';
+import { assertNotBlockedBy } from './chat.safety.service.js';
+import { assertNotSuspended } from './chat.suspension.service.js';
 
 const PAGE = 50;
 
@@ -29,7 +31,11 @@ const PAGE = 50;
 export async function sendMessage(me, conversationId, text) {
   assertChatState(me);
   const { conversation, member } = await readable(me, conversationId);
+  // SAF-10: a suspended person can read but not send.
+  await assertNotSuspended(me);
   const { other } = await assertCanSend(me, conversation, member);
+  // SAF-01: a person who blocked the sender can't receive a one-to-one message.
+  await assertNotBlockedBy(me, other?.user_id);
   await assertUnderSendLimit(me._id);
 
   const now = clock.now();
@@ -105,10 +111,12 @@ export async function deleteMessage(me, messageId) {
   await erase(message);
 }
 
+// Spec 22, SAF-13: the message leaves view at once (viewMessage hides deleted text), but its stored
+// text and file are erased by the retention job 30 days later, unless a report holds it.
 async function erase(message) {
   await Message.updateOne(
     { _id: message._id, deleted_at: null },
-    { $set: { deleted_at: clock.now() }, $unset: { body_enc: 1 } },
+    { $set: { deleted_at: clock.now() } },
   );
 }
 

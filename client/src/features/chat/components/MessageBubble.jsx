@@ -7,7 +7,14 @@ import { cn } from '@/lib/utils';
 const GLYPH = { sent: '✓', delivered: '✓✓', seen: '✓✓' };
 
 /** One message. Deleted messages read "message deleted" with no text (CHT-07). */
-export function MessageBubble({ message, canDelete, onDelete, onDownload, downloading = false }) {
+export function MessageBubble({
+  message,
+  canDelete,
+  onDelete,
+  onDownload,
+  downloading = false,
+  onReport,
+}) {
   if (message.deleted) {
     return (
       <li className={cn('flex', message.mine ? 'justify-end' : 'justify-start')}>
@@ -48,6 +55,12 @@ export function MessageBubble({ message, canDelete, onDelete, onDownload, downlo
         {canDelete ? (
           <Button type="button" variant="ghost" size="sm" onClick={() => onDelete(message.id)}>
             {t('chat.delete')}
+          </Button>
+        ) : null}
+        {onReport && !message.mine ? (
+          // SAF-04: report someone else's message.
+          <Button type="button" variant="ghost" size="sm" onClick={() => onReport(message)}>
+            {t('chat.report.action')}
           </Button>
         ) : null}
       </div>

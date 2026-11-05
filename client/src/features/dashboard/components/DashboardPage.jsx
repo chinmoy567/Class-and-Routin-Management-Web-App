@@ -1,6 +1,7 @@
 import { isReleased } from '@crm/shared';
 import { t } from '@/lib/i18n';
 import { MyRoomRequestsCard } from '@/features/room-requests/components/MyRoomRequestsCard.jsx';
+import { ChatUnreadCard } from '@/features/chat/components/ChatUnreadCard.jsx';
 import { useMyRoutine, useRoutineSocket, useLiveStatus } from '@/features/routine/hooks.js';
 import { useDashboard, useDashboardSocket } from '../hooks.js';
 import { dhakaDate } from '../utils.js';
@@ -35,6 +36,10 @@ function SummaryError({ onRetry }) {
 /** The cards of a student or teacher, in the priority order of DSH-03. Absent cards are unreleased. */
 function Cards({ d, kind, routine, routineState, status }) {
   const isTeacher = kind === 'teacher';
+  // CHT-15: the unread card, once chat is released for this kind of account.
+  const showChat = isReleased(
+    isTeacher ? 'dashboard.teacher.messages' : 'dashboard.student.messages',
+  );
   return (
     <>
       <StatusCard status={status} />
@@ -60,6 +65,7 @@ function Cards({ d, kind, routine, routineState, status }) {
           {isTeacher && isReleased('dashboard.teacher.room_requests') ? (
             <MyRoomRequestsCard />
           ) : null}
+          {showChat && <ChatUnreadCard />}
           {d.teacher_link && <TeacherAccountCard teacherLink={d.teacher_link} />}
           {d.reminders && <RemindersCard reminders={d.reminders} />}
         </>
@@ -72,6 +78,7 @@ function Cards({ d, kind, routine, routineState, status }) {
               courses={d.courses}
             />
           )}
+          {showChat && <ChatUnreadCard />}
           {d.reminders && <RemindersCard reminders={d.reminders} isStudent />}
         </>
       )}

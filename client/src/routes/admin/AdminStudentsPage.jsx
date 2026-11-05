@@ -5,6 +5,7 @@ import { useIsSuperAdmin } from '@/features/auth/hooks.js';
 import { FormError, errorMessage } from '@/features/auth/components/FormError.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { ConfirmDialog } from '@/features/admin/components/ConfirmDialog.jsx';
+import { SuspendDialog } from '@/features/chat/components/SuspendDialog.jsx';
 import { TempPasswordDialog } from '@/features/admin/components/TempPasswordDialog.jsx';
 import { DepartmentFilter } from '@/features/admin/components/DashboardCards.jsx';
 import {
@@ -166,6 +167,14 @@ function StudentRow({ student, onTemp, onConfirm }) {
             {t('admin.students.actions.removeFromSection')}
           </Button>
         )}
+        {/* SAF-10: suspend the student from sending chat messages. */}
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => onConfirm({ kind: 'chatSuspend', student })}
+        >
+          {t('adminReports.suspend')}
+        </Button>
       </div>
       <FormError error={graduate.error ?? ungraduate.error ?? reactivate.error ?? temp.error} />
 
@@ -266,6 +275,13 @@ export function AdminStudentsPage() {
               { onSuccess: closeDialog },
             )
           }
+        />
+      )}
+      {dialog?.kind === 'chatSuspend' && (
+        <SuspendDialog
+          userId={dialog.student.id}
+          name={dialog.student.full_name}
+          onClose={closeDialog}
         />
       )}
       {shownPassword && (

@@ -15,6 +15,7 @@ import {
   useUnlinkTeacher,
 } from '@/features/teachers/hooks.js';
 import { t } from '@/lib/i18n';
+import { SuspendDialog } from '@/features/chat/components/SuspendDialog.jsx';
 
 function AddForm({ departmentId, onDone }) {
   const create = useCreateTeacher();
@@ -127,6 +128,7 @@ function RecordRow({ record, accounts }) {
 function AccountRow({ account }) {
   const change = useChangeAccount();
   const [action, setAction] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const [reason, setReason] = useState('');
   const fields = change.error?.fields ?? {};
 
@@ -148,6 +150,17 @@ function AccountRow({ account }) {
         </div>
         {!action && (
           <div className="flex gap-2">
+            {/* SAF-10: suspend the teacher from sending chat messages. */}
+            <Button variant="secondary" onClick={() => setChatOpen(true)}>
+              {t('adminReports.suspend')}
+            </Button>
+            {chatOpen && (
+              <SuspendDialog
+                userId={account.id}
+                name={account.full_name}
+                onClose={() => setChatOpen(false)}
+              />
+            )}
             {account.state === 'active' && (
               <Button variant="secondary" onClick={() => setAction('suspend')}>
                 {t('teachers.records.suspend')}

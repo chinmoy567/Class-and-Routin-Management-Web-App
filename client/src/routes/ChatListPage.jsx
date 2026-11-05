@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Button, buttonVariants } from '@/components/ui/button.jsx';
 import { FormError } from '@/features/auth/components/FormError.jsx';
 import { useChatSocket, useConversations } from '@/features/chat/hooks.js';
+import { SuspensionBanner } from '@/features/chat/components/SuspensionBanner.jsx';
 import { t } from '@/lib/i18n';
 import { formatDhaka } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,10 @@ export function ChatListPage() {
         </Link>
       </div>
       <FormError error={error} />
+      <SuspensionBanner />
+      <Link to="/chat/blocked" className="inline-block text-sm underline">
+        {t('chat.block.title')}
+      </Link>
 
       {permission === 'default' ? (
         <div className="flex flex-wrap items-center gap-2 rounded-md border p-3 text-sm">
@@ -64,11 +69,9 @@ export function ChatListPage() {
                   </span>
                 </span>
                 {c.unread > 0 ? (
-                  <span
-                    aria-label={t('chat.unreadCount', { count: c.unread })}
-                    className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground"
-                  >
-                    {c.unread}
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                    <span aria-hidden="true">{c.unread}</span>
+                    <span className="sr-only">{t('chat.unreadCount', { count: c.unread })}</span>
                   </span>
                 ) : null}
               </Link>

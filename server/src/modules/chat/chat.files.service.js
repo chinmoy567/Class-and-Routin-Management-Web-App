@@ -1,6 +1,7 @@
 // Spec 21: chat files. Upload (type, size, state and rate checks), the malware scan job, signed
 // 5-minute download links and the download itself. Every rule runs on the server.
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 import { SOCKET_EVENTS } from '@crm/shared';
 import { getConfig } from '../../config.js';
 import { AppError, notFound, rateLimited } from '../../lib/errors.js';
@@ -32,6 +33,8 @@ import {
 } from './chat.context.js';
 import { fileViewsFor } from './chat.files.view.js';
 import { fileCaption } from './chat.schemas.js';
+import { assertNotBlockedBy } from './chat.safety.service.js';
+import { assertNotSuspended } from './chat.suspension.service.js';
 
 export const FILE_MAX_BYTES = 5 * 1024 * 1024; // FIL-03
 export const FILE_UPLOADS_PER_HOUR = 20; // FIL-10
@@ -70,21 +73,54 @@ function readUpload(body, contentType) {
   };
 }
 
-/** FIL-10: 20 uploads per user per hour. Retry-After is when the oldest one leaves the hour. */
-async function assertUnderUploadLimit(userId) {
-  const since = new Date(clock.now().getTime() - HOUR_MS);
-  const recent = await Message.find({
-    sender_id: userId,
-    file_id: { $exists: true },
-    created_at: { $gte: since },
-  })
-    .sort({ created_at: 1 })
-    .limit(FILE_UPLOADS_PER_HOUR)
-    .select('created_at')
-    .lean();
-  if (recent.length < FILE_UPLOADS_PER_HOUR) return;
-  const freesAt = new Date(recent[0].created_at).getTime() + HOUR_MS;
-  throw rateLimited((freesAt - clock.now().getTime()) / 1000);
+const quotaDocs = () => mongoose.connection.collection('chat_upload_quota');
+
+/**
+ * FIL-10: 20 uploads per user in any rolling hour. One atomic update on the user's quota document
+ * drops the uploads older than an hour and records this one only while there is room, so
+ * concurrent uploads cannot get past the limit. Returns `release()` for an upload that is then
+ * refused (type, size or a failed store), so refused uploads are not counted.
+ */
+async function reserveUploadSlot(userId) {
+  const now = clock.now();
+  const since = new Date(now.getTime() - HOUR_MS);
+  const hit = { id: crypto.randomUUID(), at: now };
+  const key = String(userId);
+  let doc;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      doc = await quotaDocs().findOneAndUpdate(
+        { _id: key },
+        [
+          {
+            $set: {
+              hits: {
+                $filter: {
+                  input: { $ifNull: ['$hits', []] },
+                  cond: { $gt: ['$$this.at', since] },
+                },
+              },
+            },
+          },
+          { $set: { room: { $lt: [{ $size: '$hits' }, FILE_UPLOADS_PER_HOUR] } } },
+          { $set: { hits: { $cond: ['$room', { $concatArrays: ['$hits', [hit]] }, '$hits'] } } },
+          { $unset: 'room' },
+        ],
+        { upsert: true, returnDocument: 'after' },
+      );
+      break;
+    } catch (err) {
+      // Two first uploads from one user can both try to create the document: retry once.
+      if (err.code !== 11000 || attempt >= 2) throw err;
+    }
+  }
+  if (!doc.hits.some((h) => h.id === hit.id)) {
+    const oldest = Math.min(...doc.hits.map((h) => new Date(h.at).getTime()));
+    throw rateLimited((oldest + HOUR_MS - now.getTime()) / 1000);
+  }
+  return {
+    release: () => quotaDocs().updateOne({ _id: key }, { $pull: { hits: { id: hit.id } } }),
+  };
 }
 
 /**
@@ -97,23 +133,35 @@ export async function uploadFile(me, conversationId, body, contentType) {
   if (!can(me, 'chat.send_file', { conversation })) {
     throw new AppError(403, 'STATE_NOT_ALLOWED', 'This account cannot share files in this chat.');
   }
+  // SAF-10: the same suspension rule as a text message.
+  await assertNotSuspended(me);
   const { other } = await assertCanSend(me, conversation, member);
+  // SAF-01: the same block rule as a text message.
+  await assertNotBlockedBy(me, other?.user_id);
   await assertUnderSendLimit(me._id);
-  await assertUnderUploadLimit(me._id);
-  const { data, name, mime, caption } = readUpload(body, contentType);
+  const slot = await reserveUploadSlot(me._id);
+  let upload;
+  try {
+    upload = readUpload(body, contentType);
+  } catch (err) {
+    await slot.release();
+    throw err;
+  }
+  const { data, name, mime, caption } = upload;
 
   const now = clock.now();
-  const fileId = await putChatFile(data, {
-    uploader_id: String(me._id),
-    conversation_id: String(conversation._id),
-    original_name: name,
-    size: data.length,
-    detected_type: mime,
-    scan_status: 'pending',
-    scanned_at: null,
-  });
+  let fileId;
   let message;
   try {
+    fileId = await putChatFile(data, {
+      uploader_id: String(me._id),
+      conversation_id: String(conversation._id),
+      original_name: name,
+      size: data.length,
+      detected_type: mime,
+      scan_status: 'pending',
+      scanned_at: null,
+    });
     message = await Message.create({
       conversation_id: conversation._id,
       sender_id: me._id,
@@ -122,7 +170,8 @@ export async function uploadFile(me, conversationId, body, contentType) {
       created_at: now,
     });
   } catch (err) {
-    await deleteChatFile(fileId); // no orphan bytes without a message
+    await deleteChatFile(fileId); // no orphan bytes without a message (no-op if none was stored)
+    await slot.release();
     throw err;
   }
   await Conversation.updateOne({ _id: conversation._id }, { $set: { last_message_at: now } });

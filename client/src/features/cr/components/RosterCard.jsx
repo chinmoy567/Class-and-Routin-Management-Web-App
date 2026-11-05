@@ -53,7 +53,7 @@ export function RosterCard({ sectionId, roster, groups }) {
                   </option>
                 ))}
               </select>
-              {isReleased('chat.app') ? <StartChatButton userId={s.user_id} /> : null}
+              {isReleased('chat.app') ? <StartChatButton userId={s.user_id} name={s.name} /> : null}
             </li>
           ))}
         </ul>

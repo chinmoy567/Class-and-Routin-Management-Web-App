@@ -11,8 +11,43 @@ export const idParam = z.object({ id: objectId });
 export const messageIdParam = z.object({ id: objectId });
 export const memberParams = z.object({ id: objectId, userId: objectId });
 export const restoreParams = z.object({ memberId: objectId });
+export const userParams = z.object({ userId: objectId });
 
 export const directBody = z.object({ user_id: objectId });
+export const blockBody = z.object({ user_id: objectId });
+
+// SAF-10: 1 hour to 90 days (2,160 hours), with a reason.
+export const suspendBody = z.object({
+  user_id: objectId,
+  hours: z.number().int('Choose whole hours.').min(1).max(2160),
+  reason: z
+    .string()
+    .trim()
+    .min(1, 'Give a reason.')
+    .max(500, 'The reason can have up to 500 characters.'),
+});
+export const suspensionParams = z.object({ id: objectId });
+export const suspensionsQuery = z.object({ user_id: objectId });
+
+// SAF-04: a report of a message (message_id) or of a person, with a reason and an optional note.
+export const REPORT_CATEGORIES = ['harassment', 'spam', 'inappropriate', 'impersonation', 'other'];
+export const reportBody = z.object({
+  target_user_id: objectId,
+  message_id: objectId.optional(),
+  category: z.enum(REPORT_CATEGORIES, { error: 'Choose a reason.' }),
+  note: z.string().trim().max(500, 'The note can have up to 500 characters.').optional(),
+});
+export const reportsQuery = z.object({
+  status: z.enum(['open', 'closed']).default('open'),
+});
+export const reportParams = z.object({ id: objectId });
+// SAF-08: the admin's outcome, with an optional note.
+export const closeReportBody = z.object({
+  outcome: z.enum(['no_action', 'warned', 'suspended', 'message_removed'], {
+    error: 'Choose an outcome.',
+  }),
+  note: z.string().trim().max(500, 'The note can have up to 500 characters.').optional(),
+});
 
 // CHT-06: plain text, 1 to 4,000 characters.
 export const messageBody = z.object({

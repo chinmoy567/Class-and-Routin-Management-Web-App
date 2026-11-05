@@ -534,6 +534,57 @@ describe('FIL-10: 20 uploads per hour', () => {
     expect(res.body.error.code).toBe('RATE_LIMITED');
     expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
   });
+
+  it('FIL-10 concurrent uploads cannot get past 20 in an hour (25 sent at once → at most 20 stored)', async () => {
+    const w = await world();
+    const conv = await directBetween(app, w.studentA, w.studentA2);
+    const sender = await loginAs(w.studentA, app);
+    const results = await Promise.all(
+      Array.from({ length: 25 }, (_, i) =>
+        upload(sender, conv, { file: f.PDF, filename: `c${i}.pdf` }),
+      ),
+    );
+    const accepted = results.filter((r) => r.status === 201).length;
+    expect(accepted).toBeLessThanOrEqual(20);
+    expect(results.filter((r) => r.status === 429).length).toBe(25 - accepted);
+    expect(await fileDocs()).toHaveLength(accepted);
+  });
+
+  it('FIL-10 the hour is rolling: 20 uploads at t0, refused at +30 min, allowed again after +1 h', async () => {
+    const w = await world();
+    const conv = await directBetween(app, w.studentA, w.studentA2);
+    const sender = await loginAs(w.studentA, app);
+    const t0 = Date.now();
+    fixClock(new Date(t0));
+    for (let i = 0; i < 20; i++) {
+      expect((await upload(sender, conv, { file: f.PDF, filename: `r${i}.pdf` })).status).toBe(201);
+    }
+    fixClock(new Date(t0 + 30 * 60 * 1000));
+    const refused = await upload(sender, conv, { file: f.PDF, filename: 'mid.pdf' });
+    expect(refused.status).toBe(429);
+    // Retry-After points at the moment the oldest of the 20 leaves the hour (about 30 minutes).
+    expect(Number(refused.headers['retry-after'])).toBeGreaterThan(1700);
+    expect(Number(refused.headers['retry-after'])).toBeLessThanOrEqual(1800);
+    fixClock(new Date(t0 + 60 * 60 * 1000 + 1000));
+    expect((await upload(sender, conv, { file: f.PDF, filename: 'later.pdf' })).status).toBe(201);
+  });
+
+  it('FIL-10 an upload refused for its type does not use one of the 20', async () => {
+    const w = await world();
+    const conv = await directBetween(app, w.studentA, w.studentA2);
+    const sender = await loginAs(w.studentA, app);
+    for (let i = 0; i < 20; i++) {
+      expect((await upload(sender, conv, { file: f.EXE, filename: `bad${i}.pdf` })).status).toBe(
+        415,
+      );
+    }
+    for (let i = 0; i < 20; i++) {
+      expect((await upload(sender, conv, { file: f.PDF, filename: `ok${i}.pdf` })).status).toBe(
+        201,
+      );
+    }
+    expect((await upload(sender, conv, { file: f.PDF })).status).toBe(429);
+  });
 });
 
 describe('FIL-11: deleting the message removes the file from view', () => {

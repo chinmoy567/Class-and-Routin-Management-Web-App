@@ -1,6 +1,6 @@
 # 22: Chat safety and retention
 
-R3 · Status: Draft · Depends on: 20 · PRD: Chat (Safety F2b, Privacy and retention), Core features (F2b), Admin dashboard and controls (Private chats) · Diagrams: 27-activity-chat-moderation
+R3 · Status: Done · Depends on: 20 · PRD: Chat (Safety F2b, Privacy and retention), Core features (F2b), Admin dashboard and controls (Private chats) · Diagrams: 27-activity-chat-moderation
 
 ## Goal
 
@@ -91,12 +91,21 @@ Block/unblock and Report actions on messages and profiles, Blocked users list in
 - **Decision:** the context window is 5 messages before and after (the PRD says "a few").
 - **Decision:** a report's routing department is fixed when it's created.
 
+**Decisions made during the build (approved by the project owner):**
+
+- **Notices:** no notification system. The reporter sees "Open" or "Reviewed" in "My reports". A suspended user sees a banner with the end time.
+- **Deleted messages:** hidden from view at once; the stored text and file are erased by the nightly job 30 days later, unless a report holds them. This changes spec 20's erase rule.
+- **Closing a report:** the outcome is recorded. `message_removed` also deletes the reported message. `suspended` does not suspend by itself; use the Suspend dialog.
+- **Blocked list:** at `/chat/blocked`, linked from the chat list.
+- Blocking is one-way (the blocked person can't message the blocker). A held window is fixed when the report is made.
+- Extra endpoint (not in the table): `GET /api/admin/chat/suspensions?user_id=` lists a person's running suspensions, so the admin can lift one.
+
 ## Tasks
 
-- [ ] `block`, `report`, `chat_suspension` models
-- [ ] Block checks wired into send and search (spec 20)
-- [ ] Report create + routing + admin list/view (audited) + close + holds
-- [ ] Suspension create/lift + check in send
-- [ ] Retention job (batches, holds)
-- [ ] Screens
-- [ ] Tests
+- [x] `block`, `report`, `chat_suspension` models
+- [x] Block checks wired into send and search (spec 20)
+- [x] Report create + routing + admin list/view (audited) + close + holds
+- [x] Suspension create/lift + check in send
+- [x] Retention job (batches, holds)
+- [x] Screens
+- [x] Tests

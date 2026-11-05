@@ -17,7 +17,11 @@ import { defineJoinJobs, ESCALATE_JOB } from './modules/join/index.js';
 import { defineBookingJobs, EXPIRE_JOB } from './modules/bookings/index.js';
 import { defineRolloverJobs, REMINDER_JOB } from './modules/rollover/index.js';
 import { ensureChatFileIndex, ensurePhotoIndex } from './lib/gridfs.js';
-import { defineChatFileJobs } from './modules/chat/index.js';
+import {
+  defineChatFileJobs,
+  defineChatRetentionJobs,
+  RETENTION_JOB,
+} from './modules/chat/index.js';
 
 async function main() {
   let config;
@@ -53,6 +57,7 @@ async function main() {
       defineBookingJobs,
       defineRolloverJobs,
       defineChatFileJobs,
+      defineChatRetentionJobs,
     ],
   });
   // DEP-12: the hourly safety net; role changes also run the check straight away.
@@ -69,6 +74,9 @@ async function main() {
 
   // EML-08: the admin digest, at 08:00 and 17:00 Dhaka time.
   await getAgenda().every('0 8,17 * * *', DIGEST_JOB, {}, { timezone: 'Asia/Dhaka' });
+
+  // SAF-12: the chat retention job, every night at 02:00 Dhaka time.
+  await getAgenda().every('0 2 * * *', RETENTION_JOB, {}, { timezone: 'Asia/Dhaka' });
 
   const sessionMiddleware = createSessionMiddleware(config);
   const app = createApp(config, { sessionMiddleware });

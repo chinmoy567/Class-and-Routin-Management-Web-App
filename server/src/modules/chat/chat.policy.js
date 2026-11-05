@@ -64,4 +64,28 @@ export const chatPolicy = {
     stateIn(user, 'active') && (hasRole(user, 'super_admin') || hasRole(user, 'dept_admin')),
 };
 
+// Spec 22. Admin targets and self-actions are refused in the services with their own codes.
+Object.assign(chatPolicy, {
+  // SAF-01, SAF-04: any chat-enabled user may block or report.
+  'chat.block': (user) => stateIn(user, CHAT_STATES),
+  'chat.report': (user) => stateIn(user, CHAT_STATES),
+  // SAF-05, SAF-06: an active admin of the routed department (super admin for admin targets).
+  // resource: { report }. Anyone else gets 404.
+  'chat.review_report': {
+    allow: (user, r) => {
+      if (!stateIn(user, 'active')) return false;
+      if (hasRole(user, 'super_admin')) return true;
+      if (r.report.to_super_admins) return false;
+      return isAdminOf(user, r.report.department_id);
+    },
+    hideExistence: true,
+  },
+  // SAF-10, SAF-11: an admin of the target's department (super admin for all, never oneself).
+  // resource: { target_department_id, target_is_self }. Refused as FORBIDDEN.
+  'chat.suspend': (user, r) => {
+    if (!stateIn(user, 'active') || r.target_is_self) return false;
+    return isAdminOf(user, r.target_department_id);
+  },
+});
+
 registerPolicies(chatPolicy);

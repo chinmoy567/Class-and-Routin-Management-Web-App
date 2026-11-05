@@ -28,6 +28,7 @@
     "adminStudents": "Students",
     "adminFlags": "Flags",
     "adminAppeals": "Appeals",
+    "adminReports": "Chat reports",
     "adminAudit": "Audit log"
   },
   "chat": {
@@ -35,6 +36,14 @@
     "conversationTitle": "Conversation",
     "newChat": "New chat",
     "startChat": "Message",
+    "startChatLabel": "Message {name}",
+    "dashboard": {
+      "title": "Unread messages",
+      "total": "You have {count} unread messages.",
+      "none": "No unread messages.",
+      "open": "Open chats",
+      "error": "We could not load your unread messages."
+    },
     "back": "Back to chats",
     "empty": "No chats yet. Start one with a classmate, your CR or a teacher.",
     "unnamed": "Chat",
@@ -109,6 +118,62 @@
       "none": "No one matches. You can only message people allowed to chat with you.",
       "message": "Message",
       "messageLabel": "Message {name}"
+    },
+    "report": {
+      "action": "Report",
+      "title": "Report {name}",
+      "messageTitle": "Report this message",
+      "reasonLabel": "Why are you reporting?",
+      "categories": {
+        "harassment": "Harassment",
+        "spam": "Spam",
+        "inappropriate": "Inappropriate content",
+        "impersonation": "Impersonation",
+        "other": "Something else"
+      },
+      "noteLabel": "Add a note (optional)",
+      "noteHint": "Up to 500 characters. An admin reads the reported message and a few messages around it.",
+      "submit": "Send report",
+      "cancel": "Cancel",
+      "done": "Done",
+      "sent": "Thank you. The report has gone to an admin, who will review it.",
+      "mineTitle": "My reports",
+      "mineNone": "You have not made any reports.",
+      "open": "Open",
+      "reviewed": "Reviewed"
+    },
+    "block": {
+      "action": "Block",
+      "unblock": "Unblock",
+      "blockLabel": "Block {name}",
+      "unblockLabel": "Unblock {name}",
+      "title": "Blocked people",
+      "empty": "You have not blocked anyone."
+    },
+    "suspension": {
+      "bannerTitle": "Your chat is suspended",
+      "banner": "You cannot send messages until {until}. You can still read your chats.",
+      "title": "Chat suspension for {name}",
+      "active": "Running suspensions",
+      "none": "No suspension is running.",
+      "until": "Until {until}",
+      "lift": "Lift suspension",
+      "lifted": "The suspension has been lifted.",
+      "length": "Length",
+      "reason": "Reason",
+      "reasonHint": "Up to 500 characters. The user is told when the suspension ends, not your reason.",
+      "submit": "Suspend from sending",
+      "options": {
+        "1": "1 hour",
+        "6": "6 hours",
+        "24": "1 day",
+        "72": "3 days",
+        "168": "1 week",
+        "720": "30 days",
+        "2160": "90 days"
+      },
+      "suspended": "The user cannot send messages until the end time. They can still read chats.",
+      "sendDisabled": "Sending is suspended. You can still read your chats."
     }
   },
   "emailBanner": {
@@ -1418,5 +1483,33 @@
       "approve": "Approve",
       "reject": "Reject"
     }
+  },
+  "adminReports": {
+    "title": "Chat reports",
+    "open": "Open",
+    "closed": "Closed",
+    "empty": "There are no reports here.",
+    "aboutMessage": "About a message",
+    "aboutPerson": "About a person",
+    "view": "Open report",
+    "auditNotice": "Opening a report is recorded in the audit log. You see only the reported message and the messages around it.",
+    "target": "Reported person",
+    "note": "Note from the reporter",
+    "noNote": "No note.",
+    "reported": "Reported message",
+    "deleted": "Message deleted",
+    "personOnly": "This report is about a person, not a message. No messages are shown.",
+    "closeTitle": "Close this report",
+    "outcome": "Outcome",
+    "outcomes": {
+      "no_action": "No action",
+      "warned": "Warned",
+      "suspended": "Suspended in chat",
+      "message_removed": "Message removed"
+    },
+    "outcomeNote": "Note for the record (optional)",
+    "submit": "Close report",
+    "closedAs": "Closed: {outcome}",
+    "suspend": "Chat suspension"
   }
 }

@@ -14,6 +14,15 @@ import {
   messagesQuery,
   peopleQuery,
   restoreParams,
+  userParams,
+  blockBody,
+  suspendBody,
+  suspensionParams,
+  suspensionsQuery,
+  reportBody,
+  reportsQuery,
+  reportParams,
+  closeReportBody,
 } from './chat.schemas.js';
 
 // Mounted at /api/chat. Every route needs a session; the chat.* policies run in the services.
@@ -22,6 +31,13 @@ chatRouter.get('/people', requireAuth, validate({ query: peopleQuery }), c.searc
 chatRouter.get('/conversations', requireAuth, c.listConversations);
 chatRouter.post('/direct', requireAuth, validate({ body: directBody }), c.openDirect);
 chatRouter.get('/unread', requireAuth, c.unread);
+// Spec 22, SAF-01: blocks.
+chatRouter.post('/blocks', requireAuth, validate({ body: blockBody }), c.block);
+chatRouter.delete('/blocks/:userId', requireAuth, validate({ params: userParams }), c.unblock);
+chatRouter.get('/blocks', requireAuth, c.listBlocks);
+// Spec 22, SAF-04: reports.
+chatRouter.post('/reports', requireAuth, validate({ body: reportBody }), c.createReport);
+chatRouter.get('/reports/mine', requireAuth, c.myReports);
 chatRouter.get(
   '/conversations/:id/messages',
   requireAuth,
@@ -64,6 +80,34 @@ chatRouter.post(
 // Mounted at /api/admin (CHT-10a).
 export const chatAdminRouter = Router();
 chatAdminRouter.get('/chat/appeals', requireAuth, c.listAppeals);
+// Spec 22, SAF-10: suspend from sending, and lift early.
+chatAdminRouter.post('/chat/suspensions', requireAuth, validate({ body: suspendBody }), c.suspend);
+chatAdminRouter.get(
+  '/chat/suspensions',
+  requireAuth,
+  validate({ query: suspensionsQuery }),
+  c.listSuspensions,
+);
+// Spec 22, SAF-05 to SAF-08: the report view and close (routed admins only).
+chatAdminRouter.get('/chat/reports', requireAuth, validate({ query: reportsQuery }), c.listReports);
+chatAdminRouter.get(
+  '/chat/reports/:id',
+  requireAuth,
+  validate({ params: reportParams }),
+  c.viewReport,
+);
+chatAdminRouter.post(
+  '/chat/reports/:id/close',
+  requireAuth,
+  validate({ params: reportParams, body: closeReportBody }),
+  c.closeReport,
+);
+chatAdminRouter.post(
+  '/chat/suspensions/:id/lift',
+  requireAuth,
+  validate({ params: suspensionParams }),
+  c.lift,
+);
 chatAdminRouter.post(
   '/chat/members/:memberId/restore',
   requireAuth,

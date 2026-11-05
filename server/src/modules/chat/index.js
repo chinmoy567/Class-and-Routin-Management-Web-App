@@ -7,3 +7,4 @@ export { chatRouter, chatAdminRouter } from './chat.routes.js';
 export { unreadSummary } from './chat.messages.service.js';
 export { listChatAppeals } from './chat.group.service.js';
 export { defineJobs as defineChatFileJobs } from './chat.files.jobs.js'; // spec 21
+export { defineJobs as defineChatRetentionJobs, RETENTION_JOB } from './chat.retention.jobs.js'; // spec 22

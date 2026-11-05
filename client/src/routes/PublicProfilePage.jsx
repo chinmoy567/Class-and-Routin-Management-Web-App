@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { useParams } from 'react-router';
 import { isReleased } from '@crm/shared';
+import { Button } from '@/components/ui/button.jsx';
 import { FormError } from '@/features/auth/components/FormError.jsx';
 import { useMe } from '@/features/auth/hooks.js';
+import { BlockControl } from '@/features/chat/components/BlockControl.jsx';
+import { ReportDialog } from '@/features/chat/components/ReportDialog.jsx';
 import { StartChatButton } from '@/features/chat/components/StartChatButton.jsx';
 import { Avatar } from '@/features/profile/components/Avatar.jsx';
 import { usePublicProfile } from '@/features/profile/hooks.js';
@@ -12,9 +16,11 @@ export function PublicProfilePage() {
   const { id } = useParams();
   const { data: person, isPending, error } = usePublicProfile(id);
   const me = useMe();
+  const [reporting, setReporting] = useState(false);
   if (isPending && !error) return <p>{t('common.loading')}</p>;
   if (error) return <FormError error={error} />;
 
+  const isMe = me.data?.user?.id === id;
   return (
     <section className="max-w-sm space-y-4">
       <div className="flex items-center gap-4">
@@ -28,7 +34,23 @@ export function PublicProfilePage() {
           </li>
         ))}
       </ul>
-      {isReleased('chat.app') && me.data?.user?.id !== id ? <StartChatButton userId={id} /> : null}
+      {isReleased('chat.app') && !isMe ? (
+        <div className="flex flex-wrap items-start gap-2">
+          <StartChatButton userId={id} name={person.full_name} />
+          {/* SAF-01, SAF-04: block and report, from the profile. */}
+          <BlockControl userId={id} name={person.full_name} />
+          <Button type="button" variant="ghost" onClick={() => setReporting(true)}>
+            {t('chat.report.action')}
+          </Button>
+        </div>
+      ) : null}
+      {reporting ? (
+        <ReportDialog
+          targetUserId={id}
+          targetName={person.full_name}
+          onClose={() => setReporting(false)}
+        />
+      ) : null}
     </section>
   );
 }

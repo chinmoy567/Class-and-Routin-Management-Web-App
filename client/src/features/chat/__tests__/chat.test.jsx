@@ -55,7 +55,9 @@ describe('CHT-15 the chat list', () => {
     mockApi({ 'GET /api/chat/conversations': ok(conversations) });
     renderAt('/chat', <ChatListPage />);
     expect(await screen.findByText('Rahim Ahmed')).toBeInTheDocument();
-    expect(screen.getByLabelText('2 unread')).toHaveTextContent('2');
+    // The count is read by screen readers as "2 unread" (sr-only text), and shown as "2".
+    expect(screen.getByText('2 unread')).toBeInTheDocument();
+    expect(screen.getByText('2', { selector: 'span[aria-hidden="true"]' })).toBeInTheDocument();
     expect(screen.getByText('CSE 2-II-A · Fall 2026')).toBeInTheDocument();
   });
 

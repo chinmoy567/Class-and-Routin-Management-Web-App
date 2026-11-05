@@ -217,33 +217,46 @@ describe('CHT-22 owner deletion audit records the action without the text', () =
 });
 
 describe('CHT-02a policy names', () => {
-  it('registers exactly the chat actions the specs name (spec 20 and spec 21 chat.send_file)', () => {
+  it('registers exactly the chat actions the specs name (spec 20, spec 21 chat.send_file, spec 22)', () => {
     expect(Object.keys(chatPolicy).sort()).toEqual(
       [
         'chat.admin_appeals',
         'chat.appeal',
+        'chat.block',
         'chat.delete_own',
         'chat.moderate_group',
         'chat.open_direct',
         'chat.read',
+        'chat.report',
         'chat.restore_member',
+        'chat.review_report',
         'chat.search',
         'chat.send',
         'chat.send_file',
+        'chat.suspend',
       ].sort(),
     );
   });
 });
 
 describe('CHT-19 no chat route returns message bodies (route scan)', () => {
-  it('lists every chat route; only the appeals list and the restore are admin routes', () => {
+  it('lists every chat route; the admin routes are the spec 20 appeals and restore, and the spec 22 suspension, report list and report close (the report view is the one message view, SAF-06)', () => {
     const paths = (router) =>
       router.stack
         .filter((layer) => layer.route)
         .map((layer) => `${Object.keys(layer.route.methods)[0].toUpperCase()} ${layer.route.path}`);
     const admin = paths(chatAdminRouter);
     expect(admin.sort()).toEqual(
-      ['GET /chat/appeals', 'POST /chat/members/:memberId/restore'].sort(),
+      [
+        'GET /chat/appeals',
+        'POST /chat/members/:memberId/restore',
+        'POST /chat/suspensions',
+        'GET /chat/suspensions',
+        'POST /chat/suspensions/:id/lift',
+        'GET /chat/reports',
+        'GET /chat/reports/:id',
+        'POST /chat/reports/:id/close',
+      ].sort(),
     );
     for (const p of paths(chatRouter)) expect(p).not.toMatch(/admin/);
   });

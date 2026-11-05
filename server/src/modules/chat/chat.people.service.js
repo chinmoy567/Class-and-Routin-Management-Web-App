@@ -6,6 +6,7 @@ import { departmentNames } from '../organisation/index.js';
 import { can } from '../../policy/index.js';
 import { CHAT_STATES } from './chat.policy.js';
 import { assertChatState, sideFor } from './chat.context.js';
+import { blockedEitherWay } from './chat.safety.service.js';
 
 const MAX_RESULTS = 20;
 const CANDIDATES = 80;
@@ -22,13 +23,16 @@ export async function searchPeople(me, q) {
     excludeId: me._id,
     limit: CANDIDATES,
   });
+  // SAF-03: blocked people are hidden both ways.
+  const hidden = await blockedEitherWay(me._id);
+  const visible = candidates.filter((p) => !hidden.has(p.id));
   const meSide = await sideFor(me._id, me.state);
-  const reps = await repRolesOfUsers(candidates.map((p) => p.id));
+  const reps = await repRolesOfUsers(visible.map((p) => p.id));
   const depts = await departmentNames([
-    ...new Set(candidates.map((p) => p.department_id).filter(Boolean)),
+    ...new Set(visible.map((p) => p.department_id).filter(Boolean)),
   ]);
   const results = [];
-  for (const p of candidates) {
+  for (const p of visible) {
     const other = await sideFor(p.id, p.state);
     if (!can(me, 'chat.open_direct', { me: meSide, other })) continue;
     const dept = depts.get(String(p.department_id));

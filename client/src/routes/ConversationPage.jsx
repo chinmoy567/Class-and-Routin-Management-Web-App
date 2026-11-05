@@ -9,6 +9,8 @@ import { useMe } from '@/features/auth/hooks.js';
 import { FileComposer, FileError, fileProblem } from '@/features/chat/components/FileComposer.jsx';
 import { MembersPanel } from '@/features/chat/components/MembersPanel.jsx';
 import { MessageBubble } from '@/features/chat/components/MessageBubble.jsx';
+import { ReportDialog } from '@/features/chat/components/ReportDialog.jsx';
+import { SuspensionBanner } from '@/features/chat/components/SuspensionBanner.jsx';
 import {
   useAppealRemoval,
   useChatSocket,
@@ -38,6 +40,9 @@ export function ConversationPage() {
   const { id } = useParams();
   useChatSocket();
   const me = useMe();
+  // SAF-10: while suspended the composer is replaced by a notice.
+  const suspendedUntil = me.data?.user?.chat_suspended_until;
+  const suspended = Boolean(suspendedUntil) && new Date(suspendedUntil).getTime() > Date.now();
   const list = useConversations();
   const conversation = list.data?.find((c) => c.id === id);
   const messages = useMessages(id);
@@ -49,6 +54,7 @@ export function ConversationPage() {
   const appeal = useAppealRemoval();
   const upload = useUploadChatFile();
   const link = useFileLink();
+  const [reporting, setReporting] = useState(null);
   const [pendingFile, setPendingFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -157,7 +163,7 @@ export function ConversationPage() {
     <section className="flex max-w-2xl flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <BackLink />
-        <h1 className="truncate text-xl font-semibold">
+        <h1 className="min-w-0 truncate text-xl font-semibold">
           {conversation?.name ?? t('chat.conversationTitle')}
         </h1>
       </div>
@@ -167,6 +173,8 @@ export function ConversationPage() {
           {t('chat.closedBanner')}
         </p>
       ) : null}
+
+      <SuspensionBanner />
 
       {messages.hasNextPage ? (
         <Button
@@ -191,13 +199,20 @@ export function ConversationPage() {
             onDelete={(messageId) => del.mutate(messageId)}
             onDownload={download}
             downloading={link.isPending}
+            onReport={(msg) => setReporting({ messageId: msg.id, targetUserId: msg.sender_id })}
           />
         ))}
       </ol>
       <FormError error={del.error} />
       <FileError error={link.error} />
 
-      {closed ? null : (
+      {suspended && !closed ? (
+        <p role="status" className="rounded-md bg-secondary p-3 text-sm">
+          {t('chat.suspension.sendDisabled')}
+        </p>
+      ) : null}
+
+      {closed || suspended ? null : (
         <form onSubmit={onSend} className="space-y-2" noValidate>
           <FileComposer
             file={pendingFile}
@@ -234,6 +249,15 @@ export function ConversationPage() {
 
       {isGroup && members.data ? (
         <MembersPanel conversationId={id} members={members.data} isOwner={isOwner} />
+      ) : null}
+
+      {reporting ? (
+        <ReportDialog
+          targetUserId={reporting.targetUserId}
+          targetName=""
+          messageId={reporting.messageId}
+          onClose={() => setReporting(null)}
+        />
       ) : null}
     </section>
   );

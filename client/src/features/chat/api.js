@@ -56,3 +56,43 @@ export function uploadChatFile({ conversationId, file, caption, onProgress }) {
 
 /** Spec 21, FIL-08: a 5-minute signed link. The page then starts the download itself. */
 export const fetchFileLink = (fileId) => api(`/chat/files/${fileId}/link`, { method: 'POST' });
+
+// Spec 22, SAF-01: blocking. The server checks every rule; these are thin wrappers.
+/** SAF-01: the people the caller has blocked (names and photos only). */
+export const fetchBlocks = () => api('/chat/blocks');
+
+/** SAF-01: block someone. Admins can't be blocked (the server says so). */
+export const blockUser = (userId) =>
+  api('/chat/blocks', { method: 'POST', body: { user_id: userId } });
+
+/** SAF-01: unblock at any time. */
+export const unblockUser = (userId) => api(`/chat/blocks/${userId}`, { method: 'DELETE' });
+
+// Spec 22, SAF-04: reports of a message (with message_id) or of a person.
+/** SAF-04: send a report. */
+export const createReport = (body) => api('/chat/reports', { method: 'POST', body });
+
+/** SAF-04: the caller's own reports, with "open" or "reviewed" only. */
+export const fetchMyReports = () => api('/chat/reports/mine');
+
+// Spec 22, SAF-05 to SAF-08: the admin's side. The server checks routing and scope each time.
+/** SAF-05: reports routed to the caller. No message text in the list. */
+export const fetchAdminReports = (status) => api(`/admin/chat/reports?status=${status}`);
+
+/** SAF-06, SAF-07: a report with its context. The server writes an audit entry for the view. */
+export const fetchAdminReport = (id) => api(`/admin/chat/reports/${id}`);
+
+/** SAF-08: close with an outcome. */
+export const closeReport = ({ id, outcome, note }) =>
+  api(`/admin/chat/reports/${id}/close`, { method: 'POST', body: { outcome, note } });
+
+// Spec 22, SAF-10: chat suspension.
+/** SAF-10: the suspensions still running for a person. */
+export const fetchSuspensions = (userId) => api(`/admin/chat/suspensions?user_id=${userId}`);
+
+/** SAF-10: suspend from sending, for 1 to 2,160 hours, with a reason. */
+export const suspendUser = ({ user_id, hours, reason }) =>
+  api('/admin/chat/suspensions', { method: 'POST', body: { user_id, hours, reason } });
+
+/** SAF-10: lift early. */
+export const liftSuspension = (id) => api(`/admin/chat/suspensions/${id}/lift`, { method: 'POST' });

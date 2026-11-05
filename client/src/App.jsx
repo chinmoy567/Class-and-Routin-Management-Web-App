@@ -43,6 +43,8 @@ import { AdminStudentsPage } from '@/routes/admin/AdminStudentsPage.jsx';
 import { AdminFlagsPage } from '@/routes/admin/AdminFlagsPage.jsx';
 import { AdminRoomRequestsPage } from '@/routes/admin/AdminRoomRequestsPage.jsx';
 import { AdminAppealsPage } from '@/routes/admin/AdminAppealsPage.jsx';
+import { AdminReportsPage } from '@/routes/admin/AdminReportsPage.jsx';
+import { BlockedUsersPage } from '@/routes/BlockedUsersPage.jsx';
 import { AdminAuditPage } from '@/routes/admin/AdminAuditPage.jsx';
 import { ForcedPasswordChangePage } from '@/routes/ForcedPasswordChangePage.jsx';
 import { ChatListPage } from '@/routes/ChatListPage.jsx';
@@ -91,6 +93,7 @@ export function AppRoutes() {
           <Route path="/cr/sections/:id" element={<CrDashboardPage />} />
           <Route path="/chat" element={<ChatListPage />} />
           <Route path="/chat/new" element={<PersonSearchPage />} />
+          <Route path="/chat/blocked" element={<BlockedUsersPage />} />
           <Route path="/chat/:id" element={<ConversationPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
@@ -106,6 +109,7 @@ export function AppRoutes() {
             <Route path="/admin/flags" element={<AdminFlagsPage />} />
             <Route path="/admin/room-requests" element={<AdminRoomRequestsPage />} />
             <Route path="/admin/appeals" element={<AdminAppealsPage />} />
+            <Route path="/admin/reports" element={<AdminReportsPage />} />
             <Route path="/admin/audit" element={<AdminAuditPage />} />
           </Route>
           <Route element={<RequireSuperAdmin />}>

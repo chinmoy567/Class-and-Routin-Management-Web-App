@@ -4,6 +4,7 @@ import { clock } from '../../lib/time.js';
 import { can } from '../../policy/index.js';
 import { Conversation, ConversationMember } from './chat.model.js';
 import { assertChatState, sideFor, sideOfUserId } from './chat.context.js';
+import { hasBlocked } from './chat.safety.service.js';
 
 const DUPLICATE_KEY = 11000;
 
@@ -56,6 +57,10 @@ export async function openDirect(me, otherId) {
   assertChatState(me);
   if (String(otherId) === String(me._id)) {
     throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot start a chat with yourself.');
+  }
+  // SAF-01: a person who blocked the caller can't be opened as a chat (neutral message).
+  if (await hasBlocked(otherId, me._id)) {
+    throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot chat with this person.');
   }
   const other = await sideOfUserId(otherId);
   const meSide = await sideFor(me._id, me.state);

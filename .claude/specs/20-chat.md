@@ -1,6 +1,6 @@
 # 20: Chat
 
-R3 · Status: In progress · Depends on: 09, 10 · PRD: Chat (Who can use chat, One-to-one chat, Section group, Notifications, Privacy and retention), Account states and access (chat rows), Acceptance criteria (Account states) · Diagrams: 18-seq-chat-message, 22-state-semester-section
+R3 · Status: Done · Depends on: 09, 10 · PRD: Chat (Who can use chat, One-to-one chat, Section group, Notifications, Privacy and retention), Account states and access (chat rows), Acceptance criteria (Account states) · Diagrams: 18-seq-chat-message, 22-state-semester-section
 
 ## Goal
 
@@ -128,9 +128,9 @@ Chat list (unread badges), Conversation view (messages, status ticks, delete), P
 - [x] Section group hooks (create, add, owner changes, close)
 - [x] Member removal, member list, appeal, admin restore (CHT-10, 10a, 10b)
 - [x] Socket room join/leave rules (CHT-20), events, unread endpoint
-- [ ] Client: chat list with unread badges (done); dashboard unread card (not built)
+- [x] Client: chat list with unread badges; dashboard unread card (`ChatUnreadCard`, CHT-15)
 - [x] Client: conversation view (messages, status ticks, delete, older-message paging, closed-group banner)
-- [ ] Client: person search and 'start chat' entry points (profile, roster, CR/DCR card)
+- [x] Client: person search and 'start chat' entry points (profile, roster, CR/DCR card)
 - [x] Client: group view (members list, remove member, appeal screen) and browser notification permission flow
-- [ ] Translation keys, screen-reader labels for message status, 360 px layout check
-- [ ] Tests incl. PRD criteria
+- [x] Translation keys, screen-reader labels for message status and unread counts, 360 px layout check (reviewed in code; not rendered at 360 px)
+- [x] Tests incl. PRD criteria (server chat suite and client chat, dashboard and start-chat tests)

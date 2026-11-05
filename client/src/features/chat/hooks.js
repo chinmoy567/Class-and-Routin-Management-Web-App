@@ -91,3 +91,57 @@ export function notifyIfHidden() {
     // Some browsers refuse notifications outside a user gesture. The list still updates.
   }
 }
+
+// Spec 22: a change to blocks, reports or suspensions refreshes the chat data and the admin lists.
+function useSafetyMutation(mutationFn) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'chat'] });
+    },
+  });
+}
+
+/** SAF-01: the blocked list. */
+export const useBlocks = () =>
+  useQuery({ queryKey: ['chat', 'blocks'], queryFn: api.fetchBlocks, retry: false });
+export const useBlock = () => useSafetyMutation(api.blockUser);
+export const useUnblock = () => useSafetyMutation(api.unblockUser);
+
+/** SAF-04: the caller's reports. */
+export const useMyReports = () =>
+  useQuery({ queryKey: ['chat', 'reports', 'mine'], queryFn: api.fetchMyReports, retry: false });
+export const useCreateReport = () => useSafetyMutation(api.createReport);
+
+/** SAF-05: the admin list for open or closed reports. */
+export const useAdminReports = (status) =>
+  useQuery({
+    queryKey: ['admin', 'chat', 'reports', status],
+    queryFn: () => api.fetchAdminReports(status),
+    retry: false,
+  });
+
+/** SAF-06, SAF-07: fetched fresh every time it is opened, so each opening is audited. */
+export const useAdminReport = (id) =>
+  useQuery({
+    queryKey: ['admin', 'chat', 'report', id],
+    queryFn: () => api.fetchAdminReport(id),
+    enabled: Boolean(id),
+    retry: false,
+    gcTime: 0,
+    staleTime: 0,
+  });
+export const useCloseReport = () => useSafetyMutation(api.closeReport);
+
+/** SAF-10: the running suspensions of a person. */
+export const useSuspensions = (userId, enabled = true) =>
+  useQuery({
+    queryKey: ['admin', 'chat', 'suspensions', userId],
+    queryFn: () => api.fetchSuspensions(userId),
+    enabled: Boolean(userId) && enabled,
+    retry: false,
+  });
+export const useSuspend = () => useSafetyMutation(api.suspendUser);
+export const useLiftSuspension = () => useSafetyMutation(api.liftSuspension);
