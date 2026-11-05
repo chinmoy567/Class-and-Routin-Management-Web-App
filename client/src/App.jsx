@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppShell } from '@/components/AppShell.jsx';
 import { AuthGate } from '@/components/AuthGate.jsx';
 import { AuthLayout } from '@/components/AuthLayout.jsx';
-import { HomePage } from '@/routes/HomePage.jsx';
+import { RootEntry } from '@/components/RootEntry.jsx';
 import { NotFoundPage } from '@/routes/NotFoundPage.jsx';
 import { SignUpPage } from '@/routes/SignUpPage.jsx';
 import { CheckEmailPage } from '@/routes/CheckEmailPage.jsx';
@@ -58,6 +58,9 @@ export const queryClient = new QueryClient({
 export function AppRoutes() {
   return (
     <Routes>
+      {/* the public landing dashboard for visitors; signed-in people are sent on to their own home */}
+      <Route path="/" element={<RootEntry />} />
+
       <Route element={<AuthLayout />}>
         {/* open to anyone */}
         <Route path="/login" element={<SignInPage />} />
@@ -84,7 +87,6 @@ export function AppRoutes() {
       {/* the signed-in app */}
       <Route element={<AuthGate mode="app" />}>
         <Route element={<AppShell />}>
-          <Route index element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/users/:id" element={<PublicProfilePage />} />
           <Route path="/account/password" element={<ChangePasswordPage />} />

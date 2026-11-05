@@ -1511,5 +1511,45 @@
     "submit": "Close report",
     "closedAs": "Closed: {outcome}",
     "suspend": "Chat suspension"
+  },
+  "landing": {
+    "example": "Example",
+    "nav": "Public navigation",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "footnote": "The times and names above are examples. Sign in to see your own routine.",
+    "hero": {
+      "title": "Your class routine, live, in one place.",
+      "body": "See what is on now, what is next, and which rooms are free, for your own section or your teaching week."
+    },
+    "status": {
+      "inClass": "In class now",
+      "sample": "Data Structures · Room 301 · Example",
+      "started": "Started 9:00",
+      "endsIn": "25 min left"
+    },
+    "week": {
+      "title": "Your week, Sunday to Thursday",
+      "note": "An example week. Your own routine appears after you sign in."
+    },
+    "features": {
+      "title": "What you can do",
+      "routine": {
+        "title": "My routine",
+        "body": "Your classes for today and the whole week, picked for your section and group."
+      },
+      "status": {
+        "title": "Live status",
+        "body": "See whether you are in class or free, with a countdown that updates by itself."
+      },
+      "rooms": {
+        "title": "Free rooms",
+        "body": "Find a classroom that is free on a date and time you choose."
+      },
+      "calendar": {
+        "title": "University calendar",
+        "body": "Holidays, exam days and early closings, in one list."
+      }
+    }
   }
 }

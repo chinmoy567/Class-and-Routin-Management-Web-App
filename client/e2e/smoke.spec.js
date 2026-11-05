@@ -2,8 +2,10 @@ import { test, expect } from '@playwright/test';
 
 test('FND-35 the app opens and shows the shell on a phone-sized screen', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Your class routine, live, in one place.' }),
+  ).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Public navigation' })).toBeVisible();
 });
 
 test('FND-31 at 360 px there is no horizontal scroll and tap targets are at least 44 px', async ({
@@ -11,7 +13,9 @@ test('FND-31 at 360 px there is no horizontal scroll and tap targets are at leas
 }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Your class routine, live, in one place.' }),
+  ).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );

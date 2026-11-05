@@ -63,7 +63,7 @@ const SUPER_ADMIN_ITEMS = [
 ];
 
 /** Mobile first: a bottom tab bar on phones, a side rail from `md` up. */
-export function AppShell() {
+export function AppShell({ children }) {
   const isSuper = useIsSuperAdmin();
   const isAdmin = useIsAdmin();
   const items = [
@@ -114,7 +114,7 @@ export function AppShell() {
       <div className="flex-1">
         <EmailActionBanner />
         <main id="main" className="p-4 pb-24 md:p-8 md:pb-8">
-          <Outlet />
+          {children ?? <Outlet />}
         </main>
       </div>
     </div>

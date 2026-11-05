@@ -186,6 +186,7 @@ A dashboard card whose feature is in a later release is hidden until that releas
 | F7a | Full week routine on the dashboard | The student's dashboard shows their whole week (Sunday to Thursday) as a weekly grid, with today highlighted and the class happening now marked | Student | R1 |
 | F7b | Student dashboard | One home page for a student showing live status and countdown, today's classes, the full week, rooms and profile reminders. Messages, announcements and notifications cards appear when those features ship | Student | R1 |
 | F7c | Teacher dashboard | One home page for a teacher showing teaching status and countdown, today's classes, the week, section rosters and rooms. Student status, messages and notices cards appear when those features ship | Teacher | R1 |
+| F7e | Visitor landing dashboard | A signed-out visitor at `/` sees a public landing dashboard: an animated example of the week, live status and countdown, what the app does, and Sign in and Sign up. It uses sample data only. A signed-in person at `/` goes straight to their own dashboard (see Visitor landing dashboard) | Everyone, signed out | R1 |
 | F7d | Teacher announcements | A teacher sends a message to a section or lab group they teach | Teacher | Later |
 | F8 | Free-room view | Pick a date (this week or next week) and a time range and see which classrooms are free then, not only right now. Rooms whose availability is not known are shown as "Availability unknown" (see Classroom booking rules) | Everyone with `active` state | R1 |
 | F9 | Room request | Request a free room for a dated time range, this week or next week, only if ≥ 12 hours ahead, with a note and a target section; a requester may send several requests. The room's department admin approves one request per room and time; approving cancels the requester's own overlapping requests and rejects other requests that overlap the same room and time (see Classroom booking rules) | CR, DCR, Teacher (requesters); Department admin, Super admin (deciders) | R2 |
@@ -398,6 +399,26 @@ CR and DCR have the same dashboard. It is scoped to **one section and one semest
 - Every action on the dashboard is logged with who and when, and the admin can see the log.
 - If a CR or DCR loses the role (end of semester, removed by the admin), the dashboard disappears at once and anything they started stays with the admin.
 - **Checks on CR power:** members removed from a section group and rejected join requests are listed for the department admin. A removed or rejected student can appeal to the admin with one tap, and the admin can reverse the decision.
+
+## Visitor landing dashboard
+
+The landing dashboard is the first page a signed-out visitor sees at `/`. It shows what the app does before anyone signs in. It is not a real dashboard: it holds no person's data.
+
+**Contents**
+
+1. **Hero:** the app name, one line about the purpose, and **Sign in** and **Sign up** buttons.
+2. **Live status example:** an "In class" or "Free" card and a countdown, driven by sample data and labelled "Example".
+3. **Week example:** a Sunday to Thursday grid with a sample "now" marker that moves across the day.
+4. **Feature strip:** short cards for My routine, live status, free rooms and the university calendar. These cards describe features and link to sign-in. They show no data.
+
+**Rules**
+
+- The page makes no API call that needs a session. Its only request is the session check at `/api/auth/me`, which it uses to decide what to show.
+- A signed-in person at `/` is sent to their own dashboard (or the page their account state allows, see Account states and access).
+- Every example is marked "Example". The landing page never shows real names, sections, rooms or times.
+- Motion is decorative only. When the person's device asks for reduced motion, all movement stops and the content stays readable.
+- Mobile first at 360 px: cards stack in one column, with no horizontal scroll. WCAG 2.1 AA contrast and keyboard access.
+- The page loads in under ~2 seconds. All text comes from the translation file.
 
 ## Chat
 
@@ -884,6 +905,14 @@ These cover the rule-heavy parts. Each one becomes an automated test. Times are 
 - Given a join request that contains a UV ID, then it is refused as invalid. Given two students who write the same UV ID on their profiles, then both are saved.
 - Given a pending join request to CSE 2-II-A, when its CR and DCR decide it at the same moment, then exactly one decision is applied and the other sees "already decided".
 - Given an admin of EEE, when they try to remove a CSE student from a section, then it is refused.
+
+**Visitor landing**
+
+- Given a signed-out visitor, when they open `/`, then the landing dashboard is shown and no redirect to sign-in happens.
+- Given a signed-in student or teacher, when they open `/`, then they see their own dashboard, not the landing page.
+- Given a signed-out visitor on the landing page, when it loads, then no request other than the session check is made to the API.
+- Given a visitor who has asked for reduced motion, when the landing page loads, then no animation runs and all content stays visible.
+- Given a signed-out visitor, when they choose Sign in or Sign up on the landing page, then they reach the matching page.
 
 **Booking**
 

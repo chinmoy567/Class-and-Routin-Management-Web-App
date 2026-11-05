@@ -70,3 +70,180 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * The public landing dashboard (PRD: Visitor landing dashboard). Its own palette, scoped to .landing,
+ * so the signed-in app keeps its tokens. Deep forest green, warm sand and a brass accent.
+ * Contrast: sand and muted text on the background pass WCAG 2.1 AA; button text is the background colour on brass.
+ */
+.landing {
+  --l-bg: #0d2420;
+  --l-surface: #16342d;
+  --l-line: #2c4f46;
+  --l-sand: #f2e9d6;
+  --l-muted: #bcc9bf;
+  --l-brass: #d9a441;
+  min-height: 100dvh;
+  background: var(--l-bg);
+  color: var(--l-sand);
+}
+
+.landing-card {
+  background: var(--l-surface);
+  border: 1px solid var(--l-line);
+  border-radius: 0.75rem;
+}
+
+.landing-tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--l-brass);
+}
+
+.landing-btn,
+.landing-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.landing-btn {
+  background: var(--l-brass);
+  color: var(--l-bg);
+}
+
+.landing-btn-ghost {
+  border: 1px solid var(--l-line);
+  color: var(--l-sand);
+}
+
+.landing-btn:hover,
+.landing-btn-ghost:hover {
+  transform: translateY(-1px);
+}
+
+.landing-btn-ghost:hover {
+  border-color: var(--l-brass);
+}
+
+.landing a:focus-visible {
+  outline: 3px solid var(--l-sand);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
+.landing-index {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--l-line);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--l-brass);
+}
+
+/* live status dot with an expanding ring */
+.landing-pulse {
+  position: relative;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--l-brass);
+  flex-shrink: 0;
+}
+
+.landing-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--l-brass);
+  animation: landing-ring 2.2s ease-out infinite;
+}
+
+/* the countdown bar fills, holds, then starts again */
+.landing-progress {
+  width: 0;
+  animation: landing-fill 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* the "now" line moves down a day column */
+.landing-now {
+  animation: landing-scan 5s ease-in-out infinite;
+}
+
+/* reveal on scroll; hidden only after the hook has run, so content never depends on JavaScript */
+.reveal-ready [data-reveal] {
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal-ready [data-reveal]:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes landing-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-fill {
+  0% {
+    width: 0;
+  }
+  60%,
+  100% {
+    width: 62%;
+  }
+}
+
+@keyframes landing-scan {
+  0% {
+    top: 0;
+  }
+  50% {
+    top: calc(100% - 2px);
+  }
+  100% {
+    top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing *,
+  .landing *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .landing-progress {
+    width: 62%;
+  }
+  .reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

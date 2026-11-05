@@ -5,9 +5,9 @@ import { fail, mockApi, meResponse, ok, renderApp } from '@/test/mockApi.jsx';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('AuthGate', () => {
-  it('AUTH-29 a signed-out visitor is sent to sign in', async () => {
+  it('AUTH-29 a signed-out visitor is sent to sign in from a signed-in page', async () => {
     mockApi({ 'GET /api/auth/me': fail(401, 'UNAUTHENTICATED') });
-    renderApp('/');
+    renderApp('/account/password');
     expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
   });
 
