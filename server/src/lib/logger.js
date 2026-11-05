@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import { requestContext } from './requestContext.js';
+import { createErrorCounter } from './errorCounter.js';
 
 const SENSITIVE = ['password', 'token', 'code', 'email', 'phone', 'cookie', 'authorization'];
 
@@ -13,11 +14,27 @@ export const REDACT_PATHS = [
   'res.headers["set-cookie"]',
 ];
 
-export function createLogger({ level = 'info', destination } = {}) {
-  return pino({ level, redact: { paths: REDACT_PATHS, censor: '[Redacted]' } }, destination);
+// OPS-12: every error line the main logger writes is counted; a burst calls the alert handler.
+let errorAlertHandler = () => {};
+/** Set once at start-up (server.js) to send the alert email. */
+export function onErrorAlert(fn) {
+  errorAlertHandler = fn;
+}
+export const errorCounter = createErrorCounter({ onAlert: (alert) => errorAlertHandler(alert) });
+
+export function createLogger({ level = 'info', destination, count = false } = {}) {
+  // pino needs a hooks object either way; only a counted logger records error lines.
+  const hooks = {
+    logMethod(args, method, lvl) {
+      if (count) errorCounter.record(lvl);
+      return method.apply(this, args);
+    },
+  };
+  return pino({ level, hooks, redact: { paths: REDACT_PATHS, censor: '[Redacted]' } }, destination);
 }
 
 export const logger = createLogger({
+  count: true,
   level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === 'test' ? 'silent' : 'info'),
 });
 

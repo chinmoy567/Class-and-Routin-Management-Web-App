@@ -115,6 +115,14 @@
     "admin_digest": {
       "subject": "Items waiting for you",
       "body": "Hello,\n\nThese items are waiting for you:\n{items}\n\nOpen the app to act on them:\n{link}"
+    },
+    "ops_report": {
+      "subject": "Daily operations report: {failed_count} failed job(s), ClamAV {clamav}",
+      "body": "Daily operations report.\n\nFailed background jobs in the last 24 hours: {failed_count}\nJob names: {failed_names}\nClamAV virus scanner: {clamav}"
+    },
+    "ops_alert": {
+      "subject": "Error alert: {count} error lines in {minutes} minutes",
+      "body": "Many error lines were logged in a short time: {count} in the last {minutes} minutes.\nCheck the server logs (docker compose logs server) before the next teaching day."
     }
   },
   "digest": {

@@ -46,3 +46,23 @@ export function setScanner(fn) {
 }
 
 export const scanBuffer = (buffer) => scanner(buffer);
+
+/** OPS-13: true when clamd answers PING with PONG within a few seconds. Never throws. */
+export function pingClamd({ timeoutMs = 5000 } = {}) {
+  const config = getConfig();
+  return new Promise((resolve) => {
+    const socket = net.createConnection({ host: config.CLAMAV_HOST, port: config.CLAMAV_PORT });
+    let answer = '';
+    const done = (ok) => {
+      socket.destroy();
+      resolve(ok);
+    };
+    socket.setTimeout(timeoutMs, () => done(false));
+    socket.on('error', () => done(false));
+    socket.on('connect', () => socket.write('zPING\0'));
+    socket.on('data', (d) => {
+      answer += d.toString('utf8');
+      if (answer.includes('PONG')) done(true);
+    });
+  });
+}

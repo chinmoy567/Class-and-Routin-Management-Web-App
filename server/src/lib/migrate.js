@@ -40,3 +40,25 @@ export async function runMigrations(db, migrations, { log = logger } = {}) {
   }
   return { applied, skipped };
 }
+
+/**
+ * Load every `*.js` file in `dir`, in name order. Each must have a default export whose `name`
+ * matches the file name without `.js`, so a migration can't be recorded under another name.
+ */
+export async function loadMigrationFiles(dir) {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { pathToFileURL } = await import('node:url');
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.js'))
+    .sort();
+  const migrations = [];
+  for (const f of files) {
+    const mod = await import(pathToFileURL(path.join(dir, f)).href);
+    const name = f.replace(/\.js$/, '');
+    if (mod.default?.name !== name) throw new Error(`${f}: default export name must be "${name}"`);
+    migrations.push(mod.default);
+  }
+  return migrations;
+}

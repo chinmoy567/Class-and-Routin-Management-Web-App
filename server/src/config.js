@@ -27,6 +27,8 @@ const schema = z.object({
   CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
   // Optional: comma-separated DNS servers for mongodb+srv lookups when the OS resolver can't do SRV
   DNS_SERVERS: z.string().default(''),
+  // OPS-12/13: where the daily ops report and error alerts go. Empty = logged, not sent.
+  OPS_ALERT_EMAIL: z.union([z.literal(''), z.string().email()]).default(''),
   LOG_LEVEL: z.string().default('info'),
 });
 

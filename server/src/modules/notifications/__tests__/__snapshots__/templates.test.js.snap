@@ -162,6 +162,25 @@ sample-reason
 Sign in to send a new request or to appeal:
 http://localhost:5173",
   },
+  "ops_alert": {
+    "html": "<p>Many error lines were logged in a short time: sample-count in the last sample-minutes minutes.<br>Check the server logs (docker compose logs server) before the next teaching day.</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Error alert: sample-count error lines in sample-minutes minutes",
+    "text": "Many error lines were logged in a short time: sample-count in the last sample-minutes minutes.
+Check the server logs (docker compose logs server) before the next teaching day.
+
+Open the app: http://localhost:5173",
+  },
+  "ops_report": {
+    "html": "<p>Daily operations report.</p><p>Failed background jobs in the last 24 hours: sample-failed_count<br>Job names: sample-failed_names<br>ClamAV virus scanner: sample-clamav</p><p>Open the app: http://localhost:5173</p>",
+    "subject": "Daily operations report: sample-failed_count failed job(s), ClamAV sample-clamav",
+    "text": "Daily operations report.
+
+Failed background jobs in the last 24 hours: sample-failed_count
+Job names: sample-failed_names
+ClamAV virus scanner: sample-clamav
+
+Open the app: http://localhost:5173",
+  },
   "password_changed": {
     "html": "<p>Hello Ayesha Rahman,</p><p>Your password was just changed and you were signed out everywhere else. If this was not you, reset your password now:<br>sample-reset_link</p><p>Open the app: http://localhost:5173</p>",
     "subject": "Your password was changed",

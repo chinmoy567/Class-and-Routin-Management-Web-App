@@ -12,3 +12,4 @@ process.env.MAIL_FROM = 'no-reply@baiust.ac.bd';
 process.env.APP_URL = 'http://localhost:5173';
 process.env.CLAMAV_HOST = 'localhost';
 process.env.LOG_LEVEL = 'silent';
+process.env.OPS_ALERT_EMAIL = 'ops@example.invalid';

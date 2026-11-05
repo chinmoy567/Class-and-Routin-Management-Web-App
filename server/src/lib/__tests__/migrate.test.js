@@ -67,3 +67,31 @@ describe('OPS-07 migration runner', () => {
     );
   });
 });
+
+describe('OPS-07 migration files', () => {
+  it('OPS-07 loads files in name order and rejects a file whose name does not match', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const { loadMigrationFiles } = await import('../migrate.js');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mig-'));
+    fs.writeFileSync(
+      path.join(dir, '002-b.js'),
+      "export default { name: '002-b', up: async () => {} };",
+    );
+    fs.writeFileSync(
+      path.join(dir, '001-a.js'),
+      "export default { name: '001-a', up: async () => {} };",
+    );
+    fs.writeFileSync(path.join(dir, 'README.md'), 'not a migration');
+    const loaded = await loadMigrationFiles(dir);
+    expect(loaded.map((m) => m.name)).toEqual(['001-a', '002-b']);
+
+    fs.writeFileSync(
+      path.join(dir, '003-c.js'),
+      "export default { name: 'wrong', up: async () => {} };",
+    );
+    await expect(loadMigrationFiles(dir)).rejects.toThrow('must be "003-c"');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+});

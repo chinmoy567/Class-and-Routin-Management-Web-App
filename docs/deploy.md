@@ -5,7 +5,8 @@
 2. Create `deploy/mongo-keyfile` (`openssl rand -base64 756 > deploy/mongo-keyfile && chmod 400 deploy/mongo-keyfile`).
 3. Copy `deploy/.env.production.example` to `deploy/.env.production`, fill it in, `chmod 600` it (OPS-04).
 4. `docker compose -f deploy/docker-compose.yml --env-file deploy/.env.production up -d mongo`
-5. `sh deploy/mongo/init-replica.sh` (replica set, users, audit-log role). Then bring up the rest.
+5. Start the rest: `docker compose ... up -d`. Then `MONGO_APP_PASSWORD=… MONGO_BACKUP_PASSWORD=… sh deploy/mongo/init-replica.sh` (replica set, users, audit-log role). Both passwords must be URL-safe (`openssl rand -hex 24`), because the app password goes into MONGO_URL. Re-run the script after adding a collection, so the app role covers it.
+   Note: the server needs the app user before it starts, so it may restart a few times on first boot until step 5 is done.
 6. Install the backup cron entry from `deploy/backup/crontab` once the off-site destination is chosen.
 
 **Each release** (outside teaching hours: 07:00–18:00 Sunday–Thursday is protected)

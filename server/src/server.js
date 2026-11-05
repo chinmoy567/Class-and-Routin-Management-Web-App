@@ -6,7 +6,8 @@ import { getAgenda, startJobs } from './lib/jobs.js';
 import { initSocket } from './lib/socket.js';
 import { MongoRateLimitStore } from './lib/rateLimitStore.js';
 import { createApp, createSessionMiddleware } from './app.js';
-import { defineMailJobs, DIGEST_JOB } from './modules/notifications/index.js';
+import { defineMailJobs, DIGEST_JOB, OPS_REPORT_JOB, sendErrorAlert } from './modules/notifications/index.js';
+import { onErrorAlert } from './lib/logger.js';
 import {
   COVERAGE_JOB,
   defineAdminRoleJobs,
@@ -74,6 +75,12 @@ async function main() {
 
   // EML-08: the admin digest, at 08:00 and 17:00 Dhaka time.
   await getAgenda().every('0 8,17 * * *', DIGEST_JOB, {}, { timezone: 'Asia/Dhaka' });
+
+  // OPS-13: the daily operations email (failed jobs, ClamAV), at 08:00 Dhaka time.
+  await getAgenda().every('0 8 * * *', OPS_REPORT_JOB, {}, { timezone: 'Asia/Dhaka' });
+
+  // OPS-12: a burst of error lines emails the developers (at most once per window).
+  onErrorAlert((alert) => sendErrorAlert(alert).catch((err) => logger.warn({ err }, 'error alert not sent')));
 
   // SAF-12: the chat retention job, every night at 02:00 Dhaka time.
   await getAgenda().every('0 2 * * *', RETENTION_JOB, {}, { timezone: 'Asia/Dhaka' });

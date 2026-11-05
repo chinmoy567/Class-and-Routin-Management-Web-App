@@ -72,7 +72,9 @@ The app runs on one server reliably enough for the PRD's targets: 99.5% uptime o
 - [x] CI image build + deploy instructions
 - [x] Migration runner
 - [ ] Backup script + off-site copy + retention; restore runbook (script written; off-site destination still open)
-- [ ] Uptime check, error alerting, daily ops email
+- [ ] Uptime check (external account, not chosen)
+- [x] Error alerting (OPS-12)
+- [x] Daily ops email (OPS-13)
 - [x] Load test scripts
-- [ ] Email DNS records + inbox test
+- [ ] Email DNS records + inbox test (DNS guide written; records and inbox test are manual)
 - [x] Launch checklist document
