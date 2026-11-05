@@ -1,5 +1,8 @@
 import { useParams } from 'react-router';
+import { isReleased } from '@crm/shared';
 import { FormError } from '@/features/auth/components/FormError.jsx';
+import { useMe } from '@/features/auth/hooks.js';
+import { StartChatButton } from '@/features/chat/components/StartChatButton.jsx';
 import { Avatar } from '@/features/profile/components/Avatar.jsx';
 import { usePublicProfile } from '@/features/profile/hooks.js';
 import { t } from '@/lib/i18n';
@@ -8,6 +11,7 @@ import { t } from '@/lib/i18n';
 export function PublicProfilePage() {
   const { id } = useParams();
   const { data: person, isPending, error } = usePublicProfile(id);
+  const me = useMe();
   if (isPending && !error) return <p>{t('common.loading')}</p>;
   if (error) return <FormError error={error} />;
 
@@ -24,6 +28,7 @@ export function PublicProfilePage() {
           </li>
         ))}
       </ul>
+      {isReleased('chat.app') && me.data?.user?.id !== id ? <StartChatButton userId={id} /> : null}
     </section>
   );
 }

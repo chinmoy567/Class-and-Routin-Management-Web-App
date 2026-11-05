@@ -72,3 +72,4 @@ export {
   emailStatusOf,
   userNames,
 } from './students.service.js';
+export { findPeopleByName, peopleById } from './people.lookup.js';

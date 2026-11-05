@@ -59,3 +59,8 @@ export async function acceptedStudentUserIdsOfGroup(sectionId, groupId) {
     .lean();
   return rows.map((r) => String(r.user_id));
 }
+
+/** CHT-01: the student's open join request (pending), or null. Used for the claim_pending chat rule. */
+export async function pendingEnrolmentOf(userId) {
+  return Enrolment.findOne({ user_id: userId, status: 'pending' }).select('section_id').lean();
+}

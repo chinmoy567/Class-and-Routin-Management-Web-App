@@ -3,6 +3,8 @@ import { FormError } from '@/features/auth/components/FormError.jsx';
 import { DashboardCard, CardMessage } from '@/features/dashboard/components/DashboardCard.jsx';
 import { t } from '@/lib/i18n';
 import { useChangeGroup } from '../hooks.js';
+import { isReleased } from '@crm/shared';
+import { StartChatButton } from '@/features/chat/components/StartChatButton.jsx';
 
 const selectClass = 'min-h-11 rounded-md border bg-background px-3 text-sm';
 
@@ -51,6 +53,7 @@ export function RosterCard({ sectionId, roster, groups }) {
                   </option>
                 ))}
               </select>
+              {isReleased('chat.app') ? <StartChatButton userId={s.user_id} /> : null}
             </li>
           ))}
         </ul>

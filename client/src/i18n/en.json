@@ -20,6 +20,7 @@
     "adminRoutineEdit": "Routine edit",
     "adminCalendar": "Calendar",
     "adminRepresentatives": "CR / DCR",
+    "chat": "Chat",
     "routine": "My Routine",
     "freeRooms": "Free rooms",
     "adminRollover": "Rollover",
@@ -28,6 +29,62 @@
     "adminFlags": "Flags",
     "adminAppeals": "Appeals",
     "adminAudit": "Audit log"
+  },
+  "chat": {
+    "title": "Chat",
+    "conversationTitle": "Conversation",
+    "newChat": "New chat",
+    "startChat": "Message",
+    "back": "Back to chats",
+    "empty": "No chats yet. Start one with a classmate, your CR or a teacher.",
+    "unnamed": "Chat",
+    "groupLabel": "Section group",
+    "closedLabel": "Closed group: read only",
+    "closedBanner": "This group is closed for the semester. You can still read its history.",
+    "unreadCount": "{count} unread",
+    "notifyAsk": "Get a notification when a new message arrives while this tab is in the background.",
+    "notifyAllow": "Allow notifications",
+    "notifyTitle": "New chat message",
+    "notifyBody": "Open Class & Routine to read it.",
+    "loadOlder": "Load older messages",
+    "messagesLabel": "Messages",
+    "composeLabel": "Write a message",
+    "composePlaceholder": "Write a message",
+    "send": "Send",
+    "delete": "Delete",
+    "messageDeleted": "Message deleted",
+    "status": {
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "seen": "Seen"
+    },
+    "errors": {
+      "empty": "Write something before sending.",
+      "tooLong": "A message can have up to 4,000 characters.",
+      "appealTooLong": "An appeal can have up to 500 characters."
+    },
+    "removed": {
+      "label": "You were removed from this group",
+      "body": "You were removed from this group, so you can no longer read or send messages here. You can write one appeal to the department admin.",
+      "appealLabel": "Your appeal",
+      "appealSubmit": "Send appeal",
+      "appealSent": "Your appeal has been sent to the department admin."
+    },
+    "members": {
+      "title": "Members",
+      "removed": "Removed",
+      "remove": "Remove",
+      "removeLabel": "Remove {name} from the group"
+    },
+    "search": {
+      "title": "New chat",
+      "label": "Find a person by name",
+      "hint": "Type at least 2 letters of a name.",
+      "tooShort": "Type at least 2 characters.",
+      "none": "No one matches. You can only message people allowed to chat with you.",
+      "message": "Message",
+      "messageLabel": "Message {name}"
+    }
   },
   "emailBanner": {
     "title": "Your email address is not working",
@@ -202,6 +259,8 @@
     "CSRF_FAILED": "Your session check failed. Please refresh the page and try again.",
     "FORBIDDEN": "You are not allowed to do this.",
     "STATE_NOT_ALLOWED": "Your account cannot use this yet.",
+    "CHAT_NOT_ALLOWED": "You cannot chat with this person.",
+    "GROUP_CLOSED": "This group is closed. You can read its history.",
     "NOT_FOUND": "We could not find that.",
     "ALREADY_DECIDED": "This was already decided.",
     "CONFLICT": "That conflicts with something that already exists.",

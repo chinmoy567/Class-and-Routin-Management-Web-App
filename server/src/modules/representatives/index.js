@@ -20,4 +20,5 @@ export { isOpen, crDcrOf, rolesInEffect, sectionIdsWithCr } from './query.servic
 export { endRolesOfSemester } from './remove.service.js';
 export { unconfirmedOf as unconfirmedOfSection } from './cr/cr.lists.js';
 export { listFlagsForAdmin, resolveFlag } from './cr/flags.admin.service.js';
-export { registerCrAssignedHook, resetCrAssignedHooks } from './hooks.js';
+export { registerCrAssignedHook, registerRepAssignedHook, resetCrAssignedHooks } from './hooks.js';
+export { repRolesOfUsers } from './query.service.js';

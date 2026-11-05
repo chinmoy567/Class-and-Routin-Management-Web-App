@@ -39,6 +39,7 @@ import { calendarRouter } from './modules/calendar/index.js';
 import { rolloverAdminRouter, rolloverMeRouter } from './modules/rollover/index.js';
 import { dashboardRouter, rosterRouter } from './modules/dashboard/index.js';
 import { adminRouter } from './modules/admin/index.js';
+import { chatRouter, chatAdminRouter } from './modules/chat/index.js';
 
 // AUTH-21, AUTH-22: sessions live in MongoDB. `stringify: false` keeps `session.userId` as a
 // queryable field so all of an account's sessions can be found (AUTH-23). The cookie's maximum
@@ -133,7 +134,9 @@ export function createApp(
   app.use('/api/admin', requireAuth, representativesRouter);
   app.use('/api/admin', requireAuth, rolloverAdminRouter);
   app.use('/api/admin', requireAuth, adminRouter);
+  app.use('/api/admin', requireAuth, chatAdminRouter);
   app.use('/api/me', rolloverMeRouter);
+  app.use('/api/chat', requireAuth, chatRouter);
   app.use('/api', joinRouter);
   app.use('/api', roomRequestRouter);
   app.use('/api', routineRouter);

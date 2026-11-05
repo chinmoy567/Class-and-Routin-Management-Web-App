@@ -51,6 +51,10 @@ export const ERROR_CODES = Object.freeze({
   REQUEST_LIMIT: { code: 'REQUEST_LIMIT', status: 409 },
   DECISION_CUTOFF_PASSED: { code: 'DECISION_CUTOFF_PASSED', status: 409 },
   TOO_EARLY: { code: 'TOO_EARLY', status: 409 },
+
+  // Chat (spec 20)
+  CHAT_NOT_ALLOWED: { code: 'CHAT_NOT_ALLOWED', status: 403 },
+  GROUP_CLOSED: { code: 'GROUP_CLOSED', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';

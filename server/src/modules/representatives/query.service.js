@@ -173,3 +173,23 @@ export async function ownRepresentativeRole(actor) {
     semester_name: semester.name,
   };
 }
+
+/** CHT-03, CHT-10b: the CR/DCR roles in effect (current semester) of the given users, keyed by user id. */
+export async function repRolesOfUsers(userIds) {
+  const semester = await currentSemester();
+  if (!semester || !userIds.length) return new Map();
+  const rows = await UserRole.find({
+    user_id: { $in: userIds },
+    role: { $in: REP_ROLES },
+    semester_id: semester.id,
+    ended_at: null,
+  })
+    .select('user_id role section_id')
+    .lean();
+  const map = new Map();
+  for (const r of rows) {
+    const key = String(r.user_id);
+    map.set(key, [...(map.get(key) ?? []), { role: r.role, section_id: String(r.section_id) }]);
+  }
+  return map;
+}

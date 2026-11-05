@@ -15,7 +15,7 @@ import { afterCommit, withTransaction } from '../../lib/db.js';
 import { emitAfterCommit } from '../../lib/events.js';
 import { AppError } from '../../lib/errors.js';
 import { clock } from '../../lib/time.js';
-import { runCrAssignedHooks } from './hooks.js';
+import { runCrAssignedHooks, runRepAssignedHooks } from './hooks.js';
 import { assertManage, assertWritable, loadSection, sectionName } from './common.js';
 
 const roleLimit = (message) => new AppError(409, 'ROLE_LIMIT', message);
@@ -139,6 +139,8 @@ export async function assignRole(actor, { sectionId, userId, role, via = 'manual
     if (current) {
       emitAfterCommit(`user:${userId}`, SOCKET_EVENTS.ROUTINE_CHANGED, {});
       if (role === 'cr') await afterCommit(() => runCrAssignedHooks(section));
+      // Spec 20: a CR or DCR taking effect keeps the section group's owners in step.
+      if (role === 'cr' || role === 'dcr') await afterCommit(() => runRepAssignedHooks(section));
     }
     return row;
   });

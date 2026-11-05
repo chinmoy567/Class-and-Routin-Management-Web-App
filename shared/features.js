@@ -35,6 +35,8 @@ export const FEATURE_RELEASE = Object.freeze({
   'admin.room_requests': 'R2',
   // Shared
   'dashboard.representative_message': 'R3',
+  // Chat (spec 20): the chat screens and their links
+  'chat.app': 'R3',
 });
 
 /** True when `feature` is released at `release` (default: the current release). */

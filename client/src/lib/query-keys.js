@@ -1,5 +1,10 @@
 /** All TanStack Query keys live here. Feature specs add theirs. */
 export const qk = {
+  chatConversations: () => ['chat', 'conversations'],
+  chatUnread: () => ['chat', 'unread'],
+  chatMessages: (id) => ['chat', 'messages', id],
+  chatPeople: (q) => ['chat', 'people', q],
+  chatMembers: (id) => ['chat', 'members', id],
   health: () => ['health'],
   me: () => ['me'],
   profile: () => ['profile'],

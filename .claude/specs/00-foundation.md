@@ -93,6 +93,8 @@ A running skeleton that every later spec builds on: the repo layout, server and 
 | `CSRF_FAILED` | 403 | Missing or wrong CSRF token |
 | `FORBIDDEN` | 403 | Signed in but not allowed |
 | `STATE_NOT_ALLOWED` | 403 | The account state doesn't allow this (`fields.state` gives the state) |
+| `CHAT_NOT_ALLOWED` | 403 | The caller can chat, but not with this person or conversation (spec 20) |
+| `GROUP_CLOSED` | 409 | The section group is closed (after rollover): read only (spec 20) |
 | `NOT_FOUND` | 404 | Doesn't exist, or the caller may not know it exists |
 | `ALREADY_DECIDED` | 409 | First action wins: someone already decided |
 | `CONFLICT` | 409 | Breaks a uniqueness rule (`message` says which) |

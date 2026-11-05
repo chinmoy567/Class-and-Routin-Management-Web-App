@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from 'react-router';
+import { isReleased } from '@crm/shared';
 import {
   Flag,
+  MessageSquare,
   Gauge,
   Scale,
   ScrollText,
@@ -31,6 +33,7 @@ const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.home', icon: Home, end: true },
   { to: '/routine', labelKey: 'nav.routine', icon: CalendarDays },
   { to: '/rooms/free', labelKey: 'nav.freeRooms', icon: DoorOpen },
+  { to: '/chat', labelKey: 'nav.chat', icon: MessageSquare, feature: 'chat.app' },
   { to: '/profile', labelKey: 'nav.profile', icon: UserRound },
   { to: '/account/password', labelKey: 'nav.account', icon: User },
 ];
@@ -86,22 +89,24 @@ export function AppShell() {
       >
         <p className="hidden px-3 py-2 text-lg font-semibold md:block">{t('app.name')}</p>
         <CurrentSemester className="hidden px-3 pb-2 text-sm text-muted-foreground md:block" />
-        {items.map(({ to, labelKey, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                'flex min-h-11 flex-1 flex-col items-center justify-center gap-1 px-3 py-2 text-xs md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-md md:text-sm',
-                isActive ? 'font-semibold text-foreground md:bg-accent' : 'text-muted-foreground',
-              )
-            }
-          >
-            <Icon aria-hidden="true" className="size-5" />
-            <span>{t(labelKey)}</span>
-          </NavLink>
-        ))}
+        {items
+          .filter((item) => !item.feature || isReleased(item.feature))
+          .map(({ to, labelKey, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  'flex min-h-11 flex-1 flex-col items-center justify-center gap-1 px-3 py-2 text-xs md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-md md:text-sm',
+                  isActive ? 'font-semibold text-foreground md:bg-accent' : 'text-muted-foreground',
+                )
+              }
+            >
+              <Icon aria-hidden="true" className="size-5" />
+              <span>{t(labelKey)}</span>
+            </NavLink>
+          ))}
       </nav>
 
       <div className="flex-1">

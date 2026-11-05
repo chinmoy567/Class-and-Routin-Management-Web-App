@@ -45,6 +45,9 @@ import { AdminRoomRequestsPage } from '@/routes/admin/AdminRoomRequestsPage.jsx'
 import { AdminAppealsPage } from '@/routes/admin/AdminAppealsPage.jsx';
 import { AdminAuditPage } from '@/routes/admin/AdminAuditPage.jsx';
 import { ForcedPasswordChangePage } from '@/routes/ForcedPasswordChangePage.jsx';
+import { ChatListPage } from '@/routes/ChatListPage.jsx';
+import { ConversationPage } from '@/routes/ConversationPage.jsx';
+import { PersonSearchPage } from '@/routes/PersonSearchPage.jsx';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -86,6 +89,9 @@ export function AppRoutes() {
           <Route path="/routine" element={<MyRoutinePage />} />
           <Route path="/rooms/free" element={<FreeRoomsPage />} />
           <Route path="/cr/sections/:id" element={<CrDashboardPage />} />
+          <Route path="/chat" element={<ChatListPage />} />
+          <Route path="/chat/new" element={<PersonSearchPage />} />
+          <Route path="/chat/:id" element={<ConversationPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/admin/classrooms" element={<ClassroomsPage />} />
             <Route path="/admin/teacher-registrations" element={<TeacherRegistrationsPage />} />
