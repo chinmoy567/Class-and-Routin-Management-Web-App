@@ -56,6 +56,16 @@ If this was not you, you can ignore this email.
 
 Open the app: http://localhost:5173",
   },
+  "booking_approved": {
+    "html": "<p>Hello,</p><p>Room Room 312 is booked on 8 Nov 2026 for a class you attend or teach.</p><p>Open the app to see the latest routine:<br>http://localhost:5173</p>",
+    "subject": "A room is booked for a class",
+    "text": "Hello,
+
+Room Room 312 is booked on 8 Nov 2026 for a class you attend or teach.
+
+Open the app to see the latest routine:
+http://localhost:5173",
+  },
   "booking_cancelled": {
     "html": "<p>Hello,</p><p>The booking for Room 312 on 8 Nov 2026 has been cancelled.</p><p>Open the app to see the latest routine:<br>http://localhost:5173</p>",
     "subject": "A room booking was cancelled",

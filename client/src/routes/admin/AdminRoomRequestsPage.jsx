@@ -31,6 +31,11 @@ function RequestRow({ request, onDecide, busy }) {
           {t('roomRequests.queue.otherRequests', { count: others.length })}
         </p>
       )}
+      {(request.requester_no_shows ?? []).map((n) => (
+        <p key={`${n.date}-${n.note}`} className="text-xs text-muted-foreground">
+          {t('roomRequests.queue.noShow', { date: n.date, note: n.note })}
+        </p>
+      ))}
       <div className="flex flex-wrap gap-2">
         <Button type="button" disabled={busy} onClick={() => onDecide(request.id, 'approve')}>
           {t('roomRequests.queue.approve')}

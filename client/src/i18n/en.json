@@ -1323,6 +1323,7 @@
       "empty": "No requests are waiting for a decision.",
       "slot": "{room}, {date}, {start} to {end}",
       "otherRequests": "{count} other requests from this requester for this time",
+      "noShow": "No-show on {date}: {note}",
       "approve": "Approve",
       "reject": "Reject"
     }

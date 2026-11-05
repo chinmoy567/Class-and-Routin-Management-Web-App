@@ -100,6 +100,10 @@
       "subject": "Your room request has been decided",
       "body": "Hello,\n\nYour room request for {room} on {date} is {outcome}.{reason}\n\nOpen the app to see the details:\n{link}"
     },
+    "booking_approved": {
+      "subject": "A room is booked for a class",
+      "body": "Hello,\n\nRoom {room} is booked on {date} for a class you attend or teach.\n\nOpen the app to see the latest routine:\n{link}"
+    },
     "booking_cancelled": {
       "subject": "A room booking was cancelled",
       "body": "Hello,\n\nThe booking for {room} on {date} has been cancelled.\n\nOpen the app to see the latest routine:\n{link}"

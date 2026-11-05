@@ -7,6 +7,7 @@ import {
   loginAs,
   fixClock,
   resetClock,
+  drainMail,
   startTestMail,
   stopTestMail,
 } from '../../../../test/harness.js';
@@ -15,6 +16,12 @@ import { Semester } from '../../organisation/index.js';
 import { RoutineSlot, RoutineSlotTeacher, Section, SectionGroup } from '../../routine/index.js';
 import { Room, RoomShare } from '../../rooms/index.js';
 import { Teacher } from '../../teachers/index.js';
+import {
+  CalendarEvent,
+  registerCalendarAudienceProvider,
+  resetCalendarAudienceProviders,
+} from '../../calendar/index.js';
+import { Enrolment } from '../../enrolments/index.js';
 import { RoomRequest, RoomSlotLock, expireDueRequests, pendingRequestsSummary } from '../index.js';
 import {
   applyBookingAction,
@@ -729,5 +736,252 @@ describe('admin summary and digest (ADM-06, EML-08)', () => {
     const { buildDigest } = await import('../../notifications/index.js');
     const digest = await buildDigest({ departmentIds: [String(w.cse._id)] });
     expect(JSON.stringify(digest)).toContain('room_requests');
+  });
+});
+
+// ── Audience, cancel rights, live routine and no-show notes (BKG-16 to BKG-23) ──────────────
+
+describe('email audience and cancel rights (BKG-16, BKG-17, BKG-21, BKG-22, BKG-26)', () => {
+  afterEach(() => resetCalendarAudienceProviders());
+
+  /** A class for section A taught by the teacher, so the teacher teaches the section. */
+  async function teachSectionA(w) {
+    return makeClass({
+      semester: w.sem,
+      dept: w.cse,
+      room: await makeRoom(w.cse, '999'),
+      section: w.sectionA,
+      start: at(9),
+      end: at(10),
+      teacher: w.teacher,
+    });
+  }
+
+  it('BKG-16 approval emails the target section students and the named teacher', async () => {
+    const w = await world();
+    await teachSectionA(w);
+    const student = await makeUser({ kind: 'student', state: 'active' });
+    registerCalendarAudienceProvider(async () => [String(student._id)]);
+    const sent = await send(
+      await loginAs(w.cr, app),
+      body(w, { named_teacher_id: String(w.teacher._id) }),
+    );
+    await drainMail();
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    const mail = await drainMail();
+    expect(mail.some((m) => m.to === student.email)).toBe(true);
+    expect(mail.some((m) => m.to === w.teacherUser.email)).toBe(true);
+  });
+
+  it('BKG-16 cancelling an approved booking emails the target section students', async () => {
+    const w = await world();
+    const student = await makeUser({ kind: 'student', state: 'active' });
+    registerCalendarAudienceProvider(async () => [String(student._id)]);
+    const cr = await loginAs(w.cr, app);
+    const sent = await send(cr, body(w));
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    await drainMail();
+    await cr.post(`/api/room-requests/${sent.body.data.id}/cancel`).send({});
+    const mail = await drainMail();
+    expect(mail.some((m) => m.to === student.email)).toBe(true);
+  });
+
+  it('BKG-17 the requester of an expired request is emailed', async () => {
+    const w = await world();
+    await send(await loginAs(w.cr, app), body(w));
+    await drainMail();
+    fixClock('2027-04-07T03:45:00Z');
+    expect(await expireDueRequests()).toBe(1);
+    const mail = await drainMail();
+    expect(mail.filter((m) => m.to === w.cr.email)).toHaveLength(1);
+  });
+
+  it('BKG-21 after an approved booking is cancelled, the room shows free in the availability query', async () => {
+    const w = await world();
+    const cr = await loginAs(w.cr, app);
+    const sent = await send(cr, body(w));
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    await cr.post(`/api/room-requests/${sent.body.data.id}/cancel`).send({});
+    const view = await cr
+      .get('/api/rooms/availability')
+      .query({ date: WED, from: String(at(11, 35)), to: String(at(12, 30)) });
+    expect(view.body.data.rooms.find((r) => r.code === '311').status).toBe('free');
+  });
+
+  it('BKG-21 a CR of another section cannot cancel this section request (403)', async () => {
+    const w = await world();
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    const res = await (
+      await loginAs(w.crB, app)
+    )
+      .post(`/api/room-requests/${sent.body.data.id}/cancel`)
+      .send({});
+    expect(res.status).toBe(403);
+    expect((await RoomRequest.findById(sent.body.data.id).lean()).status).toBe('pending');
+  });
+
+  it('BKG-21 a teacher cannot cancel another teacher request (403)', async () => {
+    const w = await world();
+    await teachSectionA(w);
+    const sent = await send(await loginAs(w.teacherUser, app), body(w));
+    const other = await makeUser({
+      kind: 'teacher',
+      state: 'active',
+      roles: [{ role: 'teacher', department_id: w.cse._id }],
+    });
+    const res = await (
+      await loginAs(other, app)
+    )
+      .post(`/api/room-requests/${sent.body.data.id}/cancel`)
+      .send({});
+    expect(res.status).toBe(403);
+  });
+
+  it('BKG-21 a student cannot cancel a request (403)', async () => {
+    const w = await world();
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    const student = await makeUser({ kind: 'student', state: 'active' });
+    const res = await (
+      await loginAs(student, app)
+    )
+      .post(`/api/room-requests/${sent.body.data.id}/cancel`)
+      .send({});
+    expect(res.status).toBe(403);
+  });
+
+  it('BKG-22 an admin of another department cannot cancel an approved booking (403)', async () => {
+    const w = await world();
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    const other = await createDepartment({ code: 'EEE' });
+    const outsider = await makeUser({
+      kind: 'staff',
+      roles: [{ role: 'dept_admin', department_id: other._id }],
+    });
+    const res = await (
+      await loginAs(outsider, app)
+    )
+      .post(`/api/room-requests/${sent.body.data.id}/cancel`)
+      .send({ reason: 'Not mine to cancel' });
+    expect(res.status).toBe(403);
+    expect((await RoomRequest.findById(sent.body.data.id).lean()).status).toBe('approved');
+  });
+
+  it('BKG-26 a CR of another section does not list this section requests in My room requests', async () => {
+    const w = await world();
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    const res = await (await loginAs(w.crB, app)).get('/api/me/room-requests');
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((r) => r.id)).not.toContain(sent.body.data.id);
+  });
+});
+
+describe('approved bookings for students and no-show notes (BKG-18, BKG-23)', () => {
+  it('BKG-18 an approved booking is a running slot on its date in the target section routine, and not in another section', async () => {
+    const w = await world();
+    // A student's routine comes from an accepted enrolment in the section
+    const enrol = (user, section) =>
+      Enrolment.create({
+        user_id: user._id,
+        semester_id: w.sem._id,
+        section_id: section._id,
+        department_id: w.cse._id,
+        status: 'accepted',
+      });
+    await enrol(w.cr, w.sectionA);
+    await enrol(w.crB, w.sectionB);
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    const bookingSlots = async (agent) => {
+      const res = await agent.get('/api/me/routine').query({ from: WED, to: WED });
+      expect(res.status).toBe(200);
+      return res.body.data.days.flatMap((d) => d.slots).filter((s) => s.booking);
+    };
+    const inA = await bookingSlots(await loginAs(w.cr, app));
+    expect(inA).toEqual([
+      expect.objectContaining({
+        date: WED,
+        start_min: at(11, 35),
+        end_min: at(12, 30),
+        status: 'runs',
+        room_code: '311',
+      }),
+    ]);
+    expect(await bookingSlots(await loginAs(w.crB, app))).toEqual([]);
+  });
+
+  it('BKG-23 a no-show note stays on record and shows on the requester next queue item', async () => {
+    const w = await world();
+    const cr = await loginAs(w.cr, app);
+    const first = await send(cr, body(w));
+    await decide(await loginAs(w.admin, app), first.body.data.id, { decision: 'approve' });
+    const next = await send(cr, body(w, { date: '2027-04-08', start: at(11), end: at(12) }));
+    expect(next.status).toBe(201);
+    fixClock('2027-04-07T07:00:00Z'); // 13:00 Dhaka, after the first slot ends at 12:30
+    const admin = await loginAs(w.admin, app);
+    const noShow = await admin
+      .post(`/api/room-requests/${first.body.data.id}/no-show`)
+      .send({ note: 'Nobody came in.' });
+    expect(noShow.status).toBe(200);
+    const queue = await admin.get('/api/admin/room-requests');
+    const item = queue.body.data.groups
+      .flatMap((g) => g.requests)
+      .find((r) => r.id === next.body.data.id);
+    expect(item.requester_no_shows).toEqual([
+      expect.objectContaining({ date: WED, note: 'Nobody came in.' }),
+    ]);
+  });
+
+  it('BKG-12 the queue groups requests for the same room and slot, oldest first', async () => {
+    const w = await world();
+    const first = await send(await loginAs(w.cr, app), body(w));
+    const second = await send(
+      await loginAs(w.crB, app),
+      body(w, { target_section_id: String(w.sectionB._id) }),
+    );
+    const other = await send(
+      await loginAs(w.cr, app),
+      body(w, { start: at(14), end: at(15), note: 'Another slot here' }),
+    );
+    expect([first.status, second.status, other.status]).toEqual([201, 201, 201]);
+    const res = await (await loginAs(w.admin, app)).get('/api/admin/room-requests');
+    expect(res.status).toBe(200);
+    const groups = res.body.data.groups;
+    expect(groups).toHaveLength(2);
+    const slot = groups.find((g) => g.start === at(11, 35));
+    expect(slot.requests.map((r) => r.id)).toEqual([first.body.data.id, second.body.data.id]);
+    expect(slot.requests[0].requester_label).toBeTruthy();
+    expect(groups.find((g) => g.start === at(14)).requests.map((r) => r.id)).toEqual([
+      other.body.data.id,
+    ]);
+
+    // Another department's admin sees none of CSE's rooms' requests
+    const eee = await createDepartment({ code: 'EEE' });
+    const eeeAdmin = await makeUser({
+      kind: 'staff',
+      roles: [{ role: 'dept_admin', department_id: eee._id }],
+    });
+    const outside = await (await loginAs(eeeAdmin, app)).get('/api/admin/room-requests');
+    expect(outside.status).toBe(200);
+    expect(outside.body.data.groups).toEqual([]);
+  });
+});
+
+describe('early-closing day (BKG-08)', () => {
+  it('BKG-08 on an early-closing day a range that runs past the cutoff is refused, one that ends by it is accepted', async () => {
+    const w = await world();
+    await CalendarEvent.create({
+      from_date: WED,
+      to_date: WED,
+      kind: 'early_closing',
+      cutoff_min: at(12),
+      label: 'Campus Day (class up to 12 p.m.)',
+      created_by: w.admin._id,
+    });
+    const late = await send(await loginAs(w.cr, app), body(w)); // 11:35 to 12:30 runs past 12:00
+    expect(late.status).toBe(409);
+    expect(late.body.error.code).toBe('NOT_TEACHING_DAY');
+    const early = await send(await loginAs(w.cr, app), body(w, { start: at(10), end: at(11) }));
+    expect(early.status).toBe(201);
   });
 });

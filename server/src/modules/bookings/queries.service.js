@@ -58,6 +58,7 @@ export async function adminQueue(actor, query) {
 
   const codes = await roomCodes([...new Set(requests.map((r) => String(r.room_id)))]);
   const labelOf = await requesterLabels(requests);
+  const noShowsOf = await noShowNotesFor(requests);
 
   const groups = new Map();
   for (const r of requests) {
@@ -75,6 +76,7 @@ export async function adminQueue(actor, query) {
     groups.get(key).requests.push({
       ...serialise(r),
       requester_label: labelOf(r),
+      requester_no_shows: noShowsOf(r),
       other_requests: await otherRequestsOf(r),
     });
   }
@@ -113,7 +115,45 @@ export async function myRequests(actor) {
     .limit(100)
     .lean();
   const codes = await roomCodes([...new Set(rows.map((r) => String(r.room_id)))]);
-  return rows.map((r) => ({ ...serialise(r), room_code: codes.get(String(r.room_id)) ?? '' }));
+  const noShowsOf = await noShowNotesFor(rows);
+  return rows.map((r) => ({
+    ...serialise(r),
+    room_code: codes.get(String(r.room_id)) ?? '',
+    requester_no_shows: noShowsOf(r),
+  }));
+}
+
+/**
+ * BKG-23: the no-show notes on each requester's approved requests, kept on record. Returns a
+ * function that gives the notes for one request's requester (a section or a teacher), newest first.
+ */
+async function noShowNotesFor(rows) {
+  const sectionIds = [
+    ...new Set(
+      rows.filter((r) => r.requester_section_id).map((r) => String(r.requester_section_id)),
+    ),
+  ];
+  const teacherIds = [
+    ...new Set(
+      rows.filter((r) => r.requester_teacher_id).map((r) => String(r.requester_teacher_id)),
+    ),
+  ];
+  const or = [];
+  if (sectionIds.length) or.push({ requester_section_id: { $in: sectionIds } });
+  if (teacherIds.length) or.push({ requester_teacher_id: { $in: teacherIds } });
+  const notes = new Map();
+  if (or.length) {
+    const found = await RoomRequest.find({ $or: or, no_show_note: { $type: 'string' } })
+      .select('requester_section_id requester_teacher_id date no_show_note')
+      .sort({ date: -1 })
+      .lean();
+    for (const f of found) {
+      const key = String(f.requester_section_id ?? f.requester_teacher_id);
+      if (!notes.has(key)) notes.set(key, []);
+      notes.get(key).push({ date: f.date, note: f.no_show_note });
+    }
+  }
+  return (r) => notes.get(String(r.requester_section_id ?? r.requester_teacher_id)) ?? [];
 }
 
 /**

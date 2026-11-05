@@ -220,6 +220,37 @@ describe('BKG-12 to BKG-14 the decision queue', () => {
     ).toBeInTheDocument();
   });
 
+  it('BKG-23 the queue shows the no-show note kept on the requester earlier requests', async () => {
+    const withNoShow = {
+      groups: [
+        {
+          room_id: 'r311',
+          room_code: '311',
+          date: '2027-04-07',
+          start: 695,
+          end: 750,
+          requests: [
+            {
+              id: 'n1',
+              room_id: 'r311',
+              date: '2027-04-07',
+              start: 695,
+              end: 750,
+              note: 'Make-up class',
+              status: 'pending',
+              requester_label: 'CSE 3-II-A',
+              requester_no_shows: [{ date: '2027-03-31', note: 'Nobody came in.' }],
+              other_requests: [],
+            },
+          ],
+        },
+      ],
+    };
+    mockApi({ 'GET /api/admin/room-requests?status=pending': ok(withNoShow) });
+    render(wrap(<AdminRoomRequestsPage />));
+    expect(await screen.findByText('No-show on 2027-03-31: Nobody came in.')).toBeInTheDocument();
+  });
+
   it('BKG-13 when another admin decided first, the server answers ALREADY_DECIDED and the page says so', async () => {
     mockApi({
       'GET /api/admin/room-requests?status=pending': ok(queue),

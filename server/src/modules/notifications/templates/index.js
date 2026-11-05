@@ -50,6 +50,7 @@ const templates = {
   class_cancelled: simple('class_cancelled'),
   class_restored: simple('class_restored'),
   room_request_result: simple('room_request_result'),
+  booking_approved: simple('booking_approved'),
   booking_cancelled: simple('booking_cancelled'),
   request_expired: simple('request_expired'),
   admin_digest: simple('admin_digest'),

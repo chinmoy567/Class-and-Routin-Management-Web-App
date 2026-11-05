@@ -10,6 +10,7 @@ import { record } from '../audit/index.js';
 import { enqueue } from '../notifications/index.js';
 import { roomForBooking } from '../rooms/index.js';
 import { serialise } from './send.service.js';
+import { emailBookingAudience } from './audience.js';
 
 const HOUR = 60 * 60 * 1000;
 const LATE_CANCEL_MS = 6 * HOUR; // BKG-21
@@ -92,6 +93,11 @@ export async function cancelRequest(actor, id, body) {
       to_user_id: req.sent_by_user_id,
       template: 'booking_cancelled',
       data: { room: room.code, date: req.date },
+    });
+    await emailBookingAudience(req, {
+      template: 'booking_cancelled',
+      data: { room: room.code, date: req.date },
+      kind: 'cancelled',
     });
   }
   emitAfterCommit('everyone', SOCKET_EVENTS.BOOKING_CHANGED, {});

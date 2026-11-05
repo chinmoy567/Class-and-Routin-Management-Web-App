@@ -4,6 +4,7 @@ import { SOCKET_EVENTS, dayRule } from '@crm/shared';
 import { RoomRequest, RoomSlotLock } from './bookings.model.js';
 import { teachingDayProblem } from './checks.js';
 import { requesterLabels } from './queries.service.js';
+import { emailBookingAudience } from './audience.js';
 import { enqueue, registerDigestProvider } from '../notifications/index.js';
 import { record } from '../audit/index.js';
 import { currentSemester } from '../organisation/index.js';
@@ -66,6 +67,11 @@ export async function cancelApprovedBookings(bookings, { reason, actor, session 
         to_user_id: d.sent_by_user_id,
         template: 'booking_cancelled',
         data: { room: '', date: d.date },
+      });
+      await emailBookingAudience(d, {
+        template: 'booking_cancelled',
+        data: { room: '', date: d.date },
+        kind: 'cancelled',
       });
     }
     emitAfterCommit('everyone', SOCKET_EVENTS.BOOKING_CHANGED, {});

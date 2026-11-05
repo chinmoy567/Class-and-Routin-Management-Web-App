@@ -12,6 +12,7 @@ import { enqueue } from '../notifications/index.js';
 import { currentSemester } from '../organisation/index.js';
 import { roomForBooking } from '../rooms/index.js';
 import { serialise } from './send.service.js';
+import { emailBookingAudience } from './audience.js';
 
 const CUTOFF_MS = 2 * 60 * 60 * 1000; // BKG-15
 const alreadyDecided = () =>
@@ -173,6 +174,11 @@ export async function decideRequest(actor, id, body) {
 
   // Emails go out only after commit (BKG-16)
   await notifyResult(req, room, 'approved', '');
+  await emailBookingAudience(req, {
+    template: 'booking_approved',
+    data: { room: room.code, date: req.date },
+    kind: 'approved',
+  });
   for (const r of result.cancelledOwn)
     await notifyResult(r, room, 'cancelled', 'another_request_approved');
   for (const r of result.rejected) await notifyResult(r, room, 'rejected', 'room_given_to_another');
