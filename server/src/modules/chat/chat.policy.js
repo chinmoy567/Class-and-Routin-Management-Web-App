@@ -45,6 +45,10 @@ export const chatPolicy = {
       stateIn(user, CHAT_STATES),
     hideExistence: true,
   },
+  // FIL-04: file upload. Active students and teachers, and unconfirmed students in one-to-one chats
+  // only. The send rules (member, not removed, group open) are checked by the service as well.
+  'chat.send_file': (user, r) =>
+    stateIn(user, r.conversation.type === 'direct' ? ['active', 'unconfirmed'] : ['active']),
   // resource: { message }. The sender deletes their own message.
   'chat.delete_own': (user, r) => String(r.message.sender_id) === String(user._id),
   // resource: { conversation, isOwner }. CR/DCR in effect and a current member (CHT-10).

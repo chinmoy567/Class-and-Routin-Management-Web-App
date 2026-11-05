@@ -80,3 +80,42 @@ export async function apiBody(path, { method = 'GET', body, headers = {} } = {})
   }
   return parse(res);
 }
+
+/**
+ * Spec 21: a multipart upload that reports progress (`fetch` cannot). The CSRF header is sent as
+ * for every write, and an error body becomes an ApiError. `onProgress` receives 0 to 1.
+ */
+export async function uploadForm(path, formData, { onProgress } = {}) {
+  const token = await getCsrfToken();
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `/api${path}`);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('X-CSRF-Token', token);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total);
+    };
+    xhr.onload = () => {
+      let body = null;
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch {
+        // not JSON
+      }
+      if (xhr.status >= 200 && xhr.status < 300) return resolve(body?.data);
+      const e = body?.error;
+      const retryAfter = Number(xhr.getResponseHeader('Retry-After')) || undefined;
+      reject(
+        new ApiError(
+          xhr.status,
+          e?.code ?? 'INTERNAL',
+          e?.message ?? xhr.statusText,
+          e?.fields,
+          retryAfter,
+        ),
+      );
+    };
+    xhr.onerror = () => reject(new ApiError(0, 'NETWORK', 'Network error'));
+    xhr.send(formData);
+  });
+}

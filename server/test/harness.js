@@ -10,6 +10,7 @@ import { startJobs, stopJobs, getAgenda } from '../src/lib/jobs.js';
 import { ensureSessionIndex } from '../src/modules/auth/index.js';
 import { solves } from '../src/modules/auth/captcha.service.js';
 import { scanPhoto, PHOTO_SCAN_JOB } from '../src/modules/auth/photo.service.js';
+import { scanFile, FILE_SCAN_JOB } from '../src/modules/chat/chat.files.service.js';
 import {
   sendEmailJob,
   getOutbox,
@@ -67,6 +68,15 @@ export async function drainPhotoScans() {
   const jobs = await getAgenda().jobs({ name: PHOTO_SCAN_JOB });
   for (const job of jobs) {
     await scanPhoto(job.attrs.data);
+    await job.remove();
+  }
+}
+
+/** Spec 21: run the queued `file.scan` jobs on the spot. A scanner error propagates to the caller. */
+export async function drainFileScans() {
+  const jobs = await getAgenda().jobs({ name: FILE_SCAN_JOB });
+  for (const job of jobs) {
+    await scanFile(job.attrs.data);
     await job.remove();
   }
 }

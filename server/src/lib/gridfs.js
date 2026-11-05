@@ -65,3 +65,65 @@ export async function putImportFile(buffer, metadata) {
   });
   return upload.id;
 }
+
+// Spec 21: chat files live in their own private bucket and are served only through signed links.
+const chatBucket = () =>
+  new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'chat_files' });
+
+/** FIL-05: store a chat file as pending and return its id. */
+export async function putChatFile(buffer, metadata) {
+  const upload = chatBucket().openUploadStream(`chat-${metadata.conversation_id}`, { metadata });
+  await new Promise((resolve, reject) => {
+    upload.on('error', reject);
+    upload.on('finish', resolve);
+    upload.end(buffer);
+  });
+  return upload.id;
+}
+
+export async function chatFileDoc(fileId) {
+  return mongoose.connection.db.collection('chat_files.files').findOne({ _id: toId(fileId) });
+}
+
+export async function readChatFile(fileId) {
+  const chunks = [];
+  for await (const chunk of chatBucket().openDownloadStream(toId(fileId))) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
+
+export const streamChatFile = (fileId) => chatBucket().openDownloadStream(toId(fileId));
+
+/** FIL-06: record the scan result on the file's metadata. */
+export async function setChatFileScan(fileId, { scan_status, scanned_at }) {
+  await mongoose.connection.db
+    .collection('chat_files.files')
+    .updateOne(
+      { _id: toId(fileId) },
+      { $set: { 'metadata.scan_status': scan_status, 'metadata.scanned_at': scanned_at } },
+    );
+}
+
+/** Erase a chat file's bytes. A file that is already gone is not an error. */
+export async function deleteChatFile(fileId) {
+  if (!fileId) return;
+  try {
+    await chatBucket().delete(toId(fileId));
+  } catch (err) {
+    if (!/file\s*not\s*found/i.test(`${err?.code} ${err?.name} ${err?.message}`)) throw err;
+  }
+}
+
+export async function ensureChatFileIndex() {
+  await mongoose.connection.db
+    .collection('chat_files.files')
+    .createIndex({ 'metadata.conversation_id': 1 });
+}
+
+/** Spec 21: the chat file records for several ids at once (metadata only, no bytes). */
+export async function chatFileDocsByIds(fileIds) {
+  if (!fileIds.length) return [];
+  return mongoose.connection.db
+    .collection('chat_files.files')
+    .find({ _id: { $in: fileIds.map(toId) } }, { projection: { length: 1, metadata: 1 } })
+    .toArray();
+}

@@ -1,6 +1,6 @@
 # 21: Chat files
 
-R3 · Status: Draft · Depends on: 20 · PRD: Chat (Sharing files F10, Privacy and retention), Core features (F10), Account states and access (Share files) · Diagrams: 18-seq-chat-message
+R3 · Status: In progress · Depends on: 20 · PRD: Chat (Sharing files F10, Privacy and retention), Core features (F10), Account states and access (Share files) · Diagrams: 18-seq-chat-message
 
 ## Goal
 
@@ -68,12 +68,16 @@ Attach button in the conversation composer, upload progress, a file bubble (name
 ## Decisions and open questions
 
 - **Decision:** type detection uses a small magic-byte check written in-house, plus reading the OOXML `[Content_Types].xml` for Office files. If a library such as `file-type` is preferred, it isn't in `tech-stack.md`, so confirm first.
+- **Decision:** multipart uploads are read by a small in-house parser (`server/src/lib/multipart.js`), behind `express.raw` with the size cap. No multipart library is in `tech-stack.md`.
+- **Decision:** `FILE_NOT_READY` is 409 and `LINK_EXPIRED` is 410 (added to `shared/errors.js`). Refused SVG and macro files use `FILE_TYPE_NOT_ALLOWED`.
+- **Decision:** an upload caption uses the message limit (4,000 characters). The 20-per-hour limit counts the user's messages that carry a file. A refused upload is not counted.
+- **Decision:** the scan job runs in-process through the existing Agenda `withRetry`. Tests use an injected scanner (`setScanner`) that flags the EICAR string. A run against a live clamd is still to do.
 
 ## Tasks
 
-- [ ] Streaming upload with size cap into GridFS
-- [ ] Content type detection + macro and SVG rejection (unit-tested with fixture files)
-- [ ] `file.scan` job with ClamAV (clamd TCP)
-- [ ] Signed link creation + download endpoint with re-check
-- [ ] Composer attach UI + file bubble
-- [ ] Tests incl. EICAR
+- [x] Streaming upload with size cap into GridFS
+- [x] Content type detection + macro and SVG rejection (unit-tested with fixture files)
+- [x] `file.scan` job with ClamAV (clamd TCP)
+- [x] Signed link creation + download endpoint with re-check
+- [x] Composer attach UI + file bubble
+- [x] Tests incl. EICAR

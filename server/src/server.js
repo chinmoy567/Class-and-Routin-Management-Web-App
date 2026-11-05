@@ -16,7 +16,8 @@ import {
 import { defineJoinJobs, ESCALATE_JOB } from './modules/join/index.js';
 import { defineBookingJobs, EXPIRE_JOB } from './modules/bookings/index.js';
 import { defineRolloverJobs, REMINDER_JOB } from './modules/rollover/index.js';
-import { ensurePhotoIndex } from './lib/gridfs.js';
+import { ensureChatFileIndex, ensurePhotoIndex } from './lib/gridfs.js';
+import { defineChatFileJobs } from './modules/chat/index.js';
 
 async function main() {
   let config;
@@ -41,6 +42,7 @@ async function main() {
   await new MongoRateLimitStore().ensureIndexes();
   await ensureSessionIndex();
   await ensurePhotoIndex();
+  await ensureChatFileIndex();
   await startJobs({
     url: config.MONGO_URL,
     registrars: [
@@ -50,6 +52,7 @@ async function main() {
       defineJoinJobs,
       defineBookingJobs,
       defineRolloverJobs,
+      defineChatFileJobs,
     ],
   });
   // DEP-12: the hourly safety net; role changes also run the check straight away.

@@ -27,6 +27,8 @@ export const ERROR_CODES = Object.freeze({
   SEMESTER_IN_USE: { code: 'SEMESTER_IN_USE', status: 409 },
   ROOM_IN_USE: { code: 'ROOM_IN_USE', status: 409 },
   FILE_INFECTED: { code: 'FILE_INFECTED', status: 422 },
+  FILE_NOT_READY: { code: 'FILE_NOT_READY', status: 409 },
+  LINK_EXPIRED: { code: 'LINK_EXPIRED', status: 410 },
   IMPORT_HAS_ERRORS: { code: 'IMPORT_HAS_ERRORS', status: 409 },
   SLOT_INVALID: { code: 'SLOT_INVALID', status: 400 },
   GROUP_IN_USE: { code: 'GROUP_IN_USE', status: 409 },
@@ -85,6 +87,8 @@ export const SEMESTER_ARCHIVED = 'SEMESTER_ARCHIVED';
 export const SEMESTER_IN_USE = 'SEMESTER_IN_USE';
 export const ROOM_IN_USE = 'ROOM_IN_USE';
 export const FILE_INFECTED = 'FILE_INFECTED';
+export const FILE_NOT_READY = 'FILE_NOT_READY';
+export const LINK_EXPIRED = 'LINK_EXPIRED';
 export const IMPORT_HAS_ERRORS = 'IMPORT_HAS_ERRORS';
 export const SLOT_INVALID = 'SLOT_INVALID';
 export const GROUP_IN_USE = 'GROUP_IN_USE';

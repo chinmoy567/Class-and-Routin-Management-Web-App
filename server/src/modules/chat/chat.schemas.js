@@ -33,3 +33,16 @@ export const appealBody = z.object({
     .min(1, 'Write your appeal.')
     .max(500, 'An appeal can have up to 500 characters.'),
 });
+
+// Spec 21, FIL-08: the download link's query, as the link endpoint wrote it.
+export const fileDownloadQuery = z.object({
+  u: objectId,
+  exp: z.coerce.number().int().positive(),
+  sig: z.string().regex(/^[a-f\d]{64}$/i, 'Invalid link.'),
+});
+
+// Spec 21: an optional caption on a file, same limit as a text message.
+export const fileCaption = z
+  .string()
+  .trim()
+  .max(4000, 'A message can have up to 4,000 characters.');

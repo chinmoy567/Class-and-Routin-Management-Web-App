@@ -6,3 +6,4 @@ import './chat.sockets.js'; // room rules on connect
 export { chatRouter, chatAdminRouter } from './chat.routes.js';
 export { unreadSummary } from './chat.messages.service.js';
 export { listChatAppeals } from './chat.group.service.js';
+export { defineJobs as defineChatFileJobs } from './chat.files.jobs.js'; // spec 21

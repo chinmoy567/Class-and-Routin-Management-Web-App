@@ -51,6 +51,8 @@ const messageSchema = new Schema(
     conversation_id: oid({ required: true }),
     sender_id: oid({ required: true }),
     body_enc: { type: String },
+    // Spec 21: the attached file (GridFS chat_files). Its name, size and scan state live there.
+    file_id: oid(),
     deleted_at: { type: Date, default: null },
     deleted_by: oid(),
     created_at: { type: Date, required: true },
@@ -58,6 +60,9 @@ const messageSchema = new Schema(
   { collection: 'message' },
 );
 messageSchema.index({ conversation_id: 1, created_at: -1 });
+// FIL-08: a link is checked by file id; FIL-10: uploads per user per hour.
+messageSchema.index({ file_id: 1 }, { sparse: true });
+messageSchema.index({ sender_id: 1, file_id: 1, created_at: -1 });
 // CHT, rate limit: sends per user per minute.
 messageSchema.index({ sender_id: 1, created_at: -1 });
 

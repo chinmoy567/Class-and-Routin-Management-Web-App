@@ -2,7 +2,7 @@
 import { AppError, notFound, rateLimited } from '../../lib/errors.js';
 import { clock } from '../../lib/time.js';
 import { encrypt, decrypt } from '../../lib/crypto.js';
-import { can } from '../../policy/index.js';
+import { assertCan, can } from '../../policy/index.js';
 import { peopleById } from '../auth/index.js';
 import { pendingEnrolmentOf } from '../enrolments/index.js';
 import { crDcrOf } from '../representatives/index.js';
@@ -46,6 +46,49 @@ export async function loadConversation(id) {
 export const membershipOf = (conversationId, userId) =>
   ConversationMember.findOne({ conversation_id: conversationId, user_id: userId }).lean();
 
+/** The other member row of a one-to-one conversation (or null for a group). */
+export async function otherMemberOf(conversation, userId) {
+  if (conversation.type !== 'direct') return null;
+  return ConversationMember.findOne({
+    conversation_id: conversation._id,
+    user_id: { $ne: userId },
+  }).lean();
+}
+
+/** The conversation and the caller's membership. A non-member gets 404 (CHT-09, CHT-10). */
+export async function readable(me, conversationId) {
+  const conversation = await loadConversation(conversationId);
+  const member = await membershipOf(conversation._id, me._id);
+  assertCan(me, 'chat.read', { member });
+  return { conversation, member };
+}
+
+/**
+ * CHT-01, CHT-02, CHT-14: the send rules for a text or a file message. Returns the other member
+ * row (one-to-one) and whether the conversation is closed.
+ */
+export async function assertCanSend(me, conversation, member) {
+  const closed = Boolean(conversation.closed_at);
+  if (conversation.type === 'section_group' && closed) {
+    throw new AppError(409, 'GROUP_CLOSED', 'This group is closed. You can read its history.');
+  }
+  const other = await otherMemberOf(conversation, me._id);
+  const otherSide = other ? await sideOfUserId(other.user_id) : null;
+  if (conversation.type === 'direct' && !otherSide) {
+    throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot send this message.');
+  }
+  const meSide = await sideFor(me._id, me.state);
+  const allowed = can(me, 'chat.send', {
+    conversation,
+    member,
+    closed,
+    me: meSide,
+    other: otherSide,
+  });
+  if (!allowed) throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot send this message.');
+  return { other, closed };
+}
+
 /** CR/DCR in effect for the section of a group, and a current member (CHT-10). */
 export async function isOwnerOf(userId, conversation) {
   if (conversation.type !== 'section_group') return false;
@@ -70,7 +113,7 @@ export function statusOf(createdAt, other) {
 }
 
 /** Public shape of a message. Deleted messages carry no body (CHT-07). */
-export function viewMessage(m, { viewerId, direct, other }) {
+export function viewMessage(m, { viewerId, direct, other, file = null }) {
   const deleted = Boolean(m.deleted_at);
   const mine = String(m.sender_id) === String(viewerId);
   return {
@@ -79,10 +122,13 @@ export function viewMessage(m, { viewerId, direct, other }) {
     sender_id: String(m.sender_id),
     mine,
     deleted,
-    body: deleted ? null : decrypt(m.body_enc),
+    // A file message without a caption has no body (spec 21).
+    body: deleted || !m.body_enc ? null : decrypt(m.body_enc),
     created_at: m.created_at,
     // CHT-13: only one-to-one messages show status, and only to their sender.
     status: direct && mine && !deleted ? statusOf(m.created_at, other) : null,
+    // Spec 21: the attached file's view (name, size, type, status), or null. Removed on delete.
+    file: deleted ? null : file,
   };
 }
 

@@ -1,9 +1,12 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
+import { AppError } from '../../lib/errors.js';
+import { FILE_MAX_BYTES } from './chat.files.service.js';
 import { validate } from '../../lib/validate.js';
 import { requireAuth } from '../auth/index.js';
 import * as c from './chat.controller.js';
 import {
   appealBody,
+  fileDownloadQuery,
   directBody,
   idParam,
   memberParams,
@@ -66,4 +69,35 @@ chatAdminRouter.post(
   requireAuth,
   validate({ params: restoreParams }),
   c.restoreMember,
+);
+
+// Spec 21, FIL-03: the upload arrives as multipart/form-data, read whole but capped while streaming.
+// The cap leaves room for the multipart boundaries around a 5 MB file.
+const UPLOAD_OVERHEAD = 256 * 1024;
+const readUploadBody = express.raw({
+  type: 'multipart/form-data',
+  limit: FILE_MAX_BYTES + UPLOAD_OVERHEAD,
+});
+function uploadBody(req, res, next) {
+  readUploadBody(req, res, (err) => {
+    if (err?.type === 'entity.too.large') {
+      return next(new AppError(413, 'FILE_TOO_LARGE', 'A file can be 5 MB or smaller.'));
+    }
+    next(err);
+  });
+}
+
+chatRouter.post(
+  '/conversations/:id/files',
+  requireAuth,
+  validate({ params: idParam }),
+  uploadBody,
+  c.uploadFile,
+);
+chatRouter.post('/files/:id/link', requireAuth, validate({ params: idParam }), c.fileLink);
+chatRouter.get(
+  '/files/:id/download',
+  requireAuth,
+  validate({ params: idParam, query: fileDownloadQuery }),
+  c.downloadFile,
 );

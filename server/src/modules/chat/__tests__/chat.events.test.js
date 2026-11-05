@@ -217,7 +217,7 @@ describe('CHT-22 owner deletion audit records the action without the text', () =
 });
 
 describe('CHT-02a policy names', () => {
-  it('registers exactly the seven chat actions the spec names', () => {
+  it('registers exactly the chat actions the specs name (spec 20 and spec 21 chat.send_file)', () => {
     expect(Object.keys(chatPolicy).sort()).toEqual(
       [
         'chat.admin_appeals',
@@ -229,6 +229,7 @@ describe('CHT-02a policy names', () => {
         'chat.restore_member',
         'chat.search',
         'chat.send',
+        'chat.send_file',
       ].sort(),
     );
   });

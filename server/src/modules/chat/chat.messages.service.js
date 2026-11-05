@@ -1,67 +1,35 @@
 // Spec 20: messages (CHT-06, CHT-07, CHT-13, CHT-14, CHT-15, CHT-19), read marks, delivered
 // marks and unread counts. Message text is never written to the audit log or to logs (CHT-22).
-import { AppError, notFound } from '../../lib/errors.js';
+import { notFound } from '../../lib/errors.js';
 import { clock } from '../../lib/time.js';
 import { emitAfterCommit } from '../../lib/events.js';
 import { SOCKET_EVENTS } from '@crm/shared';
-import { assertCan, can } from '../../policy/index.js';
+import { assertCan } from '../../policy/index.js';
 import { record } from '../audit/index.js';
 import { getSectionBrief } from '../routine/index.js';
 import { peopleById } from '../auth/index.js';
 import { Conversation, ConversationMember, Message } from './chat.model.js';
 import {
+  assertCanSend,
   assertChatState,
   assertUnderSendLimit,
   encryptBody,
   isOwnerOf,
   loadConversation,
   membershipOf,
-  sideFor,
-  sideOfUserId,
+  otherMemberOf,
+  readable,
   viewMessage,
 } from './chat.context.js';
+import { fileViewsFor } from './chat.files.view.js';
 
 const PAGE = 50;
-
-/** The other member row of a one-to-one conversation (or null for a group). */
-async function otherMemberOf(conversation, userId) {
-  if (conversation.type !== 'direct') return null;
-  return ConversationMember.findOne({
-    conversation_id: conversation._id,
-    user_id: { $ne: userId },
-  }).lean();
-}
-
-/** The conversation and the caller's membership. A non-member gets 404 (CHT-09, CHT-10). */
-async function readable(me, conversationId) {
-  const conversation = await loadConversation(conversationId);
-  const member = await membershipOf(conversation._id, me._id);
-  assertCan(me, 'chat.read', { member });
-  return { conversation, member };
-}
 
 /** CHT-01, CHT-02, CHT-14: send a text message. Every send runs the full rule set. */
 export async function sendMessage(me, conversationId, text) {
   assertChatState(me);
   const { conversation, member } = await readable(me, conversationId);
-  const closed = Boolean(conversation.closed_at);
-  if (conversation.type === 'section_group' && closed) {
-    throw new AppError(409, 'GROUP_CLOSED', 'This group is closed. You can read its history.');
-  }
-  const other = await otherMemberOf(conversation, me._id);
-  const otherSide = other ? await sideOfUserId(other.user_id) : null;
-  if (conversation.type === 'direct' && !otherSide) {
-    throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot send this message.');
-  }
-  const meSide = await sideFor(me._id, me.state);
-  const allowed = can(me, 'chat.send', {
-    conversation,
-    member,
-    closed,
-    me: meSide,
-    other: otherSide,
-  });
-  if (!allowed) throw new AppError(403, 'CHAT_NOT_ALLOWED', 'You cannot send this message.');
+  const { other } = await assertCanSend(me, conversation, member);
   await assertUnderSendLimit(me._id);
 
   const now = clock.now();
@@ -104,7 +72,10 @@ export async function listMessages(me, conversationId, before) {
   const page = rows.slice(0, PAGE).reverse();
   const direct = conversation.type === 'direct';
   const other = await otherMemberOf(conversation, me._id);
-  const messages = page.map((m) => viewMessage(m, { viewerId: me._id, direct, other }));
+  const files = await fileViewsFor(page);
+  const messages = page.map((m) =>
+    viewMessage(m, { viewerId: me._id, direct, other, file: files.get(String(m._id)) ?? null }),
+  );
   return { messages, next: hasMore ? String(page[0]._id) : null };
 }
 

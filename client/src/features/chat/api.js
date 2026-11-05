@@ -1,4 +1,4 @@
-import { api, apiBody } from '@/lib/api';
+import { api, apiBody, uploadForm } from '@/lib/api';
 
 // Spec 20. The server checks every rule again on each call; these are thin wrappers.
 
@@ -45,3 +45,14 @@ export const removeMember = ({ conversationId, userId }) =>
 /** CHT-10a: a removed member appeals once. */
 export const appealRemoval = ({ conversationId, text }) =>
   api(`/chat/conversations/${conversationId}/appeal`, { method: 'POST', body: { text } });
+
+/** Spec 21, FIL-04: a file in a conversation, with an optional caption. Reports progress 0 to 1. */
+export function uploadChatFile({ conversationId, file, caption, onProgress }) {
+  const form = new FormData();
+  form.append('file', file, file.name);
+  if (caption) form.append('caption', caption);
+  return uploadForm(`/chat/conversations/${conversationId}/files`, form, { onProgress });
+}
+
+/** Spec 21, FIL-08: a 5-minute signed link. The page then starts the download itself. */
+export const fetchFileLink = (fileId) => api(`/chat/files/${fileId}/link`, { method: 'POST' });

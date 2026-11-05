@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Button, buttonVariants } from '@/components/ui/button.jsx';
 import { FormError } from '@/features/auth/components/FormError.jsx';
 import { useMe } from '@/features/auth/hooks.js';
+import { FileComposer, FileError, fileProblem } from '@/features/chat/components/FileComposer.jsx';
 import { MembersPanel } from '@/features/chat/components/MembersPanel.jsx';
 import { MessageBubble } from '@/features/chat/components/MessageBubble.jsx';
 import {
@@ -13,17 +14,20 @@ import {
   useChatSocket,
   useConversations,
   useDeleteMessage,
+  useFileLink,
   useMarkRead,
   useMembers,
   useMessages,
   useSendMessage,
+  useUploadChatFile,
 } from '@/features/chat/hooks.js';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
-// CHT-06, CHT-10a: the same limits as the server.
+// CHT-06, CHT-10a: the same limits as the server. With a file attached the text is its caption,
+// so it may be empty; the empty check runs in onSend for text only.
 const messageSchema = z.object({
-  body: z.string().trim().min(1, t('chat.errors.empty')).max(4000, t('chat.errors.tooLong')),
+  body: z.string().trim().max(4000, t('chat.errors.tooLong')),
 });
 const appealSchema = z.object({
   text: z.string().trim().min(1, t('chat.errors.empty')).max(500, t('chat.errors.appealTooLong')),
@@ -43,6 +47,11 @@ export function ConversationPage() {
   const send = useSendMessage();
   const del = useDeleteMessage();
   const appeal = useAppealRemoval();
+  const upload = useUploadChatFile();
+  const link = useFileLink();
+  const [pendingFile, setPendingFile] = useState(null);
+  const [fileError, setFileError] = useState(null);
+  const [progress, setProgress] = useState(0);
   const form = useForm({ resolver: zodResolver(messageSchema), defaultValues: { body: '' } });
   const appealForm = useForm({ resolver: zodResolver(appealSchema), defaultValues: { text: '' } });
 
@@ -63,9 +72,40 @@ export function ConversationPage() {
   const closed = Boolean(conversation?.closed);
 
   const onSend = form.handleSubmit(async ({ body }) => {
+    if (pendingFile) {
+      setProgress(0);
+      await upload.mutateAsync({
+        conversationId: id,
+        file: pendingFile,
+        caption: body,
+        onProgress: setProgress,
+      });
+      setPendingFile(null);
+      setProgress(0);
+      form.reset({ body: '' });
+      return;
+    }
+    if (!body) {
+      form.setError('body', { type: 'min', message: t('chat.errors.empty') });
+      return;
+    }
     await send.mutateAsync({ conversationId: id, body });
     form.reset({ body: '' });
   });
+  // Spec 21: a chosen file is checked early, then the server checks its content on upload.
+  const chooseFile = (chosen) => {
+    setFileError(null);
+    if (!chosen) return setPendingFile(null);
+    const problem = fileProblem(chosen);
+    if (problem) {
+      setPendingFile(null);
+      return setFileError(problem);
+    }
+    setPendingFile(chosen);
+  };
+  // Spec 21, FIL-08: ask for a 5-minute link, then start the download.
+  const download = (fileId) =>
+    link.mutate(fileId, { onSuccess: (data) => window.location.assign(data.url) });
   const onAppeal = appealForm.handleSubmit(async ({ text }) => {
     await appeal.mutateAsync({ conversationId: id, text });
     appealForm.reset({ text: '' });
@@ -149,13 +189,23 @@ export function ConversationPage() {
             message={m}
             canDelete={!m.deleted && (m.mine || isOwner)}
             onDelete={(messageId) => del.mutate(messageId)}
+            onDownload={download}
+            downloading={link.isPending}
           />
         ))}
       </ol>
       <FormError error={del.error} />
+      <FileError error={link.error} />
 
       {closed ? null : (
         <form onSubmit={onSend} className="space-y-2" noValidate>
+          <FileComposer
+            file={pendingFile}
+            onChange={chooseFile}
+            error={fileError}
+            progress={progress}
+            uploading={upload.isPending}
+          />
           <label htmlFor="chat-body" className="sr-only">
             {t('chat.composeLabel')}
           </label>
@@ -178,6 +228,7 @@ export function ConversationPage() {
             </Button>
           </div>
           <FormError error={send.error} />
+          <FileError error={upload.error} />
         </form>
       )}
 

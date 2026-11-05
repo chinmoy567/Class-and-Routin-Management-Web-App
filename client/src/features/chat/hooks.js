@@ -56,6 +56,10 @@ export const useDeleteMessage = () => useChatMutation(api.deleteMessage);
 export const useRemoveMember = () => useChatMutation(api.removeMember);
 export const useAppealRemoval = () => useChatMutation(api.appealRemoval);
 export const useMarkRead = () => useChatMutation(api.markRead);
+// Spec 21: the upload reports progress through `onProgress` in its variables.
+export const useUploadChatFile = () => useChatMutation(api.uploadChatFile);
+// Spec 21, FIL-08: asking for a link changes no cached data.
+export const useFileLink = () => useMutation({ mutationFn: api.fetchFileLink });
 
 /**
  * CHT-14, CHT-16: the server pushes `message.new` and `message.status` with ids only. The client

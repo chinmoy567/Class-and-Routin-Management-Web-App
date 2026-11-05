@@ -3,6 +3,7 @@ import * as people from './chat.people.service.js';
 import * as direct from './chat.direct.service.js';
 import * as messages from './chat.messages.service.js';
 import * as groups from './chat.group.service.js';
+import * as files from './chat.files.service.js';
 
 export const searchPeople = async (r, res) =>
   res.json({ data: await people.searchPeople(r.user, r.query.q) });
@@ -55,3 +56,13 @@ export const listAppeals = async (r, res) =>
 export const restoreMember = async (r, res) => {
   res.json({ data: await groups.restoreMember(r.user, r.params.memberId) });
 };
+
+export const uploadFile = async (r, res) =>
+  res
+    .status(201)
+    .json({ data: await files.uploadFile(r.user, r.params.id, r.body, r.headers['content-type']) });
+
+export const fileLink = async (r, res) =>
+  res.json({ data: await files.createFileLink(r.user, r.params.id) });
+
+export const downloadFile = async (r, res) => files.downloadFile(r.user, r.params.id, r.query, res);
