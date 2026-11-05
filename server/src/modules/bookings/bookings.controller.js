@@ -2,6 +2,10 @@ import * as svc from './send.service.js';
 import * as dec from './decision.service.js';
 import * as cancel from './cancel.service.js';
 import * as q from './queries.service.js';
+import * as opt from './options.service.js';
+
+export const options = async (r, res) =>
+  res.json({ data: await opt.requestOptions(r.user, r.query.section_id) });
 
 export const send = async (r, res) =>
   res.status(201).json({ data: await svc.sendRequest(r.user, r.body) });

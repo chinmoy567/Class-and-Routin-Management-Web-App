@@ -43,6 +43,7 @@ export {
 } from './sessions.js';
 export { registerOpenJoinRequestCheck, registerPendingScreen } from './next.js';
 export { User, UserRole } from './auth.model.js';
+export { representedSectionIdsOf } from './representation.js';
 export { contactStatus } from './contact.service.js';
 export {
   representativeCandidate,

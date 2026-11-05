@@ -1279,6 +1279,10 @@
       "close": "Close",
       "sent": "Your request was sent. You will be told the result by email.",
       "ownSection": "My section",
+      "group": "Group (optional)",
+      "wholeSection": "Whole section",
+      "teacher": "Teacher (optional)",
+      "anyTeacher": "Not named",
       "targetRequired": "Choose the section this room is for.",
       "noteShort": "Write at least 5 characters.",
       "noteLong": "Use 300 characters or fewer.",
@@ -1312,7 +1316,8 @@
       "empty": "You have not sent any room requests yet.",
       "line": "{room}, {date}, {start} to {end}",
       "cancel": "Cancel request",
-      "findRoom": "Find a free room"
+      "findRoom": "Find a free room",
+      "noShow": "No-show on {date}: {note}"
     },
     "queue": {
       "title": "Room requests",

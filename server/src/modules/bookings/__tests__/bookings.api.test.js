@@ -22,6 +22,7 @@ import {
   resetCalendarAudienceProviders,
 } from '../../calendar/index.js';
 import { Enrolment } from '../../enrolments/index.js';
+import { setEmitter } from '../../../lib/events.js';
 import { RoomRequest, RoomSlotLock, expireDueRequests, pendingRequestsSummary } from '../index.js';
 import {
   applyBookingAction,
@@ -983,5 +984,143 @@ describe('early-closing day (BKG-08)', () => {
     expect(late.body.error.code).toBe('NOT_TEACHING_DAY');
     const early = await send(await loginAs(w.cr, app), body(w, { start: at(10), end: at(11) }));
     expect(early.status).toBe(201);
+  });
+});
+
+// ── Gap closure: labels, options, group audience, pushes and races ──────────────────────────
+
+describe('gap closure (BKG-02, BKG-12, BKG-14, BKG-16, BKG-20, BKG-21)', () => {
+  afterEach(() => setEmitter(null));
+
+  /** A class for section A taught by the teacher, so the teacher teaches the section. */
+  async function teachSectionA(w) {
+    return makeClass({
+      semester: w.sem,
+      dept: w.cse,
+      room: await makeRoom(w.cse, '999'),
+      section: w.sectionA,
+      start: at(9),
+      end: at(10),
+      teacher: w.teacher,
+    });
+  }
+
+  it('BKG-12 a teacher request is labelled with the teacher name in the queue', async () => {
+    const w = await world();
+    await teachSectionA(w);
+    const sent = await send(await loginAs(w.teacherUser, app), body(w));
+    expect(sent.status).toBe(201);
+    const queue = await (await loginAs(w.admin, app)).get('/api/admin/room-requests');
+    const item = queue.body.data.groups
+      .flatMap((g) => g.requests)
+      .find((r) => r.id === sent.body.data.id);
+    expect(item.requester_label).toBe('Teacher One');
+  });
+
+  it('BKG-02 a CR can list the groups and teachers of their section; another section and a student are refused', async () => {
+    const w = await world();
+    await teachSectionA(w);
+    const g1 = await SectionGroup.create({ section_id: w.sectionA._id, label: 'G1' });
+    const cr = await loginAs(w.cr, app);
+    const res = await cr
+      .get('/api/room-requests/options')
+      .query({ section_id: String(w.sectionA._id) });
+    expect(res.status).toBe(200);
+    expect(res.body.data.groups).toEqual([{ id: String(g1._id), label: 'G1' }]);
+    expect(res.body.data.teachers).toEqual([{ id: String(w.teacher._id), label: 'Teacher One' }]);
+    const other = await (
+      await loginAs(w.crB, app)
+    )
+      .get('/api/room-requests/options')
+      .query({ section_id: String(w.sectionA._id) });
+    expect(other.status).toBe(403);
+    const student = await makeUser({ kind: 'student', state: 'active' });
+    const plain = await (
+      await loginAs(student, app)
+    )
+      .get('/api/room-requests/options')
+      .query({ section_id: String(w.sectionA._id) });
+    expect(plain.status).toBe(403);
+  });
+
+  it('BKG-16 an approved group lab emails only the students of that group', async () => {
+    const w = await world();
+    const g1 = await SectionGroup.create({ section_id: w.sectionA._id, label: 'G1' });
+    const g2 = await SectionGroup.create({ section_id: w.sectionA._id, label: 'G2' });
+    const enrol = async (user, group) =>
+      Enrolment.create({
+        user_id: user._id,
+        semester_id: w.sem._id,
+        section_id: w.sectionA._id,
+        group_id: group._id,
+        department_id: w.cse._id,
+        status: 'accepted',
+      });
+    const inG1 = await makeUser({ kind: 'student', state: 'active' });
+    const inG2 = await makeUser({ kind: 'student', state: 'active' });
+    await enrol(inG1, g1);
+    await enrol(inG2, g2);
+    const sent = await send(await loginAs(w.cr, app), body(w, { target_group_id: String(g1._id) }));
+    expect(sent.status).toBe(201);
+    await drainMail();
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    const mail = await drainMail();
+    expect(mail.some((m) => m.to === inG1.email)).toBe(true);
+    expect(mail.some((m) => m.to === inG2.email)).toBe(false);
+  });
+
+  it('BKG-20 an approval and a cancellation push booking.changed to the section room and the named teacher', async () => {
+    const w = await world();
+    await teachSectionA(w);
+    const calls = [];
+    setEmitter((room, event) => calls.push({ room, event }));
+    const cr = await loginAs(w.cr, app);
+    const sent = await send(cr, body(w, { named_teacher_id: String(w.teacher._id) }));
+    calls.length = 0;
+    await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        { room: `section:${w.sectionA._id}`, event: 'booking.changed' },
+        { room: `user:${w.teacherUser._id}`, event: 'booking.changed' },
+      ]),
+    );
+    calls.length = 0;
+    await cr.post(`/api/room-requests/${sent.body.data.id}/cancel`).send({});
+    expect(calls).toEqual(
+      expect.arrayContaining([{ room: `section:${w.sectionA._id}`, event: 'booking.changed' }]),
+    );
+  });
+
+  it('BKG-14 a reject and an approve of the same request at the same moment: one wins, the other is ALREADY_DECIDED', async () => {
+    const w = await world();
+    const sent = await send(await loginAs(w.cr, app), body(w));
+    const id = sent.body.data.id;
+    const admin = await loginAs(w.admin, app);
+    const results = await Promise.all([
+      decide(admin, id, { decision: 'approve' }),
+      decide(admin, id, { decision: 'reject' }),
+    ]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect(results.find((r) => r.status === 409).body.error.code).toBe('ALREADY_DECIDED');
+    const doc = await RoomRequest.findById(id).lean();
+    expect(['approved', 'rejected']).toContain(doc.status);
+    const locks = await RoomSlotLock.countDocuments({ room_request_id: id });
+    expect(locks).toBe(doc.status === 'approved' ? 11 : 0); // 11:35 to 12:30 is 11 five-minute blocks
+  });
+
+  it('BKG-21 a requester cancel and an approve at the same moment: one wins, and locks match the outcome', async () => {
+    const w = await world();
+    const cr = await loginAs(w.cr, app);
+    const sent = await send(cr, body(w));
+    const id = sent.body.data.id;
+    const results = await Promise.all([
+      cr.post(`/api/room-requests/${id}/cancel`).send({}),
+      decide(await loginAs(w.admin, app), id, { decision: 'approve' }),
+    ]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    const doc = await RoomRequest.findById(id).lean();
+    expect(['approved', 'cancelled']).toContain(doc.status);
+    const locks = await RoomSlotLock.countDocuments({ room_request_id: id });
+    expect(locks).toBe(doc.status === 'approved' ? 11 : 0);
   });
 });

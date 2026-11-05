@@ -21,7 +21,7 @@ import { bumpTeacherRequestSeq, recordsOf } from '../teachers/index.js';
 const LIMIT = 3; // BKG-11
 
 /** Who is sending: a CR or DCR of the target section, or a teacher who teaches it (BKG-01). */
-async function resolveRequester(actor, body, semester) {
+export async function resolveRequester(actor, body, semester) {
   const targetSection = String(body.target_section_id);
   if (hasRole(actor, ['cr', 'dcr'], { section_id: targetSection })) {
     return { kind: 'section', section_id: targetSection };

@@ -12,6 +12,15 @@ export const useMyRoomRequests = (enabled = true) =>
     enabled,
   });
 
+/** BKG-02: the groups and teachers for a section, for the request form. */
+export const useRoomRequestOptions = (sectionId) =>
+  useQuery({
+    queryKey: qk.roomRequestOptions(sectionId),
+    queryFn: () => api.fetchRoomRequestOptions(sectionId),
+    retry: false,
+    enabled: Boolean(sectionId),
+  });
+
 export const useAdminRoomRequests = (status = 'pending', enabled = true) =>
   useQuery({
     queryKey: qk.adminRoomRequests(status),

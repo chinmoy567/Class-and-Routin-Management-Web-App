@@ -44,3 +44,32 @@ export async function acceptedStudentUserIdsOfSections(sectionIds) {
   return rows.map((r) => String(r.user_id));
 }
 registerCalendarAudienceProvider(acceptedStudentUserIdsOfSections);
+
+/** BKG-16: the students of one group of a section with an accepted enrolment this semester. */
+export async function acceptedStudentUserIdsOfGroup(sectionId, groupId) {
+  const semester = await currentSemester();
+  if (!semester) return [];
+  const rows = await Enrolment.find({
+    section_id: sectionId,
+    group_id: groupId,
+    semester_id: semester.id,
+    status: 'accepted',
+  })
+    .select('user_id')
+    .lean();
+  return rows.map((r) => String(r.user_id));
+}
+
+/** BKG-20: the sections a student is accepted into this semester (for their section push room). */
+export async function acceptedSectionIdsOf(userId) {
+  const semester = await currentSemester();
+  if (!semester) return [];
+  const rows = await Enrolment.find({
+    user_id: userId,
+    semester_id: semester.id,
+    status: 'accepted',
+  })
+    .select('section_id')
+    .lean();
+  return rows.map((r) => String(r.section_id));
+}

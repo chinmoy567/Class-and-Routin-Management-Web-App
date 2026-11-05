@@ -20,6 +20,9 @@ const note = (min, max) =>
 
 export const roomRequestIdParam = z.object({ id: objectId });
 
+/** BKG-02: the groups and teachers a requester may pick for one section. */
+export const roomRequestOptionsQuery = z.strictObject({ section_id: objectId });
+
 /** BKG-02: one room, one date, one range; 30 min to 3 h, 08:00 to 18:00, 5-minute steps. */
 export const sendRoomRequestBody = z
   .strictObject({

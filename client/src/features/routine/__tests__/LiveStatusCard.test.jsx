@@ -100,4 +100,22 @@ describe('DSH-04 the status counts on its own, without a reload', () => {
     });
     expect(screen.getByText('Free')).toBeInTheDocument();
   });
+
+  it('BKG-18 an approved booking shows as In class for the section during its time', () => {
+    // The server sends the booking as a dated running slot with no course code or teachers
+    const booking = slot({
+      slot_id: 'booking:b1',
+      booking: true,
+      course_code: '',
+      course_name: 'Room booking',
+      teachers: [],
+      start_min: 600, // 10:00
+      end_min: 630, // 10:30
+      effective_end_min: 630,
+      room_code: 'R311',
+    });
+    render(<LiveStatusCard routineData={routine([day('2027-04-06', [booking])])} />);
+    expect(screen.getByText('In class')).toBeInTheDocument();
+    expect(screen.getByText('R311 · Class ends in 30 min')).toBeInTheDocument();
+  });
 });

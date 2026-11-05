@@ -36,6 +36,11 @@ export function MyRoomRequestsCard() {
                 {t(`roomRequests.status.${request.status}`)}
                 {request.reason ? ` · ${request.reason}` : ''}
               </p>
+              {(request.requester_no_shows ?? []).map((n) => (
+                <p key={`${n.date}-${n.note}`} className="text-xs text-muted-foreground">
+                  {t('roomRequests.mine.noShow', { date: n.date, note: n.note })}
+                </p>
+              ))}
               {CANCELLABLE.includes(request.status) && (
                 <Button
                   type="button"

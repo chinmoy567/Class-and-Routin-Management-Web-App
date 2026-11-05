@@ -7,7 +7,7 @@ import { ApiError } from '@/lib/api';
 import { errorMessage } from '@/features/auth/components/FormError.jsx';
 import { t } from '@/lib/i18n';
 import { hhmm, timeOptions } from '@/features/rooms/dates.js';
-import { useSendRoomRequest } from '../hooks.js';
+import { useRoomRequestOptions, useSendRoomRequest } from '../hooks.js';
 
 const inputClass = 'h-11 w-full rounded-md border bg-background px-3 text-sm';
 const MIN_LENGTH = 30; // BKG-02: 30 minutes at least
@@ -18,6 +18,8 @@ function requestSchema() {
   return z
     .object({
       target_section_id: z.string().min(1, { message: t('roomRequests.form.targetRequired') }),
+      target_group_id: z.string().optional(),
+      named_teacher_id: z.string().optional(),
       start: z.coerce.number(),
       end: z.coerce.number(),
       note: z
@@ -56,13 +58,23 @@ export function RequestRoomDialog({ room, date, from, to, targets, onClose }) {
     resolver: zodResolver(requestSchema()),
     defaultValues: {
       target_section_id: targets[0]?.id ?? '',
+      target_group_id: '',
+      named_teacher_id: '',
       start: from,
       end: to,
       note: '',
     },
   });
-  const { register, handleSubmit, formState } = form;
+  const { register, handleSubmit, formState, setValue } = form;
   const errors = formState.errors;
+
+  // BKG-02: the groups and teachers depend on the section chosen; a new section clears both picks.
+  const sectionId = form.watch('target_section_id');
+  const options = useRoomRequestOptions(sectionId);
+  useEffect(() => {
+    setValue('target_group_id', '');
+    setValue('named_teacher_id', '');
+  }, [sectionId, setValue]);
 
   useEffect(() => {
     heading.current?.focus();
@@ -78,6 +90,9 @@ export function RequestRoomDialog({ room, date, from, to, targets, onClose }) {
         end: values.end,
         note: values.note,
         target_section_id: values.target_section_id,
+        // Optional picks are sent only when chosen, so the server sees no empty ids
+        ...(values.target_group_id ? { target_group_id: values.target_group_id } : {}),
+        ...(values.named_teacher_id ? { named_teacher_id: values.named_teacher_id } : {}),
       });
       setDone(t('roomRequests.form.sent'));
     } catch (err) {
@@ -117,6 +132,34 @@ export function RequestRoomDialog({ room, date, from, to, targets, onClose }) {
           {errors.target_section_id && (
             <p className="text-sm text-destructive">{errors.target_section_id.message}</p>
           )}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <label htmlFor="rr-group" className="block text-sm font-medium">
+              {t('roomRequests.form.group')}
+            </label>
+            <select id="rr-group" className={inputClass} {...register('target_group_id')}>
+              <option value="">{t('roomRequests.form.wholeSection')}</option>
+              {(options.data?.groups ?? []).map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="rr-teacher" className="block text-sm font-medium">
+              {t('roomRequests.form.teacher')}
+            </label>
+            <select id="rr-teacher" className={inputClass} {...register('named_teacher_id')}>
+              <option value="">{t('roomRequests.form.anyTeacher')}</option>
+              {(options.data?.teachers ?? []).map((tc) => (
+                <option key={tc.id} value={tc.id}>
+                  {tc.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">

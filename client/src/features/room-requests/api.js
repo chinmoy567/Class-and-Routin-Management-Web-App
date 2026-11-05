@@ -5,6 +5,10 @@ import { api } from '@/lib/api';
 /** BKG-01 to BKG-11: send a request for one room, one date and one time range. */
 export const sendRoomRequest = (body) => api('/room-requests', { method: 'POST', body });
 
+/** BKG-02: the groups and teachers a requester may pick for one section. */
+export const fetchRoomRequestOptions = (sectionId) =>
+  api(`/room-requests/options?section_id=${encodeURIComponent(sectionId)}`);
+
 /** BKG-26: the requester's own requests (and the section's, for a CR or DCR). */
 export const fetchMyRoomRequests = () => api('/me/room-requests');
 

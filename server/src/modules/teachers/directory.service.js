@@ -287,7 +287,7 @@ export async function directoryFor(pairs) {
 /** Records by id (department and short code), for overlap checks against saved slots. */
 export const teachersByIds = (ids) =>
   Teacher.find({ _id: { $in: ids } })
-    .select('department_id short_code user_id')
+    .select('department_id short_code full_name user_id')
     .lean();
 
 /** The linked account ids of some teacher records. */

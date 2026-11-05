@@ -58,5 +58,6 @@ export const qk = {
   // Spec 19: room requests (mine and the admin decision queue)
   roomRequestsAll: () => ['room-requests'],
   myRoomRequests: () => ['room-requests', 'mine'],
+  roomRequestOptions: (sectionId) => ['room-requests', 'options', sectionId],
   adminRoomRequests: (status) => ['room-requests', 'admin', status],
 };

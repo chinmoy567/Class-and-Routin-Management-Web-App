@@ -10,7 +10,7 @@ import { record } from '../audit/index.js';
 import { enqueue } from '../notifications/index.js';
 import { roomForBooking } from '../rooms/index.js';
 import { serialise } from './send.service.js';
-import { emailBookingAudience } from './audience.js';
+import { emailBookingAudience, pushBookingAudience } from './audience.js';
 
 const HOUR = 60 * 60 * 1000;
 const LATE_CANCEL_MS = 6 * HOUR; // BKG-21
@@ -99,6 +99,7 @@ export async function cancelRequest(actor, id, body) {
       data: { room: room.code, date: req.date },
       kind: 'cancelled',
     });
+    await pushBookingAudience(req);
   }
   emitAfterCommit('everyone', SOCKET_EVENTS.BOOKING_CHANGED, {});
   return serialise(updated);

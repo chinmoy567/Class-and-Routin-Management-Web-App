@@ -50,7 +50,8 @@ describe('BKG-02 the request form', () => {
     await userEvent.type(screen.getByLabelText('Why do you need the room?'), 'lab');
     await userEvent.click(screen.getByRole('button', { name: 'Send request' }));
     expect(await screen.findByText('Write at least 5 characters.')).toBeInTheDocument();
-    expect(calls).toHaveLength(0);
+    // Only the request itself must not be sent; the form now also loads the section's options
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0);
   });
 
   it('BKG-02 an end time before the start is refused', async () => {
@@ -62,7 +63,8 @@ describe('BKG-02 the request form', () => {
     expect(
       await screen.findByText('The end time must be after the start time.'),
     ).toBeInTheDocument();
-    expect(calls).toHaveLength(0);
+    // Only the request itself must not be sent; the form now also loads the section's options
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0);
   });
 
   it('BKG-02 a range longer than 3 hours is refused', async () => {
@@ -75,7 +77,8 @@ describe('BKG-02 the request form', () => {
     expect(
       await screen.findByText('A request lasts from 30 minutes to 3 hours.'),
     ).toBeInTheDocument();
-    expect(calls).toHaveLength(0);
+    // Only the request itself must not be sent; the form now also loads the section's options
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0);
   });
 
   it('BKG-01 a valid form sends the room, date, range, note and section, and says it was sent', async () => {
@@ -178,6 +181,44 @@ describe('BKG-26 my room requests', () => {
     expect(calls.some((c) => c.method === 'POST' && c.url === '/api/room-requests/q1/cancel')).toBe(
       true,
     );
+  });
+
+  it('BKG-23 the requester sees the no-show note kept on their earlier requests', async () => {
+    mockApi({
+      'GET /api/me/room-requests': ok([
+        {
+          id: 'q9',
+          room_code: '311',
+          date: '2027-04-08',
+          start: 600,
+          end: 660,
+          status: 'pending',
+          reason: null,
+          requester_no_shows: [{ date: '2027-03-31', note: 'Nobody came in.' }],
+        },
+      ]),
+    });
+    render(wrap(<MyRoomRequestsCard />));
+    expect(await screen.findByText('No-show on 2027-03-31: Nobody came in.')).toBeInTheDocument();
+  });
+
+  it('BKG-02 the request form offers the section groups and teachers, and sends the ones chosen', async () => {
+    const calls = mockApi({
+      'GET /api/room-requests/options?section_id=sec1': ok({
+        groups: [{ id: 'g1', label: 'G1' }],
+        teachers: [{ id: 't1', label: 'Teacher One' }],
+      }),
+      'POST /api/room-requests': ok({ id: 'x' }),
+    });
+    renderDialog();
+    await screen.findByRole('option', { name: 'G1' });
+    await userEvent.selectOptions(screen.getByLabelText('Group (optional)'), 'g1');
+    await userEvent.selectOptions(screen.getByLabelText('Teacher (optional)'), 't1');
+    await userEvent.type(screen.getByLabelText('Why do you need the room?'), 'Lab class for G1');
+    await userEvent.click(screen.getByRole('button', { name: 'Send request' }));
+    await screen.findByText('Your request was sent. You will be told the result by email.');
+    const sent = calls.find((c) => c.method === 'POST');
+    expect(sent.body).toMatchObject({ target_group_id: 'g1', named_teacher_id: 't1' });
   });
 
   it('BKG-26 a teacher with no requests sees the empty message', async () => {

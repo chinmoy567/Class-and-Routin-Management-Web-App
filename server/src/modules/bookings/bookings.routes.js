@@ -4,6 +4,7 @@ import {
   roomRequestDecisionBody,
   roomRequestIdParam,
   roomRequestNoShowBody,
+  roomRequestOptionsQuery,
   roomRequestQueueQuery,
   sendRoomRequestBody,
 } from '@crm/shared';
@@ -20,6 +21,12 @@ roomRequestRouter.post(
   c.send,
 );
 roomRequestRouter.get('/me/room-requests', requireAuth, c.mine);
+roomRequestRouter.get(
+  '/room-requests/options',
+  requireAuth,
+  validate({ query: roomRequestOptionsQuery }),
+  c.options,
+);
 roomRequestRouter.get(
   '/admin/room-requests',
   requireAuth,
