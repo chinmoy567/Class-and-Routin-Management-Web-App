@@ -29,6 +29,10 @@ test('FND-31 at 360 px there is no horizontal scroll and tap targets are at leas
 
 test('FND-31 the skip link is the first focusable element', async ({ page }) => {
   await page.goto('/');
+  // wait for the page to finish its session check, so the first Tab lands on the page's own link
+  await expect(
+    page.getByRole('heading', { name: 'Your class routine, live, in one place.' }),
+  ).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
 });
