@@ -34,4 +34,8 @@ export const keepChoicesBody = z.record(objectIdString, z.enum(KEEP_CHOICES), {
   error: 'Send keep or replace for each slot',
 });
 /** IMP-25 */
-export const publishBody = z.strictObject({ warnings_reviewed: z.boolean().optional() });
+// IMP-19: the admin's choice for an approved booking that a published row would clash with.
+export const publishBody = z.strictObject({
+  warnings_reviewed: z.boolean().optional(),
+  booking_action: z.enum(['keep_booking', 'cancel_booking']).optional(),
+});

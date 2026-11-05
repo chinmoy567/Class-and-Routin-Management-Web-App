@@ -228,6 +228,11 @@ export async function teacherLabels(ids) {
 /** The records linked to an account (one per department at most). */
 export const recordsOf = (userId) => Teacher.find({ user_id: userId }).lean();
 
+/** BKG-11: a write to the teacher document, so two room requests at once conflict and run in turn. */
+export async function bumpTeacherRequestSeq(teacherId, session) {
+  await Teacher.updateOne({ _id: teacherId }, { $inc: { request_seq: 1 } }, { session });
+}
+
 /** TCH-16: always worked out on the server from the routine, never from the request. */
 export async function sectionsTaughtBy(userId) {
   const records = await recordsOf(userId);

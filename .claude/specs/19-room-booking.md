@@ -1,6 +1,6 @@
 # 19: Room booking
 
-R2 · Status: Draft · Depends on: 13, 18 · PRD: Classroom booking rules, Core features (F9), CR/DCR dashboard (Act), Teacher dashboard (Rooms), Admin dashboard (Room requests waiting), Technical approach (room_request, room_slot_lock, Concurrency rules), Acceptance criteria (Booking) · Diagrams: 11-activity-room-booking, 16-seq-room-request, 21-state-room-request
+R2 · Status: In progress · Depends on: 13, 18 · PRD: Classroom booking rules, Core features (F9), CR/DCR dashboard (Act), Teacher dashboard (Rooms), Admin dashboard (Room requests waiting), Technical approach (room_request, room_slot_lock, Concurrency rules), Acceptance criteria (Booking) · Diagrams: 11-activity-room-booking, 16-seq-room-request, 21-state-room-request
 
 ## Goal
 
@@ -112,12 +112,22 @@ A CR, DCR or approved teacher requests a free room for a dated time range at lea
 
 ## Tasks
 
-- [ ] `room_request`, `room_slot_lock` models + indexes
-- [ ] Check functions (pure where possible) for BKG-04–BKG-10
-- [ ] Send transaction with the limit (BKG-11)
-- [ ] Decision queue + approve/reject transactions
-- [ ] Expiry job, cancel, no-show
-- [ ] Hooks into spec 07/08/11, bookings in spec 12/13 responses
-- [ ] Emails, events, audit
-- [ ] Request dialog, My room requests, admin queue screens
-- [ ] Tests incl. every PRD booking criterion and concurrency tests
+- [x] `room_request`, `room_slot_lock` models + indexes
+- [x] Check functions (pure where possible) for BKG-04–BKG-10
+- [x] Send transaction with the limit (BKG-11)
+- [x] Decision queue + approve/reject transactions
+- [x] Expiry job, cancel, no-show
+- [x] Hooks into spec 07/08/11, bookings in spec 12/13 responses
+- [~] Emails, events, audit (requester emails, events and audit done; BKG-16 student and teacher emails open)
+- [~] Request dialog, My room requests, admin queue screens (group and named-teacher inputs open)
+- [x] Tests incl. every PRD booking criterion and concurrency tests
+
+## Build notes (what the code does, and what is still open)
+
+- **Built on the server** in `server/src/modules/bookings/`: models, send checks and limit, approve/reject, expiry, cancel and no-show, queue, my requests, admin card and digest. Hooks into routine edit (EDT-05), import publish (IMP-19), calendar events (CAL-13), My routine and live status (BKG-18) and the free-room view (`bookedRoomIds`).
+- **Open: BKG-16.** Students of the target section and the teacher are not yet emailed on approval or cancellation. Only the requester is.
+- **Open: BKG-02.** The request form has no inputs for the optional target group or the named teacher. The server accepts both.
+- **Decision (departs from the plan):** the API endpoints are live. Only the dashboard cards and request buttons are hidden until the release flags say R2. Gating the endpoints too would make them unreachable in tests.
+- **Note:** CAL-13's preview (before saving) lists every approved booking in the date range for the department. The day rule is checked only after the event is saved, when the real cancellations happen.
+- **Note:** `booking.changed` is sent to the `everyone` room with ids only (BKG-20). It is not yet sent to section or teacher rooms.
+

@@ -14,6 +14,7 @@ import {
   ensureSessionIndex,
 } from './modules/auth/index.js';
 import { defineJoinJobs, ESCALATE_JOB } from './modules/join/index.js';
+import { defineBookingJobs, EXPIRE_JOB } from './modules/bookings/index.js';
 import { defineRolloverJobs, REMINDER_JOB } from './modules/rollover/index.js';
 import { ensurePhotoIndex } from './lib/gridfs.js';
 
@@ -47,6 +48,7 @@ async function main() {
       defineAuthJobs,
       defineAdminRoleJobs,
       defineJoinJobs,
+      defineBookingJobs,
       defineRolloverJobs,
     ],
   });
@@ -55,6 +57,9 @@ async function main() {
 
   // JR-14: requests nobody decided for 72 hours move to the admin.
   await getAgenda().every('15 minutes', ESCALATE_JOB, {}, { timezone: 'UTC' });
+
+  // BKG-17: pending room requests with no decision 2 hours before the start expire.
+  await getAgenda().every('5 minutes', EXPIRE_JOB, {}, { timezone: 'UTC' });
 
   // ROL-13: the semester update reminders, every day at 09:00 Dhaka time.
   await getAgenda().every('0 9 * * *', REMINDER_JOB, {}, { timezone: 'Asia/Dhaka' });

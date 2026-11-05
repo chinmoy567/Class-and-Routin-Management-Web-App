@@ -1,4 +1,6 @@
+import { isReleased } from '@crm/shared';
 import { t } from '@/lib/i18n';
+import { MyRoomRequestsCard } from '@/features/room-requests/components/MyRoomRequestsCard.jsx';
 import { useMyRoutine, useRoutineSocket, useLiveStatus } from '@/features/routine/hooks.js';
 import { useDashboard, useDashboardSocket } from '../hooks.js';
 import { dhakaDate } from '../utils.js';
@@ -11,6 +13,13 @@ import { SectionCard } from './SectionCard.jsx';
 import { RemindersCard } from './RemindersCard.jsx';
 import { SectionsTaughtCard } from './SectionsTaughtCard.jsx';
 import { TeacherAccountCard } from './TeacherAccountCard.jsx';
+
+/** BKG-01: a teacher requests rooms for the sections they teach (from R2). */
+function teacherRequestTargets(d, isTeacher) {
+  if (!isTeacher || !isReleased('dashboard.teacher.room_requests')) return null;
+  if (!d.sections_taught?.length) return null;
+  return d.sections_taught.map((s) => ({ id: s.section_id, label: s.name }));
+}
 
 function SummaryError({ onRetry }) {
   return (
@@ -36,12 +45,21 @@ function Cards({ d, kind, routine, routineState, status }) {
         isTeacher={isTeacher}
       />
       {d.upcoming_events && <NoticesCard events={d.upcoming_events} />}
-      {d.free_now && <RoomsCard freeNow={d.free_now} isTeacher={isTeacher} />}
+      {d.free_now && (
+        <RoomsCard
+          freeNow={d.free_now}
+          isTeacher={isTeacher}
+          requestTargets={teacherRequestTargets(d, isTeacher)}
+        />
+      )}
       <WeekCard routine={routine.data} routineState={routineState} />
 
       {isTeacher ? (
         <>
           {d.sections_taught && <SectionsTaughtCard sections={d.sections_taught} />}
+          {isTeacher && isReleased('dashboard.teacher.room_requests') ? (
+            <MyRoomRequestsCard />
+          ) : null}
           {d.teacher_link && <TeacherAccountCard teacherLink={d.teacher_link} />}
           {d.reminders && <RemindersCard reminders={d.reminders} />}
         </>

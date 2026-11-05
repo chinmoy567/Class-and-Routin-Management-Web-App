@@ -236,7 +236,16 @@
     "DATE_OUT_OF_RANGE": "Pick a date in this week or next week, inside the current semester.",
     "NOT_READY_UNCONFIRMED": "Some departments are not ready. Confirm to make the semester current anyway.",
     "NOT_FINAL_TERM": "Only students who finished 4-II can choose this.",
-    "FLAG_LIMIT": "You have raised the 5 flags allowed today. Try again tomorrow."
+    "FLAG_LIMIT": "You have raised the 5 flags allowed today. Try again tomorrow.",
+    "ROOM_NOT_FREE": "This room is not free at that time.",
+    "AVAILABILITY_UNKNOWN": "This room's availability is not known yet, so it cannot be requested.",
+    "TARGET_BUSY": "The section already has a class or booking at that time.",
+    "TEACHER_BUSY": "The teacher already has a class or booking at that time.",
+    "NOT_TEACHING_DAY": "Rooms cannot be requested on this day.",
+    "OUTSIDE_WINDOW": "Pick a date in this week or next week.",
+    "REQUEST_LIMIT": "You already have 3 open requests that overlap this time.",
+    "DECISION_CUTOFF_PASSED": "Decisions close 2 hours before the start.",
+    "TOO_EARLY": "A no-show note can be added once the class has ended."
   },
   "auth": {
     "fields": {
@@ -526,7 +535,8 @@
         "semester": "Current semester",
         "missingAdmin": "Departments without an active admin",
         "unconfirmed": "Unconfirmed students (14+ days)",
-        "recent": "Recent activity"
+        "recent": "Recent activity",
+        "roomRequests": "Room requests waiting"
       },
       "semester": {
         "current": "Current: {name} ({status})",
@@ -546,7 +556,12 @@
         "cross_department": "Duplicate with another department",
         "created_by_other": "Section created by {department} import"
       },
-      "uvId": "UV ID {uvId}"
+      "uvId": "UV ID {uvId}",
+      "roomRequests": {
+        "none": "No room requests are waiting.",
+        "count": "{count} requests are waiting for a decision.",
+        "open": "Open the room requests"
+      }
     },
     "students": {
       "title": "Students",
@@ -1246,6 +1261,70 @@
         "short": "Describe the problem in at least 10 characters.",
         "long": "Keep the description to 1,000 characters."
       }
+    }
+  },
+  "roomRequests": {
+    "request": "Request",
+    "requestFor": "Request {room}",
+    "form": {
+      "title": "Request {room}",
+      "intro": "Pick a section, a time and a reason for {date}. The request is checked against the routine and sent to the department that owns the room.",
+      "target": "For section",
+      "start": "From",
+      "end": "To",
+      "note": "Why do you need the room?",
+      "noteHint": "5 to 300 characters.",
+      "submit": "Send request",
+      "cancel": "Cancel",
+      "close": "Close",
+      "sent": "Your request was sent. You will be told the result by email.",
+      "ownSection": "My section",
+      "targetRequired": "Choose the section this room is for.",
+      "noteShort": "Write at least 5 characters.",
+      "noteLong": "Use 300 characters or fewer.",
+      "endBeforeStart": "The end time must be after the start time.",
+      "lengthRange": "A request lasts from 30 minutes to 3 hours."
+    },
+    "errors": {
+      "ROOM_NOT_FREE": "This room is not free at that time.",
+      "AVAILABILITY_UNKNOWN": "This room's availability is not known yet, so it cannot be requested.",
+      "TARGET_BUSY": "The section already has a class or booking at that time.",
+      "TEACHER_BUSY": "The teacher already has a class or booking at that time.",
+      "NOT_TEACHING_DAY": "Rooms cannot be requested on this day.",
+      "OUTSIDE_WINDOW": "Pick a date in this week or next week.",
+      "REQUEST_LIMIT": "You already have 3 open requests that overlap this time.",
+      "TOO_LATE": "Requests must be sent at least 12 hours before the start.",
+      "DECISION_CUTOFF_PASSED": "Decisions close 2 hours before the start.",
+      "TOO_EARLY": "A no-show note can be added once the class has ended.",
+      "ALREADY_DECIDED": "Someone already decided this request. The list has been refreshed."
+    },
+    "status": {
+      "pending": "Waiting for a decision",
+      "approved": "Approved",
+      "rejected": "Not approved",
+      "cancelled": "Cancelled",
+      "expired": "Expired: no decision was made in time"
+    },
+    "mine": {
+      "title": "My room requests",
+      "loading": "Loading your requests.",
+      "error": "Your requests could not be loaded.",
+      "empty": "You have not sent any room requests yet.",
+      "line": "{room}, {date}, {start} to {end}",
+      "cancel": "Cancel request",
+      "findRoom": "Find a free room"
+    },
+    "queue": {
+      "title": "Room requests",
+      "notReleased": "Room requests are not available yet.",
+      "intro": "Requests for your department's rooms, oldest first within each slot. The first decision is final.",
+      "loading": "Loading requests.",
+      "error": "The requests could not be loaded.",
+      "empty": "No requests are waiting for a decision.",
+      "slot": "{room}, {date}, {start} to {end}",
+      "otherRequests": "{count} other requests from this requester for this time",
+      "approve": "Approve",
+      "reject": "Reject"
     }
   }
 }

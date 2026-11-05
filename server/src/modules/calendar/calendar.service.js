@@ -19,6 +19,16 @@ const bookingAffectedProviders = [];
 export const registerBookingAffectedProvider = (fn) => bookingAffectedProviders.push(fn);
 export const resetBookingAffectedProviders = () => (bookingAffectedProviders.length = 0);
 
+// CAL-13 (effects): after an event is saved, spec 19 cancels the approved bookings it stops and
+// expires the pending requests on those days. Runs after the event is stored, never before.
+const bookingEffectHandlers = [];
+export const registerBookingEffectHandler = (fn) => bookingEffectHandlers.push(fn);
+export const resetBookingEffectHandlers = () => (bookingEffectHandlers.length = 0);
+
+async function applyBookingEffects(args) {
+  for (const fn of bookingEffectHandlers) await fn(args);
+}
+
 async function affectedBookings(fromDate, toDate, departmentId) {
   const results = [];
   for (const fn of bookingAffectedProviders) {
@@ -130,6 +140,12 @@ export async function createCalendarEvent(actor, body) {
     new_value: toPlain(event),
   });
 
+  await applyBookingEffects({
+    fromDate: body.from_date,
+    toDate: body.to_date,
+    departmentId: deptId,
+    actor,
+  });
   notifyCalendarChange(deptId);
   return { saved: true, event: toPlain(event) };
 }
@@ -200,6 +216,7 @@ export async function updateCalendarEvent(actor, id, body) {
     new_value: toPlain(updated),
   });
 
+  await applyBookingEffects({ fromDate: newFrom, toDate: newTo, departmentId: newDeptId, actor });
   notifyCalendarChange(newDeptId);
   return { saved: true, event: toPlain(updated) };
 }

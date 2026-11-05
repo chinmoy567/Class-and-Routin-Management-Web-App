@@ -69,6 +69,8 @@ export {
   registerBookingClashProvider,
   registerBookingActionHandler,
   resetBookingHooks,
+  registerBookingsForRoutineProvider,
+  bookingsForRoutine,
 } from './bookings.hooks.js';
 export {
   Section,
@@ -82,10 +84,12 @@ export {
   findSectionByBatch,
   listSectionsBrief,
   bumpSectionRoleSeq,
+  bumpSectionRequestSeq,
   listGroupsOfSections,
   getGroupBrief,
   hasPublishedCleanImport,
 } from './section.brief.js';
 export { sectionCoursesFor, sectionRoutineFor } from './my-routine.service.js';
+export { runningClasses, teacherIdsOfSection } from './classes.query.js';
 export { clearAll as clearRoutineCaches } from './routine-cache.js';
 export { routineProblemsFor } from './problems.service.js';

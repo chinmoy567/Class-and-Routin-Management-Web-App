@@ -13,11 +13,11 @@ export const clearOutbox = () => {
  * In production they go out over SMTP.
  */
 export function createTransport(config) {
-  if (config.NODE_ENV === 'production') {
+  if (config.SMTP_HOST && config.SMTP_USER) {
     const smtp = nodemailer.createTransport({
       host: config.SMTP_HOST,
       port: config.SMTP_PORT,
-      auth: config.SMTP_USER ? { user: config.SMTP_USER, pass: config.SMTP_PASS } : undefined,
+      auth: { user: config.SMTP_USER, pass: config.SMTP_PASS },
     });
     return { send: (message) => smtp.sendMail({ from: config.MAIL_FROM, ...message }) };
   }

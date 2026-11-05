@@ -40,6 +40,17 @@ export const ERROR_CODES = Object.freeze({
   NOT_READY_UNCONFIRMED: { code: 'NOT_READY_UNCONFIRMED', status: 409 },
   NOT_FINAL_TERM: { code: 'NOT_FINAL_TERM', status: 409 },
   FLAG_LIMIT: { code: 'FLAG_LIMIT', status: 429 },
+
+  // Room booking (spec 19)
+  ROOM_NOT_FREE: { code: 'ROOM_NOT_FREE', status: 409 },
+  AVAILABILITY_UNKNOWN: { code: 'AVAILABILITY_UNKNOWN', status: 409 },
+  TARGET_BUSY: { code: 'TARGET_BUSY', status: 409 },
+  TEACHER_BUSY: { code: 'TEACHER_BUSY', status: 409 },
+  NOT_TEACHING_DAY: { code: 'NOT_TEACHING_DAY', status: 409 },
+  OUTSIDE_WINDOW: { code: 'OUTSIDE_WINDOW', status: 409 },
+  REQUEST_LIMIT: { code: 'REQUEST_LIMIT', status: 409 },
+  DECISION_CUTOFF_PASSED: { code: 'DECISION_CUTOFF_PASSED', status: 409 },
+  TOO_EARLY: { code: 'TOO_EARLY', status: 409 },
 });
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
@@ -83,3 +94,13 @@ export const DATE_OUT_OF_RANGE = 'DATE_OUT_OF_RANGE';
 export const NOT_READY_UNCONFIRMED = 'NOT_READY_UNCONFIRMED';
 export const NOT_FINAL_TERM = 'NOT_FINAL_TERM';
 export const FLAG_LIMIT = 'FLAG_LIMIT';
+
+export const ROOM_NOT_FREE = 'ROOM_NOT_FREE';
+export const AVAILABILITY_UNKNOWN = 'AVAILABILITY_UNKNOWN';
+export const TARGET_BUSY = 'TARGET_BUSY';
+export const TEACHER_BUSY = 'TEACHER_BUSY';
+export const NOT_TEACHING_DAY = 'NOT_TEACHING_DAY';
+export const OUTSIDE_WINDOW = 'OUTSIDE_WINDOW';
+export const REQUEST_LIMIT = 'REQUEST_LIMIT';
+export const DECISION_CUTOFF_PASSED = 'DECISION_CUTOFF_PASSED';
+export const TOO_EARLY = 'TOO_EARLY';

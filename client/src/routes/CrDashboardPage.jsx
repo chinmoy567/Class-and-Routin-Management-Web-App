@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router';
+import { isReleased } from '@crm/shared';
 import { errorMessage } from '@/features/auth/components/FormError.jsx';
 import { CrHeader } from '@/features/cr/components/CrHeader.jsx';
 import { FlagsCard } from '@/features/cr/components/FlagsCard.jsx';
@@ -8,6 +9,7 @@ import { SectionRoutineCard } from '@/features/cr/components/SectionRoutineCard.
 import { UnconfirmedCard } from '@/features/cr/components/UnconfirmedCard.jsx';
 import { useCrOverview, useCrRoutine } from '@/features/cr/hooks.js';
 import { FreeRoomsFinder } from '@/features/rooms/components/FreeRoomsFinder.jsx';
+import { MyRoomRequestsCard } from '@/features/room-requests/components/MyRoomRequestsCard.jsx';
 import { t } from '@/lib/i18n';
 
 /** Spec 17: the CR/DCR dashboard for one section, in one column on phones. */
@@ -15,6 +17,9 @@ export function CrDashboardPage() {
   const { id } = useParams();
   const overview = useCrOverview(id);
   const routine = useCrRoutine(id);
+  // BKG-01: a CR or DCR requests rooms for their own section (spec 19, from R2)
+  const canRequest = isReleased('cr.room_requests');
+  const requestTargets = canRequest ? [{ id, label: t('roomRequests.form.ownSection') }] : null;
 
   if (overview.isPending) {
     return (
@@ -54,8 +59,9 @@ export function CrDashboardPage() {
         <h2 id="cr-rooms-title" className="mb-2 text-base font-semibold">
           {t('cr.rooms.heading')}
         </h2>
-        <FreeRoomsFinder />
+        <FreeRoomsFinder requestTargets={requestTargets} />
       </section>
+      {canRequest ? <MyRoomRequestsCard /> : null}
       <FlagsCard sectionId={id} flags={data.flags} roster={data.roster} />
     </div>
   );

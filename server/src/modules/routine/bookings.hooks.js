@@ -29,3 +29,15 @@ export async function applyBookingAction({ action, bookings, actor, session }) {
   if (!action || !bookings.length) return;
   for (const fn of actionHandlers) await fn({ action, bookings, actor, session });
 }
+
+// BKG-18: approved bookings for a viewer's section, group or teacher, in one date range. The
+// bookings module registers this; routine only merges what it returns (never the booking rules).
+const bookingsProviders = [];
+export const registerBookingsForRoutineProvider = (fn) => bookingsProviders.push(fn);
+
+/** `[{ id, date, start_min, end_min, room_code, course_name }]` for the viewer's routine. */
+export async function bookingsForRoutine(args) {
+  const out = [];
+  for (const fn of bookingsProviders) out.push(...(await fn(args)));
+  return out;
+}

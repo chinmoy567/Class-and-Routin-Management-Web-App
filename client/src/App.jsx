@@ -41,6 +41,7 @@ import { CrDashboardPage } from '@/routes/CrDashboardPage.jsx';
 import { AdminDashboardPage } from '@/routes/admin/AdminDashboardPage.jsx';
 import { AdminStudentsPage } from '@/routes/admin/AdminStudentsPage.jsx';
 import { AdminFlagsPage } from '@/routes/admin/AdminFlagsPage.jsx';
+import { AdminRoomRequestsPage } from '@/routes/admin/AdminRoomRequestsPage.jsx';
 import { AdminAppealsPage } from '@/routes/admin/AdminAppealsPage.jsx';
 import { AdminAuditPage } from '@/routes/admin/AdminAuditPage.jsx';
 import { ForcedPasswordChangePage } from '@/routes/ForcedPasswordChangePage.jsx';
@@ -97,6 +98,7 @@ export function AppRoutes() {
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/students" element={<AdminStudentsPage />} />
             <Route path="/admin/flags" element={<AdminFlagsPage />} />
+            <Route path="/admin/room-requests" element={<AdminRoomRequestsPage />} />
             <Route path="/admin/appeals" element={<AdminAppealsPage />} />
             <Route path="/admin/audit" element={<AdminAuditPage />} />
           </Route>

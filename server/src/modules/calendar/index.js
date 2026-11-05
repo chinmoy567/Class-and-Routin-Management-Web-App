@@ -17,5 +17,7 @@ export {
   getEventsForDepartment,
   registerBookingAffectedProvider,
   resetBookingAffectedProviders,
+  registerBookingEffectHandler,
+  resetBookingEffectHandlers,
 } from './calendar.service.js';
 export { registerCalendarAudienceProvider, resetCalendarAudienceProviders } from './hooks.js';

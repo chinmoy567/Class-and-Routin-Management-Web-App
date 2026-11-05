@@ -28,6 +28,7 @@ export {
   teachersByIds,
   linkedUserIds,
   upsertFromImport,
+  bumpTeacherRequestSeq,
   registerSectionsProvider,
   registerLinkChangeListener,
   resetTeacherProviders,

@@ -374,6 +374,38 @@ export async function resolve(text, { includeRetired = false } = {}) {
   return roomView(room);
 }
 
+/**
+ * BKG-12, BKG-05: what a booking needs to know about a room. Returns `null` if the room does not
+ * exist. `department_ids` lists the owner and every sharing department.
+ */
+export async function roomForBooking(roomId) {
+  const room = await Room.findById(roomId).lean();
+  if (!room) return null;
+  const shares = await RoomShare.find({ room_id: room._id }).lean();
+  const owner = String(room.owner_department_id);
+  const departmentIds = [owner, ...shares.map((s) => String(s.department_id))];
+  return {
+    id: String(room._id),
+    code: room.code,
+    type: room.type,
+    retired: Boolean(room.retired),
+    owner_department_id: owner,
+    department_ids: [...new Set(departmentIds)],
+  };
+}
+
+/** BKG-12: the rooms a set of departments owns or shares (for the admin's request queue). */
+export async function roomIdsForDepartments(departmentIds) {
+  const ids = departmentIds.map(String);
+  const owned = await Room.find({ owner_department_id: { $in: ids } })
+    .select('_id')
+    .lean();
+  const shared = await RoomShare.find({ department_id: { $in: ids } })
+    .select('room_id')
+    .lean();
+  return [...new Set([...owned, ...shared].map((r) => String(r.room_id ?? r._id)))];
+}
+
 /** DEP-02: has this department got any room? Then its code can no longer change. */
 export const departmentHasRooms = async (departmentId) =>
   Boolean(await Room.exists({ owner_department_id: departmentId }));

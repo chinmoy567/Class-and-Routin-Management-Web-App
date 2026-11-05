@@ -14,12 +14,15 @@ export {
   roomCodes,
   listAdminRooms,
   countActiveRoomsOf,
+  roomForBooking,
+  roomIdsForDepartments,
   registerRoomUsage,
   resetRoomUsage,
 } from './rooms.service.js';
 export { normaliseName } from './normalise.js';
 export {
   availability,
+  roomStatusFor,
   freeNow,
   listAvailability,
   registerAvailabilityProvider,

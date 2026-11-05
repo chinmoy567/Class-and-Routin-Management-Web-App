@@ -14,6 +14,7 @@ const sectionSchema = new Schema(
     created_by_import_of: oid(), // IMP-27: the department whose import created it, if not its own
     closed_at: { type: Date },
     role_seq: { type: Number, default: 0 }, // spec 09: serialises the CR/DCR limit check
+    request_seq: { type: Number, default: 0 }, // spec 19: serialises the room request limit
   },
   { collection: 'section', timestamps: { createdAt: 'created_at', updatedAt: false } },
 );

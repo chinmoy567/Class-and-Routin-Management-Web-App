@@ -38,6 +38,11 @@ export async function bumpSectionRoleSeq(sectionId, session) {
   await Section.updateOne({ _id: sectionId }, { $inc: { role_seq: 1 } }, { session });
 }
 
+/** BKG-11: a write to the section document, so two room requests at once conflict and run in turn. */
+export async function bumpSectionRequestSeq(sectionId, session) {
+  await Section.updateOne({ _id: sectionId }, { $inc: { request_seq: 1 } }, { session });
+}
+
 const groupBrief = (g) => ({ id: String(g._id), section_id: String(g.section_id), label: g.label });
 
 /** Spec 10: the groups of one or more sections. */

@@ -14,6 +14,7 @@ import { clock } from '../../lib/time.js';
 import { record } from '../audit/index.js';
 import { addToBatch } from '../notifications/index.js';
 import { describeSections } from './changeSummary.service.js';
+import { applyBookingAction, findBookingClashes } from './bookings.hooks.js';
 import { getSemester } from '../organisation/index.js';
 import { directoryFor, linkedUserIds, upsertFromImport } from '../teachers/index.js';
 
@@ -93,7 +94,7 @@ const slotDoc = (row, { imp, sectionIds, groupIds, teacherIds }) => ({
 });
 
 /** IMP-25, IMP-26, IMP-28, IMP-29 */
-export async function publishImport(actor, id, { warnings_reviewed } = {}) {
+export async function publishImport(actor, id, { warnings_reviewed, booking_action } = {}) {
   const imp0 = await loadImportFor(actor, id);
   if (imp0.status === 'published' || imp0.status === 'replaced') throw alreadyDecided();
   const semester = await assertSemesterOpen(imp0.semester_id);
@@ -122,6 +123,21 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
   }
   const saved = await directoryFor(wanted);
 
+  // IMP-19: approved bookings that a published row would clash with (room, weekday, time)
+  const places = imp0.rows
+    .filter((r) => r.room_id && r.day !== undefined && r.start_min != null && r.end_min != null)
+    .map((r) => ({
+      semester_id: imp0.semester_id,
+      room_id: r.room_id,
+      day_of_week: r.day,
+      start_min: r.start_min,
+      end_min: r.end_min,
+    }));
+  const clashes = await findBookingClashes(places);
+  if (clashes.length && !booking_action) {
+    return { saved: false, booking_clashes: clashes };
+  }
+
   const result = await withTransaction(async (session) => {
     // First action wins: only one publish flips the status.
     const imp = await RoutineImport.findOneAndUpdate(
@@ -131,6 +147,8 @@ export async function publishImport(actor, id, { warnings_reviewed } = {}) {
     ).lean();
     if (!imp) throw alreadyDecided();
     await assertSemesterOpen(imp.semester_id);
+    // IMP-19: the admin's choice for each clashing booking, in the same transaction as the publish
+    await applyBookingAction({ action: booking_action, bookings: clashes, actor, session });
 
     // IMP-26: sections and groups for every department in the file.
     const sectionIds = new Map();

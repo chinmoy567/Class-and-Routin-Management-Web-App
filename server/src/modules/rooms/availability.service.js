@@ -140,6 +140,15 @@ export async function availability({ date, from, to, type, department_id: depart
   return { ...requestRule(top), rooms: rows };
 }
 
+/**
+ * BKG-04, BKG-05: one room's status for a range (`free`, `unknown`, `busy` or `booked`), or `null`
+ * if there is no such room. Booking checks use this; it does not check who is asking.
+ */
+export async function roomStatusFor({ roomId, date, from, to }) {
+  const result = await availability({ date, from, to });
+  return result.rooms.find((r) => r.id === String(roomId)) ?? null;
+}
+
 async function gatherRules({ semester, date, departmentIds }) {
   const merged = new Map();
   for (const fn of providers.dayRules) {

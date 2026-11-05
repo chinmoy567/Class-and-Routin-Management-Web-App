@@ -33,6 +33,7 @@ import { roomsAdminRouter, roomsRouter } from './modules/rooms/index.js';
 import { teachersAdminRouter, teachersMeRouter } from './modules/teachers/index.js';
 import { representativesRouter, crRouter } from './modules/representatives/index.js';
 import { joinRouter } from './modules/join/index.js';
+import { roomRequestRouter } from './modules/bookings/index.js';
 import { routineRouter, myRoutineRouter } from './modules/routine/index.js';
 import { calendarRouter } from './modules/calendar/index.js';
 import { rolloverAdminRouter, rolloverMeRouter } from './modules/rollover/index.js';
@@ -134,6 +135,7 @@ export function createApp(
   app.use('/api/admin', requireAuth, adminRouter);
   app.use('/api/me', rolloverMeRouter);
   app.use('/api', joinRouter);
+  app.use('/api', roomRequestRouter);
   app.use('/api', routineRouter);
   app.use('/api', myRoutineRouter);
   app.use('/api', calendarRouter);

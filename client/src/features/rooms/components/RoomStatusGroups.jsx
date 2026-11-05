@@ -3,8 +3,11 @@ import { t } from '@/lib/i18n';
 // FRV-05: the groups in the order the page shows them. Each heading is a text label, not a colour.
 const GROUPS = ['free', 'unknown', 'busy', 'booked'];
 
-/** The rooms grouped Free / Availability unknown / In use / Booked, with a legend (FRV-05). */
-export function RoomStatusGroups({ rooms }) {
+/**
+ * The rooms grouped Free / Availability unknown / In use / Booked, with a legend (FRV-05).
+ * `onRequest` is given only to users who may request a room (BKG-01); free rooms then get a button.
+ */
+export function RoomStatusGroups({ rooms, onRequest }) {
   return (
     <div className="flex flex-col gap-6">
       <dl className="grid gap-2 text-sm sm:grid-cols-2" aria-label={t('freeRooms.legend')}>
@@ -36,6 +39,16 @@ export function RoomStatusGroups({ rooms }) {
                     </span>
                     {status === 'unknown' ? (
                       <span className="text-sm">{t('freeRooms.unknownNote')}</span>
+                    ) : null}
+                    {onRequest && status === 'free' && room.requests_allowed !== false ? (
+                      <button
+                        type="button"
+                        onClick={() => onRequest(room)}
+                        aria-label={t('roomRequests.requestFor', { room: room.code })}
+                        className="ms-auto min-h-11 rounded-md border px-3 text-sm"
+                      >
+                        {t('roomRequests.request')}
+                      </button>
                     ) : null}
                   </li>
                 ))}

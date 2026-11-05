@@ -98,7 +98,7 @@
     },
     "room_request_result": {
       "subject": "Your room request has been decided",
-      "body": "Hello,\n\nYour room request for {room} on {date} has been decided. Open the app to see the result:\n{link}"
+      "body": "Hello,\n\nYour room request for {room} on {date} is {outcome}.{reason}\n\nOpen the app to see the details:\n{link}"
     },
     "booking_cancelled": {
       "subject": "A room booking was cancelled",
@@ -116,6 +116,23 @@
   "digest": {
     "teacher_registrations": "Teacher registrations waiting",
     "escalated_join_requests": "Escalated join requests waiting",
-    "open_flags": "Problems flagged by CR or DCR"
+    "open_flags": "Problems flagged by CR or DCR",
+    "room_requests": "Room requests waiting"
+  },
+  "bookings": {
+    "errors": {
+      "outsideWindow": "Pick a date in this week or next week.",
+      "notTeachingDay": "Rooms cannot be requested on this day.",
+      "pastCutoff": "The range must end by the early closing time on this day.",
+      "tooLate": "Requests must be sent at least 12 hours before the start.",
+      "availabilityUnknown": "This room's availability is not known yet, so it cannot be requested.",
+      "roomNotFree": "This room is not free at that time.",
+      "targetBusy": "The target section already has a class or booking at that time.",
+      "teacherBusy": "The teacher already has a class or booking at that time.",
+      "limitReached": "You already have 3 open requests that overlap this time.",
+      "alreadyDecided": "Someone already decided this request.",
+      "cutoffPassed": "Decisions close 2 hours before the start.",
+      "tooEarly": "A no-show note can be added once the class has ended."
+    }
   }
 }

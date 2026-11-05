@@ -8,7 +8,7 @@ import { DashboardCard, CardMessage } from './DashboardCard.jsx';
  * DSH-08, DSH-14: rooms free right now, view only. Teachers also get the date and time picker of
  * the free-room view, right on the dashboard.
  */
-export function RoomsCard({ freeNow, isTeacher }) {
+export function RoomsCard({ freeNow, isTeacher, requestTargets = null }) {
   const id = useId();
   return (
     <DashboardCard id={id} title={t('dashboard.rooms')}>
@@ -31,7 +31,7 @@ export function RoomsCard({ freeNow, isTeacher }) {
         ))}
       {isTeacher ? (
         <div className="mt-4 flex flex-col gap-4">
-          <FreeRoomsFinder />
+          <FreeRoomsFinder requestTargets={requestTargets} />
         </div>
       ) : (
         <Link to="/rooms/free" className="mt-3 inline-block text-sm underline">

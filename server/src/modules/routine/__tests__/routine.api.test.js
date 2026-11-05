@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import ExcelJS from 'exceljs';
+import mongoose from 'mongoose';
 import {
   buildTestApp,
   clearDb,
@@ -13,6 +14,7 @@ import {
 } from '../../../../test/harness.js';
 import { createDepartment, makeUser } from '../../../../test/factories.js';
 import { setScanner } from '../../../lib/clamav.js';
+import { RoomRequest, RoomSlotLock } from '../../bookings/index.js';
 import { Semester } from '../../organisation/index.js';
 import { Teacher } from '../../teachers/index.js';
 import { list as auditList } from '../../audit/index.js';
@@ -731,5 +733,43 @@ describe('access and scope', () => {
     const w = await world();
     const anon = await loginAs(null, app);
     expect((await anon.get(`/api/semesters/${w.sem.id}/imports`)).status).toBe(401);
+  });
+});
+
+describe('routine import and approved bookings (IMP-19)', () => {
+  it('IMP-19 publishing a row that clashes with an approved booking asks first; cancel_booking cancels it', async () => {
+    const w = await world();
+    const booking = await RoomRequest.create({
+      semester_id: w.sem.id,
+      sent_by_user_id: new mongoose.Types.ObjectId(),
+      requester_section_id: new mongoose.Types.ObjectId(),
+      target_section_id: new mongoose.Types.ObjectId(),
+      room_id: w.room.id,
+      date: '2027-04-07', // a Wednesday
+      start_min: 660, // 11:00
+      end_min: 720, // 12:00
+      starts_at: new Date('2027-04-07T05:00:00Z'),
+      note: 'Lab class for group G1',
+      status: 'approved',
+    });
+    const up = (
+      await uploadRows(w.cseAdmin, w, w.cse, [
+        row('CSE', { day: 'Wednesday', start: '11:00', end: '12:00', room: '311' }),
+      ])
+    ).body.data;
+
+    const asks = await publish(w.cseAdmin, up.id);
+    expect(asks.status).toBe(200);
+    expect(asks.body.data.saved).toBe(false);
+    expect(asks.body.data.booking_clashes).toHaveLength(1);
+    expect((await RoomRequest.findById(booking._id).lean()).status).toBe('approved');
+
+    const done = await publish(w.cseAdmin, up.id, {
+      warnings_reviewed: true,
+      booking_action: 'cancel_booking',
+    });
+    expect(done.status).toBe(200);
+    expect((await RoomRequest.findById(booking._id).lean()).status).toBe('cancelled');
+    expect(await RoomSlotLock.countDocuments({ room_request_id: booking._id })).toBe(0);
   });
 });

@@ -14,6 +14,7 @@ import {
   TeacherRegistrationsCard,
   UnconfirmedCard,
 } from '@/features/admin/components/DashboardCards.jsx';
+import { RoomRequestsCard } from '@/features/room-requests/components/RoomRequestsCard.jsx';
 import { t } from '@/lib/i18n';
 
 export function AdminDashboardPage() {
@@ -42,7 +43,8 @@ export function AdminDashboardPage() {
           <FlagsCard id="card-flags" card={data.flags} />
           <RejectionsCard id="card-rejections" card={data.rejections_and_appeals} />
           <RoutineProblemsCard id="card-routine" card={data.routine_problems} />
-          {/* ADM-06: the room requests card arrives with spec 19 (R2). */}
+          {/* ADM-06: released with spec 19 (R2); the server sends the data only once it is released */}
+          {data.room_requests ? <RoomRequestsCard card={data.room_requests} /> : null}
           <SemesterCard id="card-semester" semester={data.semester} />
           {data.missing_admin && (
             <MissingAdminCard id="card-missing-admin" missing={data.missing_admin} />

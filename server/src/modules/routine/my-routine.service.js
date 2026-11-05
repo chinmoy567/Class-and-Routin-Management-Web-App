@@ -11,7 +11,8 @@ import {
   getTeacherSlots,
   setTeacherSlots,
 } from './routine-cache.js';
-import { clock, toInstitutionDate } from '../../lib/time.js';
+import { clock, toInstitutionDate, weekdayOf } from '../../lib/time.js';
+import { bookingsForRoutine } from './bookings.hooks.js';
 
 const addDays = (date, n) => {
   const d = new Date(`${date}T00:00:00Z`);
@@ -319,6 +320,17 @@ export async function getMyRoutine(actor, { from, to }) {
 
   const toDate = to ?? (await nextTeachingDay(today, departmentId, semester));
 
+  // BKG-18: approved bookings join the routine, My routine and live status
+  const bookings = await bookingsForRoutine({
+    semesterId: semId,
+    fromDate,
+    toDate,
+    sectionId,
+    groupId,
+    userId: actor._id,
+    isTeacher,
+  });
+
   return buildRoutinePayload({
     semester,
     slotsForDays,
@@ -327,6 +339,7 @@ export async function getMyRoutine(actor, { from, to }) {
     departmentId,
     groupMissing,
     isTeacher,
+    bookings,
   });
 }
 
@@ -343,6 +356,7 @@ export async function buildRoutinePayload({
   departmentId,
   groupMissing = false,
   isTeacher = false,
+  bookings = [],
 }) {
   const today = toInstitutionDate(clock.now());
   const from = fromDate ?? today;
@@ -380,6 +394,29 @@ export async function buildRoutinePayload({
     departmentId,
   );
 
+  // BKG-18: a booking is a dated, one-off running slot on its own date (the weekly routine is not changed)
+  const bookingSlot = (b) => ({
+    slot_id: `booking:${b.id}`,
+    booking: true,
+    day_of_week: weekdayOf(b.date),
+    date: b.date,
+    start_min: b.start_min,
+    end_min: b.end_min,
+    effective_end_min: b.end_min,
+    course_code: '',
+    course_name: b.course_name,
+    room_code: b.room_code,
+    status: 'runs',
+    label: null,
+    reason: null,
+  });
+  for (const day of days) {
+    const extra = bookings.filter((b) => b.date === day.date).map(bookingSlot);
+    if (extra.length) {
+      day.slots = [...day.slots, ...extra].sort((a, b) => a.start_min - b.start_min);
+    }
+  }
+
   return {
     server_time: clock.now().toISOString(),
     today,
@@ -387,7 +424,7 @@ export async function buildRoutinePayload({
     semester: semesterShape,
     week,
     days,
-    bookings: [],
+    bookings,
     events: events.map((e) => ({
       id: String(e._id),
       from_date: e.from_date,

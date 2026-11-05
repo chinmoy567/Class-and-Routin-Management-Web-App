@@ -199,11 +199,13 @@ Your department admin removed your sample-role role for sample-section (Fall 202
 http://localhost:5173",
   },
   "room_request_result": {
-    "html": "<p>Hello,</p><p>Your room request for Room 312 on 8 Nov 2026 has been decided. Open the app to see the result:<br>http://localhost:5173</p>",
+    "html": "<p>Hello,</p><p>Your room request for Room 312 on 8 Nov 2026 is approved.sample-reason</p><p>Open the app to see the details:<br>http://localhost:5173</p>",
     "subject": "Your room request has been decided",
     "text": "Hello,
 
-Your room request for Room 312 on 8 Nov 2026 has been decided. Open the app to see the result:
+Your room request for Room 312 on 8 Nov 2026 is approved.sample-reason
+
+Open the app to see the details:
 http://localhost:5173",
   },
   "routine_changed": {

@@ -55,4 +55,8 @@ export const qk = {
   adminAudit: (params) => ['admin', 'audit', params],
   calendarAll: () => ['admin', 'calendar'],
   calendarEvents: (params) => ['admin', 'calendar', 'events', params],
+  // Spec 19: room requests (mine and the admin decision queue)
+  roomRequestsAll: () => ['room-requests'],
+  myRoomRequests: () => ['room-requests', 'mine'],
+  adminRoomRequests: (status) => ['room-requests', 'admin', status],
 };

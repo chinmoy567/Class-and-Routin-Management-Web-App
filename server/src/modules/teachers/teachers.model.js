@@ -30,6 +30,7 @@ const teacherSchema = new Schema(
     full_name: { type: String, required: true },
     user_id: { type: Schema.Types.ObjectId },
     created_from: { type: String, enum: ['import', 'manual'], default: 'manual' },
+    request_seq: { type: Number, default: 0 }, // spec 19: serialises the room request limit
   },
   { collection: 'teacher', timestamps: true },
 );

@@ -4,6 +4,7 @@ import { formatDhaka, serverNow } from '@/lib/time';
 import { useDepartments } from '@/features/auth/hooks.js';
 import { useAvailability, useAvailabilitySocket } from '@/features/rooms/hooks.js';
 import { RoomStatusGroups } from '@/features/rooms/components/RoomStatusGroups.jsx';
+import { RequestRoomDialog } from '@/features/room-requests/components/RequestRoomDialog.jsx';
 import { hhmm, timeOptions, weekBounds } from '@/features/rooms/dates.js';
 
 const selectClass = 'min-h-11 w-full rounded-md border bg-background px-3 text-sm';
@@ -14,8 +15,9 @@ const ELEVEN_AM = 660;
  * FRV-01 to FRV-06: pick a date and a range, see which rooms are free. Read-only.
  * Used by the free-room page and by the teacher dashboard (DSH-14).
  */
-export function FreeRoomsFinder() {
+export function FreeRoomsFinder({ requestTargets = null }) {
   useAvailabilitySocket();
+  const [requesting, setRequesting] = useState(null);
   const today = formatDhaka(serverNow(), 'yyyy-MM-dd');
   const { min, max } = weekBounds(today);
   const [date, setDate] = useState(today);
@@ -128,10 +130,27 @@ export function FreeRoomsFinder() {
       ) : null}
       {data ? (
         data.rooms.length ? (
-          <RoomStatusGroups rooms={data.rooms} />
+          <RoomStatusGroups
+            rooms={data.rooms}
+            onRequest={
+              requestTargets?.length && data.requests_allowed
+                ? (room) => setRequesting(room)
+                : undefined
+            }
+          />
         ) : (
           <p className="text-sm text-muted-foreground">{t('freeRooms.empty')}</p>
         )
+      ) : null}
+      {requesting ? (
+        <RequestRoomDialog
+          room={requesting}
+          date={date}
+          from={from}
+          to={to}
+          targets={requestTargets}
+          onClose={() => setRequesting(null)}
+        />
       ) : null}
     </>
   );

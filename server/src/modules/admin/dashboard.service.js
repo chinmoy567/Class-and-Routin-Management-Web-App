@@ -2,6 +2,7 @@
 // owning module's exported service function. Nothing returned carries an email or a phone, except where
 // specs 06 and 10 allow it, and this dashboard does not use those exceptions.
 import { isReleased } from '@crm/shared';
+import { pendingRequestsSummary } from '../bookings/index.js';
 import { assertCan, hasRole } from '../../policy/index.js';
 import { recentEntries } from '../audit/index.js';
 import { findDepartmentsWithoutActiveAdmin, listAdmins, userNames } from '../auth/index.js';
@@ -187,6 +188,8 @@ export async function getAdminDashboard(actor, { department_id } = {}) {
     unconfirmed,
     recent_activity: recent,
   };
+  // ADM-06: the room requests card, only once spec 19 is released (R2)
+  if (out.released.room_requests) out.room_requests = await pendingRequestsSummary(scope.ids);
   if (superAdmin) out.missing_admin = await missingAdmin(actor, deptFilter);
   return out;
 }
