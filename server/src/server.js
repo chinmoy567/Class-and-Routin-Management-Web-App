@@ -17,7 +17,6 @@ import { defineJoinJobs, ESCALATE_JOB } from './modules/join/index.js';
 import { defineBookingJobs, EXPIRE_JOB } from './modules/bookings/index.js';
 import { defineRolloverJobs, REMINDER_JOB } from './modules/rollover/index.js';
 import { ensurePhotoIndex } from './lib/gridfs.js';
-import { sectionRoomsFor } from './modules/routine/index.js';
 
 async function main() {
   let config;
@@ -71,12 +70,7 @@ async function main() {
   const sessionMiddleware = createSessionMiddleware(config);
   const app = createApp(config, { sessionMiddleware });
   const server = http.createServer(app);
-  // BKG-20: on connect, a socket joins the section rooms it may hear about (ids only)
-  initSocket(server, sessionMiddleware, {
-    onConnect: async (socket) => {
-      for (const room of await sectionRoomsFor(socket.data.userId)) socket.join(room);
-    },
-  });
+  initSocket(server, sessionMiddleware);
   server.listen(config.PORT, () => logger.info({ port: config.PORT }, 'server listening'));
 }
 

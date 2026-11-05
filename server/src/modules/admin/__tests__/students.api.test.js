@@ -97,9 +97,11 @@ async function world() {
 }
 
 const expectNoContact = (body) => {
-  const text = JSON.stringify(body);
+  // Object ids are random hex and can contain "880" or digit runs, so they are removed first.
+  // Only phone-shaped text counts: +880 numbers and 11-digit 01x mobile numbers.
+  const text = JSON.stringify(body).replace(/[0-9a-f]{24}/g, '');
   expect(text).not.toMatch(/@/);
-  expect(text).not.toMatch(/\+?880|01[3-9]\d{8}/);
+  expect(text).not.toMatch(/\+880\d|\b880\d{10}\b|\b01[3-9]\d{8}\b/);
 };
 
 describe('ADM-12 student search', () => {

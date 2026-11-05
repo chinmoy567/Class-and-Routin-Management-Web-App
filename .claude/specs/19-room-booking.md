@@ -118,16 +118,17 @@ A CR, DCR or approved teacher requests a free room for a dated time range at lea
 - [x] Decision queue + approve/reject transactions
 - [x] Expiry job, cancel, no-show
 - [x] Hooks into spec 07/08/11, bookings in spec 12/13 responses
-- [~] Emails, events, audit (requester emails, events and audit done; BKG-16 student and teacher emails open)
-- [~] Request dialog, My room requests, admin queue screens (group and named-teacher inputs open)
+- [x] Emails, events, audit (requester, target students, group students and teacher emails; events to user rooms; audit)
+- [x] Request dialog (group and named-teacher pickers), My room requests (with no-show notes), admin queue screens (with no-show notes)
 - [x] Tests incl. every PRD booking criterion and concurrency tests
 
 ## Build notes (what the code does, and what is still open)
 
 - **Built on the server** in `server/src/modules/bookings/`: models, send checks and limit, approve/reject, expiry, cancel and no-show, queue, my requests, admin card and digest. Hooks into routine edit (EDT-05), import publish (IMP-19), calendar events (CAL-13), My routine and live status (BKG-18) and the free-room view (`bookedRoomIds`).
-- **Open: BKG-16.** Students of the target section and the teacher are not yet emailed on approval or cancellation. Only the requester is.
-- **Open: BKG-02.** The request form has no inputs for the optional target group or the named teacher. The server accepts both.
+- **BKG-16 (built).** Approval and cancellation email the target students (the group only, for a group lab) and the teacher, besides the requester.
+- **BKG-02 (built).** The form lists the section groups and teachers from GET /api/room-requests/options; the server applies the same rule as sending.
 - **Decision (departs from the plan):** the API endpoints are live. Only the dashboard cards and request buttons are hidden until the release flags say R2. Gating the endpoints too would make them unreachable in tests.
 - **Note:** CAL-13's preview (before saving) lists every approved booking in the date range for the department. The day rule is checked only after the event is saved, when the real cancellations happen.
-- **Note:** `booking.changed` is sent to the `everyone` room with ids only (BKG-20). It is not yet sent to section or teacher rooms.
+- **BKG-20 (built).** booking.changed (ids only) goes to everyone and to the user room of each affected student and teacher, at the time of the change. Sockets do not join section rooms, so a change of section never leaves a stale room.
+- **Browser check.** client/e2e/room-booking.spec.js covers the teacher request (with group and teacher) and the admin approval, with the API mocked. It skips until R2 is the current release (shared/features.js).
 

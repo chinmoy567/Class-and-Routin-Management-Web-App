@@ -41,12 +41,16 @@ export async function emailBookingAudience(req, { template, data, kind }) {
 }
 
 /**
- * BKG-20: after commit, push `booking.changed` (ids and the event name only) to the target section's
- * room and to the teacher's own user room. Everyone viewing free rooms gets the broadcast elsewhere.
+ * BKG-20: after commit, push `booking.changed` (ids and the event name only) to the user room of
+ * every affected person: the target students (the group's, for a group lab) and the teacher. Each
+ * push goes to the room of the person at the time of the change, so a student who moved section
+ * gets no stale push and no one joins rooms at connect time.
  */
 export async function pushBookingAudience(req) {
-  emitAfterCommit(`section:${req.target_section_id}`, SOCKET_EVENTS.BOOKING_CHANGED, {});
-  for (const uid of await teacherUsersOf(req)) {
+  const recipients = new Set(
+    [...(await studentsOf(req)), ...(await teacherUsersOf(req))].map(String),
+  );
+  for (const uid of recipients) {
     emitAfterCommit(`user:${uid}`, SOCKET_EVENTS.BOOKING_CHANGED, {});
   }
 }

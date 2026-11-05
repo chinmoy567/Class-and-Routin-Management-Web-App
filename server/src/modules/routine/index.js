@@ -93,5 +93,3 @@ export { sectionCoursesFor, sectionRoutineFor } from './my-routine.service.js';
 export { runningClasses, teacherIdsOfSection } from './classes.query.js';
 export { clearAll as clearRoutineCaches } from './routine-cache.js';
 export { routineProblemsFor } from './problems.service.js';
-
-export { sectionRoomsFor } from './section-rooms.js';

@@ -1069,9 +1069,14 @@ describe('gap closure (BKG-02, BKG-12, BKG-14, BKG-16, BKG-20, BKG-21)', () => {
     expect(mail.some((m) => m.to === inG2.email)).toBe(false);
   });
 
-  it('BKG-20 an approval and a cancellation push booking.changed to the section room and the named teacher', async () => {
+  it('BKG-20 an approval and a cancellation push booking.changed to each affected student and the named teacher, and not to other sections', async () => {
     const w = await world();
     await teachSectionA(w);
+    const studentA = await makeUser({ kind: 'student', state: 'active' });
+    const studentB = await makeUser({ kind: 'student', state: 'active' });
+    registerCalendarAudienceProvider(async (ids) =>
+      ids.includes(String(w.sectionA._id)) ? [String(studentA._id)] : [String(studentB._id)],
+    );
     const calls = [];
     setEmitter((room, event) => calls.push({ room, event }));
     const cr = await loginAs(w.cr, app);
@@ -1080,14 +1085,15 @@ describe('gap closure (BKG-02, BKG-12, BKG-14, BKG-16, BKG-20, BKG-21)', () => {
     await decide(await loginAs(w.admin, app), sent.body.data.id, { decision: 'approve' });
     expect(calls).toEqual(
       expect.arrayContaining([
-        { room: `section:${w.sectionA._id}`, event: 'booking.changed' },
+        { room: `user:${studentA._id}`, event: 'booking.changed' },
         { room: `user:${w.teacherUser._id}`, event: 'booking.changed' },
       ]),
     );
+    expect(calls.map((c) => c.room)).not.toContain(`user:${studentB._id}`);
     calls.length = 0;
     await cr.post(`/api/room-requests/${sent.body.data.id}/cancel`).send({});
     expect(calls).toEqual(
-      expect.arrayContaining([{ room: `section:${w.sectionA._id}`, event: 'booking.changed' }]),
+      expect.arrayContaining([{ room: `user:${studentA._id}`, event: 'booking.changed' }]),
     );
   });
 
@@ -1122,5 +1128,16 @@ describe('gap closure (BKG-02, BKG-12, BKG-14, BKG-16, BKG-20, BKG-21)', () => {
     expect(['approved', 'cancelled']).toContain(doc.status);
     const locks = await RoomSlotLock.countDocuments({ room_request_id: id });
     expect(locks).toBe(doc.status === 'approved' ? 11 : 0);
+  });
+});
+
+describe('CSRF on booking writes (FND-28)', () => {
+  it('a room request sent without the CSRF token is refused and nothing is stored', async () => {
+    const w = await world();
+    const cr = await loginAs(w.cr, app);
+    const res = await cr.post('/api/room-requests').unset('X-CSRF-Token').send(body(w));
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('CSRF_FAILED');
+    expect(await RoomRequest.countDocuments({})).toBe(0);
   });
 });
