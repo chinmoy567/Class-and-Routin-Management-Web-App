@@ -4,7 +4,9 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mockApi, ok, fail, meResponse } from '@/test/mockApi.jsx';
+import { mockApi, ok, raw, fail, meResponse } from '@/test/mockApi.jsx';
+import { Route, Routes } from 'react-router';
+import { ConversationPage } from '@/routes/ConversationPage.jsx';
 import { ReportDialog } from '../components/ReportDialog.jsx';
 import { BlockControl } from '../components/BlockControl.jsx';
 import { SuspensionBanner } from '../components/SuspensionBanner.jsx';
@@ -276,5 +278,72 @@ describe('SAF-05 to SAF-08: the admin reports page', () => {
       const closed = calls.find((c) => c.url === '/api/admin/chat/reports/r1/close');
       expect(closed.body).toEqual({ outcome: 'warned', note: 'first time' });
     });
+  });
+});
+
+describe('SAF-04, SAF-10: the conversation screen', () => {
+  const conversation = {
+    id: 'c1',
+    type: 'direct',
+    name: 'Rahim Ahmed',
+    photo_url: null,
+    other_user_id: 'u2',
+    closed: false,
+    removed: false,
+    unread: 0,
+    last_message_at: null,
+  };
+  const messages = [
+    {
+      id: 'm1',
+      conversation_id: 'c1',
+      sender_id: 'u2',
+      mine: false,
+      deleted: false,
+      body: 'hello',
+      created_at: new Date().toISOString(),
+      status: null,
+      file: null,
+    },
+  ];
+  const renderConversation = () =>
+    render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <MemoryRouter initialEntries={['/chat/c1']}>
+          <Routes>
+            <Route path="/chat/:id" element={<ConversationPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+  it('SAF-04 another person message has a Report action that opens the report form', async () => {
+    mockApi({
+      'GET /api/auth/me': meResponse(null),
+      'GET /api/chat/conversations': ok([conversation]),
+      'GET /api/chat/conversations/c1/messages': raw({ data: messages, page: { next: null } }),
+      'POST /api/chat/conversations/c1/read': ok(null),
+    });
+    renderConversation();
+    await userEvent.click(await screen.findByRole('button', { name: 'Report' }));
+    expect(await screen.findByRole('heading', { name: 'Report this message' })).toBeInTheDocument();
+  });
+
+  it('SAF-10 while sending is suspended the composer is replaced by a notice', async () => {
+    mockApi({
+      'GET /api/auth/me': meResponse(null, { chat_suspended_until: future() }),
+      'GET /api/chat/conversations': ok([conversation]),
+      'GET /api/chat/conversations/c1/messages': raw({ data: messages, page: { next: null } }),
+      'POST /api/chat/conversations/c1/read': ok(null),
+    });
+    renderConversation();
+    expect(
+      await screen.findByText('Sending is suspended. You can still read your chats.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send' })).toBeNull();
+    // Reading still works: the message is shown.
+    expect(screen.getByText('hello')).toBeInTheDocument();
   });
 });

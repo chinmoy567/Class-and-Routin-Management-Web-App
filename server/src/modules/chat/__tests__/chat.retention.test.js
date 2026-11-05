@@ -1,6 +1,6 @@
 // Spec 22, SAF-09, SAF-12 to SAF-14: retention, holds and permanent erasure. The clock is moved
 // with clock.set; the nightly job is run directly by calling runRetention().
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import {
   buildTestApp,
   clearDb,
@@ -161,5 +161,30 @@ describe('SAF-14: batches and idempotence', () => {
     const second = await runRetention();
     expect(second.purged).toBe(0);
     expect(second.erased).toBe(0);
+  });
+});
+
+describe('SAF-14: the batch size is 1,000', () => {
+  it('SAF-14 2,501 old messages are deleted in three batches of at most 1,000', async () => {
+    const w = await world();
+    const { conv, id } = await oneMessage(w);
+    const old = at(new Date(), -400);
+    await Message.insertMany(
+      Array.from({ length: 2500 }, (_, i) => ({
+        conversation_id: conv.id,
+        sender_id: w.teacher._id,
+        body_enc: encrypt(`old ${i}`),
+        created_at: old,
+      })),
+    );
+    await Message.updateOne({ _id: id }, { $set: { created_at: old } });
+    const spy = vi.spyOn(Message, 'deleteMany');
+    try {
+      await runRetention();
+      const sizes = spy.mock.calls.map(([filter]) => filter._id.$in.length);
+      expect(sizes).toEqual([1000, 1000, 501]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

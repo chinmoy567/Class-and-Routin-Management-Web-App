@@ -1,0 +1,2 @@
+# OPS-08: daily backup at 02:30 institution time (Asia/Dhaka = UTC+6, so 20:30 UTC).
+30 20 * * * cd /opt/crm && BACKUP_MONGO_URI="$(cat /etc/crm/backup-uri)" BACKUP_PASSPHRASE_FILE=/etc/crm/backup-passphrase BACKUP_DIR=/var/backups/crm BACKUP_REMOTE="$(cat /etc/crm/backup-remote)" sh deploy/backup/backup.sh >> /var/log/crm-backup.log 2>&1

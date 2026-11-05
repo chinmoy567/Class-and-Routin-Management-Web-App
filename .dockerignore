@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/coverage
+**/dist
+**/.env
+**/.env.*
+.git
+.github
+.claude
+DOCUMENTS
+test-results
+implementation-plan
+loadtest

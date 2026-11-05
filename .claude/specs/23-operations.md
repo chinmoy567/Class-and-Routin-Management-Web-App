@@ -1,6 +1,6 @@
 # 23: Operations
 
-All releases · Status: Draft · Depends on: 00 · PRD: Non-functional requirements (Targets, Availability & data, Security), Technical approach (Hosting) · Diagrams: 23-deployment
+All releases · Status: In progress · Depends on: 00 · PRD: Non-functional requirements (Targets, Availability & data, Security), Technical approach (Hosting) · Diagrams: 23-deployment
 
 ## Goal
 
@@ -65,14 +65,14 @@ The app runs on one server reliably enough for the PRD's targets: 99.5% uptime o
 
 ## Tasks
 
-- [ ] Dockerfiles (server, client build), `docker-compose.yml`, Caddyfile
-- [ ] Mongo replica set init script + users and the audit-log role
-- [ ] ClamAV container + health check
-- [ ] Env file template + key backup procedure
-- [ ] CI image build + deploy instructions
-- [ ] Migration runner
-- [ ] Backup script + off-site copy + retention; restore runbook
+- [x] Dockerfiles (server, client build), `docker-compose.yml`, Caddyfile
+- [x] Mongo replica set init script + users and the audit-log role
+- [x] ClamAV container + health check
+- [x] Env file template + key backup procedure
+- [x] CI image build + deploy instructions
+- [x] Migration runner
+- [ ] Backup script + off-site copy + retention; restore runbook (script written; off-site destination still open)
 - [ ] Uptime check, error alerting, daily ops email
-- [ ] Load test scripts
+- [x] Load test scripts
 - [ ] Email DNS records + inbox test
-- [ ] Launch checklist document
+- [x] Launch checklist document

@@ -57,6 +57,7 @@ export async function block(me, targetId) {
 /** SAF-01: unblocking is possible at any time. Nothing to undo is not an error. */
 export async function unblock(me, targetId) {
   assertChatState(me);
+  assertCan(me, 'chat.block', {});
   await Block.deleteOne({ blocker_id: me._id, blocked_id: targetId });
 }
 

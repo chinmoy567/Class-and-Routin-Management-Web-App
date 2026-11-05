@@ -1,0 +1,19 @@
+# OPS-02: automatic HTTPS, HTTP redirect, HSTS, WebSocket proxying. SITE_ADDRESS is the public host.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	header X-Content-Type-Options nosniff
+	header Referrer-Policy strict-origin-when-cross-origin
+
+	handle /api/* {
+		reverse_proxy server:4000
+	}
+	handle /socket.io/* {
+		reverse_proxy server:4000
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

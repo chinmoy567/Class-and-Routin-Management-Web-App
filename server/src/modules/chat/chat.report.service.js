@@ -7,7 +7,7 @@ import { clock, instantFrom, toInstitutionDate } from '../../lib/time.js';
 import { afterCommit, withTransaction } from '../../lib/db.js';
 import { emitAfterCommit } from '../../lib/events.js';
 import { decrypt } from '../../lib/crypto.js';
-import { assertCan, can } from '../../policy/index.js';
+import { assertCan, can, hasRole } from '../../policy/index.js';
 import { peopleById } from '../auth/index.js';
 import { record } from '../audit/index.js';
 import { Conversation, ConversationMember, Message, Report } from './chat.model.js';
@@ -126,7 +126,20 @@ export async function myReports(me) {
 /** SAF-05, SAF-06: the admin's list. Only the reports the caller is routed to. No message text. */
 export async function listReports(me, status = 'open') {
   assertChatState(me);
-  const rows = await Report.find({ status }).sort({ created_at: -1 }).limit(200).lean();
+  // Scope in the query, not after it: a limit applied before the scope check would hide older reports
+  // of this admin's department behind other departments' newer ones.
+  const scope = hasRole(me, 'super_admin')
+    ? {}
+    : {
+        to_super_admins: false,
+        department_id: {
+          $in: (me.roles ?? []).filter((r) => r.role === 'dept_admin').map((r) => r.department_id),
+        },
+      };
+  const rows = await Report.find({ status, ...scope })
+    .sort({ created_at: -1 })
+    .limit(200)
+    .lean();
   const visible = rows.filter((r) => can(me, 'chat.review_report', { report: r }));
   const people = await peopleById(visible.map((r) => r.target_user_id));
   return visible.map((r) => ({

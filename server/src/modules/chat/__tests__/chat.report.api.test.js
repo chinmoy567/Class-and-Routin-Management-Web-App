@@ -302,3 +302,43 @@ describe('SAF-09: holds set when the report is made', () => {
     expect(held.map((m) => String(m._id)).sort()).toEqual(ids.slice(1, 12).sort());
   });
 });
+
+describe('SAF-05: routing, the list scope and student routing', () => {
+  it('SAF-05 a student report is routed to the section department: the CSE admin sees it, the EEE admin cannot', async () => {
+    const w = await world();
+    const teacher = await loginAs(w.teacher, app);
+    const made = await report(teacher, {
+      target_user_id: String(w.studentA._id),
+      category: 'spam',
+    });
+    expect(made.status).toBe(201);
+    const cseAdmin = await loginAs(w.cseAdmin, app);
+    const eeeAdmin = await loginAs(w.eeeAdmin, app);
+    expect((await listOf(cseAdmin)).body.data.map((r) => r.id)).toContain(made.body.data.id);
+    expect((await viewOf(eeeAdmin, made.body.data.id)).status).toBe(404);
+  });
+
+  it('SAF-05 the list is scoped in the query: a department admin still sees an old report behind 200 newer reports of another department', async () => {
+    const w = await world();
+    const student = await loginAs(w.studentA, app);
+    const old = await report(student, { target_user_id: String(w.teacher._id), category: 'spam' });
+    expect(old.status).toBe(201);
+    const later = Date.now() + 60_000;
+    await Report.insertMany(
+      Array.from({ length: 205 }, (_, i) => ({
+        reporter_id: w.studentA2._id,
+        target_user_id: w.eeeAdmin._id,
+        category: 'other',
+        status: 'open',
+        department_id: w.eee._id,
+        to_super_admins: false,
+        created_at: new Date(later + i),
+      })),
+    );
+    const cseAdmin = await loginAs(w.cseAdmin, app);
+    const res = await listOf(cseAdmin);
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((r) => r.id)).toContain(old.body.data.id);
+    expect(res.body.data.every((r) => r.department_id === String(w.cse._id))).toBe(true);
+  });
+});
