@@ -30,12 +30,8 @@ without editing the file.
 ## Signing in
 
 - **Password for every demo account:** `Demo@12345`
-- **Admins** (super admin and department admins) also need a 6-digit code at every sign-in. The
-  code comes from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password,
-  etc.). Add this key to the app once, as a time-based (TOTP) account:
-  `JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP`. This is a demo key; never use it on a real deployment.
-- Your own super admin keeps the password you set through the link and sets up its own
-  authenticator at first sign-in.
+- **Admins** (super admin and department admins) sign in with email and password only. There is no authenticator or second step.
+- Your own super admin keeps the password you set through the link.
 - **Bulk students** sign in as `<section>.<nn>@baiust.ac.bd`: `cse1ia`, `cse1ib`, `cse2ia`,
   `cse3ia`, `bba1ia`, `bba1ib`, `bba2ia`, `bba3iia`, `eee1ia`, `eee2ia`, `civ1ia`, `civ2ia`,
   `law1ia`, `law2ia`, `eng1ia`, `eng2ia`, with `nn` from `01` (for example

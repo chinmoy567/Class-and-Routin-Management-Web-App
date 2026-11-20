@@ -1,4 +1,4 @@
-%% Sequence — sign-in (users) and admin second step
+%% Sequence — sign-in (users and admins; admins have no second step)
 sequenceDiagram
   autonumber
   actor U as User / Admin
@@ -22,13 +22,7 @@ sequenceDiagram
       alt Email not verified
         API-->>UI: 403 Verify email first
       else Admin account
-        API->>DB: Store one-time code (short expiry)
-        API-)Mail: Send OTP to admin email
-        API-->>UI: 202 Enter code
-        U->>UI: Enter OTP
-        UI->>API: POST /auth/otp
-        API->>DB: Validate code
-        API-->>UI: Session cookie (HttpOnly, Secure)
+        API-->>UI: Session cookie (HttpOnly, Secure) → admin dashboard
       else Teacher pending
         API-->>UI: Session → "Waiting for admin approval"
       else Student without accepted join request

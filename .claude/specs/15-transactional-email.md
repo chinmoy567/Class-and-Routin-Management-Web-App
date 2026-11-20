@@ -30,7 +30,6 @@ The system sends the emails the PRD lists, reliably, from one sender, through a 
 | `reset_password` | account | forgot password, admin reset | 01, 03 |
 | `password_changed` | account | password changed or reset | 01 |
 | `failed_logins` | account | 10 failed sign-ins in an hour | 01 |
-| `second_step_code` | admin | emailed code requested | 01 |
 | `email_change_confirm` / `email_changed_notice` | new / old address | email change | 02 |
 | `teacher_approved` / `teacher_rejected` | teacher | registration decided | 06 |
 | `role_assigned` / `role_removed` | student | CR/DCR change | 09 |

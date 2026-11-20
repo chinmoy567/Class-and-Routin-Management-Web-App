@@ -8,7 +8,7 @@ Super admins keep the list of departments and decide who is an admin. Every admi
 
 ## Scope
 
-**In:** create, rename and retire departments; grant and remove `dept_admin` and `super_admin` roles; the last-super-admin guard; resetting another admin's password or second step; the no-active-admin alert.
+**In:** create, rename and retire departments; grant and remove `dept_admin` and `super_admin` roles; the last-super-admin guard; resetting another admin's password; the no-active-admin alert.
 
 **Out:** the admin dashboard screen (spec 18), deactivating ordinary users (spec 18), the audit log viewer (spec 18).
 
@@ -25,11 +25,11 @@ Super admins keep the list of departments and decide who is an admin. Every admi
 - **DEP-06** A super admin can grant `super_admin` to an existing `active`, verified account.
 - **DEP-07** A super admin can remove either role. Removing `super_admin` is refused if it would leave fewer than one active super admin (`409 LAST_SUPER_ADMIN`). The dashboard warns whenever fewer than two exist.
 - **DEP-08** Nobody can grant or remove a role on their own account. Admin roles are never granted through sign-up.
-- **DEP-09** Granting or removing an admin role ends the target's existing sessions, so the new second-step and timeout rules apply at once (spec 01 AUTH-17, AUTH-22).
+- **DEP-09** Granting or removing an admin role ends the target's existing sessions, so the new timeout rules apply at once (spec 01 AUTH-22).
 - **DEP-10** Every grant and removal is audited with who, when, the role and its department.
 
 ### Recovery
-- **DEP-11** A super admin can reset a department admin's password (sends a reset link to the admin's own email) or second step (clears TOTP, forcing setup at next sign-in). A super admin can do the same for another super admin, but never for themselves. Each reset is audited.
+- **DEP-11** A super admin can reset a department admin's password (sends a reset link to the admin's own email). A super admin can do the same for another super admin, but never for themselves. Each reset is audited.
 - **DEP-12** If a department has no active `dept_admin` (role removed, account deactivated or suspended), every super admin is emailed at once, and the department appears in the "Departments without an active admin" card (spec 18). A super admin can act in that department meanwhile, since super admins can do anything a department admin can.
 
 ### Scope enforcement
@@ -43,7 +43,7 @@ Super admins keep the list of departments and decide who is an admin. Every admi
 | Create, rename, retire department | ✔ | ✘ | ✘ |
 | List departments | ✔ | ✔ | ✔ (public list) |
 | Grant/remove `dept_admin`, `super_admin` | ✔ (not on self) | ✘ | ✘ |
-| Reset another admin's password or second step | ✔ (not on self) | ✘ | ✘ |
+| Reset another admin's password | ✔ (not on self) | ✘ | ✘ |
 
 ## Data
 
@@ -64,7 +64,6 @@ Removed roles are ended, not deleted, so history stays.
 | `POST /api/admin/admins` | super admin | user_id, role, department_id? | 201 | `USER_NOT_ELIGIBLE`, `CONFLICT`, `FORBIDDEN` (self) |
 | `DELETE /api/admin/admins/:roleId` | super admin | none | 204 | `LAST_SUPER_ADMIN`, `FORBIDDEN` (self) |
 | `POST /api/admin/admins/:userId/reset-password` | super admin | none | 202 | `FORBIDDEN` |
-| `POST /api/admin/admins/:userId/reset-second-step` | super admin | none | 200 | `FORBIDDEN` |
 | `GET /api/admin/users/search?q=` | super admin | none | verified accounts (name, department, kind; no email) for picking a new admin | none |
 
 ## Jobs and events
@@ -73,7 +72,7 @@ Removed roles are ended, not deleted, so history stays.
 
 ## Screens
 
-Departments list (create, rename, retire), Admins list (grant via account search, remove, reset password, reset second step), warning banner when fewer than two super admins exist.
+Departments list (create, rename, retire), Admins list (grant via account search, remove, reset password), warning banner when fewer than two super admins exist.
 
 ## Acceptance tests
 
@@ -82,7 +81,7 @@ Departments list (create, rename, retire), Admins list (grant via account search
 - DEP-05: granting `dept_admin` to an `email_unverified` account → `USER_NOT_ELIGIBLE`.
 - DEP-07: with exactly one super admin left, removing it → `409 LAST_SUPER_ADMIN`.
 - DEP-08: a super admin removing their own role → `FORBIDDEN`.
-- DEP-09: after a grant, the target's old session gets `UNAUTHENTICATED`, and their next sign-in asks for the second step.
+- DEP-09: after a grant, the target's old session gets `UNAUTHENTICATED`, and their next sign-in works with the password alone.
 - DEP-12: removing a department's only admin emails every super admin once.
 - DEP-14: a CSE admin creating a room in EEE → `403`. Reading an EEE teacher → `404`.
 
@@ -97,7 +96,7 @@ Departments list (create, rename, retire), Admins list (grant via account search
 - [ ] `isAdminOf` + `hasRole` scope helpers wired into `can()`
 - [ ] Department CRUD + retire guard
 - [ ] Grant/remove admin roles with guards, session end, audit
-- [ ] Admin password and second-step reset
+- [ ] Admin password reset
 - [ ] Coverage-check job + email
 - [ ] Screens
 - [ ] Tests, including cross-department access for every admin endpoint added here

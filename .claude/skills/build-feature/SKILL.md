@@ -23,7 +23,7 @@ The PRD is `DOCUMENTS/Class and Routine Management - PRD.md` and the stack is in
 
 | Feature area | Diagrams |
 |---|---|
-| Sign-up, sign-in, email check, second step | 17-seq-auth-login, 19-state-account |
+| Sign-up, sign-in, email check | 17-seq-auth-login, 19-state-account |
 | Student onboarding, join request | 09-activity-student-onboarding, 15-seq-join-request, 20-state-join-request |
 | Teacher approval | 10-activity-teacher-approval, 19-state-account |
 | CR/DCR assignment | 26-activity-cr-dcr-assignment, 02-role-hierarchy |

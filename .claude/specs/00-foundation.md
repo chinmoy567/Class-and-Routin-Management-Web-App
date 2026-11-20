@@ -89,7 +89,6 @@ A running skeleton that every later spec builds on: the repo layout, server and 
 |---|---|---|
 | `VALIDATION_ERROR` | 400 | Input failed Zod validation (`fields` lists the problems) |
 | `UNAUTHENTICATED` | 401 | Not signed in, or session expired |
-| `SECOND_STEP_REQUIRED` | 401 | Admin signed in with a password but hasn't passed the second step |
 | `CSRF_FAILED` | 403 | Missing or wrong CSRF token |
 | `FORBIDDEN` | 403 | Signed in but not allowed |
 | `STATE_NOT_ALLOWED` | 403 | The account state doesn't allow this (`fields.state` gives the state) |

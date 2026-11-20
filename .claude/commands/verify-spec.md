@@ -53,7 +53,7 @@ Check the code against `.claude/CLAUDE.md` "Rules that must never be broken". Fo
 
 - Every protected route goes through `can(user, action, resource)`, checking account state, role and scope. No route trusts a client-sent section or department list.
 - Zod validates every body, query and param. CSRF is on every state-changing request. Session cookies are HTTP-only. Rate limits exist on auth routes.
-- Email and phone are stored as `email_enc` / `phone_enc`, looked up by `email_hmac`, never returned in rosters, profiles, chat or admin lists. Passwords use argon2id. Admins get the second step on every sign-in.
+- Email and phone are stored as `email_enc` / `phone_enc`, looked up by `email_hmac`, never returned in rosters, profiles, chat or admin lists. Passwords use argon2id. Admins sign in with email and password only (no second step).
 - No secrets, passwords, tokens, emails or phone numbers in logs (grep pino calls and error handlers). No keys committed (grep for hard-coded secrets and `.env` files in git).
 - Time: no hard-coded `+6`, no `new Date()` used for institution-day logic without date-fns-tz, week runs Sunday to Saturday.
 - Data integrity: partial unique indexes declared in the schemas; `room_slot_lock` unique index; "first action wins" uses a conditional `findOneAndUpdate`; transactions where the spec says; `audit_log` has no update or delete code path.

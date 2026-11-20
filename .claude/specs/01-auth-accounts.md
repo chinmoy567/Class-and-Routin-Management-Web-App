@@ -4,11 +4,11 @@ R1 · Status: Done · Depends on: 00 · PRD: Users & roles, Account states and a
 
 ## Goal
 
-People can create a student account with any email, or a teacher account with a university email, verify it, sign in, recover their password and stay signed in safely. Admins also pass a second step. The account state decides where each person lands.
+People can create a student account with any email, or a teacher account with a university email, verify it, sign in, recover their password and stay signed in safely. The account state decides where each person lands.
 
 ## Scope
 
-**In:** sign-up (student, teacher), email verification, sign-in, throttling and CAPTCHA, second step (TOTP plus an emailed code as fallback), sessions and timeouts, sign-out, password reset, password change, allowed email domains, the `/me` endpoint, routing by account state.
+**In:** sign-up (student, teacher), email verification, sign-in, throttling and CAPTCHA, sessions and timeouts, sign-out, password reset, password change, allowed email domains, the `/me` endpoint, routing by account state.
 
 **Out:** the join form (spec 10), the optional profile UV ID (spec 02), teacher approval (spec 06), granting admin roles (spec 03), changing your email and profile fields (spec 02).
 
@@ -39,10 +39,7 @@ People can create a student account with any email, or a teacher account with a 
 - **AUTH-16** After a successful password check, the server regenerates the session id (no session fixation).
 
 ### Second step (admins)
-- **AUTH-17** An account holding `super_admin` or `dept_admin` must pass the second step at every sign-in. Until then the session is marked `second_step_pending` and every other endpoint returns `401 SECOND_STEP_REQUIRED`.
-- **AUTH-18** The second step is a TOTP code from an authenticator app (6 digits, 30-second step, ±1 step allowed). The TOTP secret is stored encrypted. An admin without TOTP set up is shown the setup screen (QR code plus manual key) right after the password, and confirms it with a valid code.
-- **AUTH-19** Fallback: "email me a code" sends a 6-digit code that lasts 10 minutes and works once. At most 3 codes per 15 minutes.
-- **AUTH-20** 5 wrong second-step codes in a row end the half-signed-in session. The admin starts again from the password.
+- **AUTH-17 to AUTH-20 removed.** Admins sign in with email and password only. There is no second step, no authenticator app and no emailed sign-in code (owner's decision).
 
 ### Sessions
 - **AUTH-21** Sessions are stored in MongoDB (connect-mongo) in an HTTP-only, Secure, SameSite=Lax cookie.
@@ -59,7 +56,7 @@ People can create a student account with any email, or a teacher account with a 
 - **AUTH-28** A super admin can list, add and remove allowed email domains. They govern **teacher** sign-up (and a teacher's email change, spec 02) only. At least one must remain. Each change is audited.
 
 ### Where people land
-- **AUTH-29** `GET /api/auth/me` returns the user's public profile, kind, state, roles in effect, and `next` = the screen to show: `verify-email`, `second-step`, `setup-totp`, `join-form` (`claim_pending` with no open request; the join form has no UV ID), `waiting-approval` (`claim_pending` with an open request, or a `pending` teacher), `semester-update` (`unconfirmed`), or `dashboard`.
+- **AUTH-29** `GET /api/auth/me` returns the user's public profile, kind, state, roles in effect, and `next` = the screen to show: `verify-email`, `join-form` (`claim_pending` with no open request; the join form has no UV ID), `waiting-approval` (`claim_pending` with an open request, or a `pending` teacher), `semester-update` (`unconfirmed`), or `dashboard`.
 
 ## Permissions
 
@@ -71,8 +68,8 @@ People can create a student account with any email, or a teacher account with a 
 
 ## Data
 
-- `user`: kind, state, full_name, `email_enc`, `email_hmac` (unique), `email_verified_at`, `email_bouncing` (bool), `phone_enc?`, `photo_file_id?`, `password_hash`, `password_changed_at`, `totp_secret_enc?`, `totp_enabled_at?`, `department_id?` (teacher's registration department), `requested_short_code?` (teacher), `created_at`, `updated_at`. `email_enc`, `phone_enc`, `password_hash` and `totp_secret_enc` are `select: false`.
-- `one_time_token`: user_id, purpose (`verify_email` | `reset_password` | `second_step` | `change_email`), `token_hash` (unique), `payload?` (for example the new email for `change_email`), expires_at (TTL index), used_at?.
+- `user`: kind, state, full_name, `email_enc`, `email_hmac` (unique), `email_verified_at`, `email_bouncing` (bool), `phone_enc?`, `photo_file_id?`, `password_hash`, `password_changed_at`, `department_id?` (teacher's registration department), `requested_short_code?` (teacher), `created_at`, `updated_at`. `email_enc`, `phone_enc`, and `password_hash` are `select: false`.
+- `one_time_token`: user_id, purpose (`verify_email` | `reset_password` | `change_email`), `token_hash` (unique), `payload?` (for example the new email for `change_email`), expires_at (TTL index), used_at?.
 - `login_throttle`: key (`acct:<email_hmac>` or `ip:<ip>`; the account key uses the email HMAC so an unknown email throttles like a known one), fails, first_fail_at, next_allowed_at, hour_fails, hour_started_at, notified_at?, updated_at. TTL index 1 day after the last update.
 - `captcha_challenge`: prefix, bits, expires_at (TTL), used_at?. A self-hosted proof-of-work challenge, single use.
 - `allowed_domain` (organisation module): domain (unique, lower-case), plus a one-document `allowed_domain_guard` that serialises removals so the last domain can never be removed.
@@ -88,10 +85,6 @@ People can create a student account with any email, or a teacher account with a 
 | `POST /api/auth/verify` | anyone | token | 200 `{ next }` | `TOKEN_INVALID` (expired or used) |
 | `POST /api/auth/verify/resend` | anyone | email | 202 | `RATE_LIMITED` |
 | `POST /api/auth/login` | anyone | email, password, captcha? (`{ id, solution }`) | 200 `{ next }` | `INVALID_CREDENTIALS`, `ACCOUNT_DISABLED`, `CAPTCHA_REQUIRED` (403), `RATE_LIMITED` |
-| `POST /api/auth/second-step` | half-signed-in admin | code | 200 `{ next }` | `CODE_INVALID`, `RATE_LIMITED` |
-| `POST /api/auth/second-step/email-code` | half-signed-in admin | none | 202 | `RATE_LIMITED` |
-| `POST /api/auth/totp/setup` | half-signed-in admin with no TOTP | none | `{ otpauth_url, secret }` | none |
-| `POST /api/auth/totp/confirm` | same | code | 200 `{ next }` | `CODE_INVALID` |
 | `POST /api/auth/logout` | signed in | none | 204 | none |
 | `POST /api/auth/reset/request` | anyone | email | 202 | `RATE_LIMITED` |
 | `POST /api/auth/reset/confirm` | anyone | token, password | 200 | `TOKEN_INVALID`, `VALIDATION_ERROR` |
@@ -101,12 +94,12 @@ People can create a student account with any email, or a teacher account with a 
 
 ## Jobs and events
 
-- None of its own. Emails go through `mail.enqueue` (templates `verify_email`, `already_registered`, `reset_password`, `password_changed`, `failed_logins`, `second_step_code`).
+- None of its own. Emails go through `mail.enqueue` (templates `verify_email`, `already_registered`, `reset_password`, `password_changed`, `failed_logins`).
 - Expired tokens and throttle records are removed by TTL indexes.
 
 ## Screens
 
-Sign up (student/teacher toggle), Check your email, Verify (landing from the link), Sign in (with CAPTCHA once required), Second step (code + "email me a code"), TOTP setup, Forgot password, Reset password, Change password (in the profile). A route guard sends each state to its screen using `next`.
+Sign up (student/teacher toggle), Check your email, Verify (landing from the link), Sign in (with CAPTCHA once required), Forgot password, Reset password, Change password (in the profile). A route guard sends each state to its screen using `next`.
 
 ## Acceptance tests
 
@@ -117,8 +110,6 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 - AUTH-10: a verification link used after 24 h 1 min → `TOKEN_INVALID`. Used twice → second use `TOKEN_INVALID`.
 - AUTH-12: a wrong password and an unknown email return identical bodies.
 - AUTH-14: after 5 failures the 6th try needs a CAPTCHA and waits 1 s. The account is still able to sign in with the correct password once the wait has passed.
-- AUTH-17: a dept admin who passes the password but not the second step gets `401 SECOND_STEP_REQUIRED` on `GET /api/rooms`.
-- AUTH-19: an emailed code works once, and fails after 10 minutes.
 - AUTH-22: an admin session idle 31 minutes → `UNAUTHENTICATED`. A student session idle 13 days still works.
 - AUTH-23: after a password reset, another browser's session gets `UNAUTHENTICATED`.
 - AUTH-24: an admin role removed while a session is open stops working on the next request.
@@ -127,7 +118,6 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 ## Decisions and open questions
 
 - **Decision:** sign-up answers the same way whether or not the email exists (AUTH-08). The PRD says the HMAC is used "to check that an address is not already taken". This spec does that check silently, to avoid revealing who has an account.
-- **Decision (confirmed):** TOTP (RFC 6238) is written in-house on `node:crypto`. Only the `qrcode` package is added, in `client/`, to draw the setup QR. The server returns `{ otpauth_url, secret }`.
 - **Decision (confirmed):** CAPTCHA is self-hosted: a proof-of-work challenge (`GET /api/auth/captcha`, solved in the browser, single use, 5 minutes). No third party. The verifier is one function, so Turnstile can replace it later.
 - **Decision:** the foundation's `user.name` becomes `full_name`; its `reset_token_*` fields are replaced by `one_time_token`. Department existence at sign-up goes through `organisation.isActiveDepartment`, a stub until spec 03. `next` uses a hook (`registerOpenJoinRequestCheck`) for "open join request" until spec 10.
 - **Decision:** resend and reset limits (AUTH-11, AUTH-25) are keyed by the email HMAC, so a `429` never reveals whether an address is registered.
@@ -141,7 +131,7 @@ Sign up (student/teacher toggle), Check your email, Verify (landing from the lin
 - [x] Sign-up + verification + resend (with the `already_registered` path)
 - [x] Sign-in with throttling, CAPTCHA hook, failed-login email
 - [x] Session config (rolling 14 days / admin 30 min idle + 12 h absolute), session-per-user index, "end all sessions" helper
-- [x] Second step: TOTP setup and confirm, code check, email-code fallback, lockout after 5 wrong codes
+- [x] Second step removed (owner's decision): admins sign in with email and password only
 - [x] Forgot and reset password, change password
 - [x] Allowed domains admin endpoints + audit
 - [x] Spec 24: domain gate for teachers only, CAPTCHA required on student sign-up

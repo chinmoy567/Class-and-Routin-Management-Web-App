@@ -20,7 +20,7 @@ Use `/build-feature specs/NN-name.md` to build a spec.
 | # | Spec | Depends on |
 |---|---|---|
 | 00 | [Foundation](00-foundation.md): repo, server and client skeleton, shared libs, `can()`, audit, jobs, mail, tests | none |
-| 01 | [Auth and accounts](01-auth-accounts.md): sign-up, verification, sign-in, second step, sessions, recovery | 00 |
+| 01 | [Auth and accounts](01-auth-accounts.md): sign-up, verification, sign-in, sessions, recovery | 00 |
 | 02 | [Profile](02-profile.md): phone, photo, email change, the profile page | 01 |
 | 03 | [Departments and admins](03-departments-admins.md): departments, admin roles, recovery | 01 |
 | 04 | [Semesters](04-semesters.md): draft, current, archived, dates | 03 |
