@@ -8,7 +8,7 @@ export function CampusScene({ className }) {
   return (
     <svg
       viewBox="0 0 600 900"
-      preserveAspectRatio="xMidYMax slice"
+      preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"
       focusable="false"
       className={className}
