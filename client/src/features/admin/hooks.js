@@ -35,7 +35,6 @@ export const useRetireDepartment = () => useInvalidating(api.retireDepartment, d
 export const useGrantAdminRole = () => useInvalidating(api.grantAdminRole, [qk.admins()]);
 export const useRemoveAdminRole = () => useInvalidating(api.removeAdminRole, [qk.admins()]);
 export const useResetAdminPassword = () => useMutation({ mutationFn: api.resetAdminPassword });
-export const useResetAdminSecondStep = () => useMutation({ mutationFn: api.resetAdminSecondStep });
 
 export const useCurrentSemester = () =>
   useQuery({ queryKey: qk.currentSemester(), queryFn: api.fetchCurrentSemester, retry: false });

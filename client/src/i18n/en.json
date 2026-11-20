@@ -345,7 +345,6 @@
   "errors": {
     "VALIDATION_ERROR": "Some details are not valid. Please check and try again.",
     "UNAUTHENTICATED": "Please sign in to continue.",
-    "SECOND_STEP_REQUIRED": "Please finish the second sign-in step.",
     "CSRF_FAILED": "Your session check failed. Please refresh the page and try again.",
     "FORBIDDEN": "You are not allowed to do this.",
     "STATE_NOT_ALLOWED": "Your account cannot use this yet.",
@@ -495,24 +494,6 @@
       "checking": "Running a quick check…",
       "wait": "Too many tries. You can try again in {seconds} seconds."
     },
-    "secondStep": {
-      "title": "Second step",
-      "body": "Enter the 6 digit code from your authenticator app.",
-      "code": "6 digit code",
-      "submit": "Verify",
-      "emailMe": "Email me a code instead",
-      "emailSent": "We emailed you a code. It works once and lasts 10 minutes.",
-      "startOver": "Start again from sign in"
-    },
-    "totp": {
-      "title": "Set up your authenticator app",
-      "body": "Scan this QR code with an authenticator app, then enter the 6 digit code it shows.",
-      "qrAlt": "QR code for your authenticator app",
-      "manualKey": "Or type this key into the app:",
-      "code": "6 digit code",
-      "confirm": "Confirm and continue",
-      "start": "Show the QR code"
-    },
     "forgot": {
       "title": "Forgot your password?",
       "body": "Enter your email. If there is an account, we will send a link that lasts 1 hour.",
@@ -586,9 +567,7 @@
       "remove": "Remove role",
       "removeConfirm": "Remove this role from {name}? They are signed out at once.",
       "resetPassword": "Reset password",
-      "resetSecondStep": "Reset second step",
       "resetPasswordDone": "A reset link was sent to {name}.",
-      "resetSecondStepDone": "{name} will set up the second step again at the next sign-in.",
       "granted": "{name} is now an admin.",
       "removed": "The role was removed.",
       "you": "(you)"

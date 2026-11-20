@@ -10,8 +10,6 @@ import { CheckEmailPage } from '@/routes/CheckEmailPage.jsx';
 import { VerifyPage } from '@/routes/VerifyPage.jsx';
 import { VerifyEmailPage } from '@/routes/VerifyEmailPage.jsx';
 import { SignInPage } from '@/routes/SignInPage.jsx';
-import { SecondStepPage } from '@/routes/SecondStepPage.jsx';
-import { TotpSetupPage } from '@/routes/TotpSetupPage.jsx';
 import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage.jsx';
 import { ChangePasswordPage } from '@/routes/ChangePasswordPage.jsx';
@@ -74,8 +72,6 @@ export function AppRoutes() {
         {/* signed in, held on one screen until the account state moves on (AUTH-29) */}
         <Route element={<AuthGate mode="step" />}>
           <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/second-step" element={<SecondStepPage />} />
-          <Route path="/setup-totp" element={<TotpSetupPage />} />
           <Route path="/join" element={<JoinPage />} />
           <Route path="/waiting-approval" element={<WaitingPage />} />
           <Route path="/teacher-rejected" element={<TeacherRejectedPage />} />

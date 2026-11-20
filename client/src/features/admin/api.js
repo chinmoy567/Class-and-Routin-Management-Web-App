@@ -12,8 +12,6 @@ export const grantAdminRole = (body) => api('/admin/admins', { method: 'POST', b
 export const removeAdminRole = (roleId) => api(`/admin/admins/${roleId}`, { method: 'DELETE' });
 export const resetAdminPassword = (userId) =>
   api(`/admin/admins/${userId}/reset-password`, { method: 'POST' });
-export const resetAdminSecondStep = (userId) =>
-  api(`/admin/admins/${userId}/reset-second-step`, { method: 'POST' });
 
 export const fetchCurrentSemester = () => api('/semesters/current');
 export const fetchAdminSemesters = () => api('/admin/semesters');

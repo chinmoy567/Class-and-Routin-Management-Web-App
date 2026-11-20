@@ -4,8 +4,6 @@ import { solveChallenge } from './pow.js';
 // Where each `next` value from the server sends the person (AUTH-29).
 export const NEXT_PATHS = {
   'verify-email': '/verify-email',
-  'second-step': '/second-step',
-  'setup-totp': '/setup-totp',
   'join-form': '/join',
   'waiting-approval': '/waiting-approval',
   'teacher-rejected': '/teacher-rejected',
@@ -56,12 +54,6 @@ export async function signOut() {
   await api('/auth/logout', { method: 'POST' });
   resetCsrfToken();
 }
-
-export const submitSecondStep = (code) =>
-  api('/auth/second-step', { method: 'POST', body: { code } });
-export const emailSecondStepCode = () => api('/auth/second-step/email-code', { method: 'POST' });
-export const startTotpSetup = () => api('/auth/totp/setup', { method: 'POST' });
-export const confirmTotp = (code) => api('/auth/totp/confirm', { method: 'POST', body: { code } });
 
 export const requestPasswordReset = (email) =>
   api('/auth/reset/request', { method: 'POST', body: { email } });

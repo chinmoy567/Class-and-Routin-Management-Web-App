@@ -5,7 +5,6 @@ import {
   useGrantAdminRole,
   useRemoveAdminRole,
   useResetAdminPassword,
-  useResetAdminSecondStep,
   useUserSearch,
 } from '@/features/admin/hooks.js';
 import { useAdminDepartments } from '@/features/admin/hooks.js';
@@ -142,7 +141,6 @@ export function AdminsPage() {
   const me = useMe();
   const remove = useRemoveAdminRole();
   const resetPassword = useResetAdminPassword();
-  const resetSecondStep = useResetAdminSecondStep();
   const [notice, setNotice] = useState(null);
 
   if (isPending && !error) return <p>{t('common.loading')}</p>;
@@ -167,7 +165,7 @@ export function AdminsPage() {
 
       <GrantPanel />
 
-      <FormError error={remove.error ?? resetPassword.error ?? resetSecondStep.error} />
+      <FormError error={remove.error ?? resetPassword.error} />
       {notice && (
         <p role="status" className="text-sm">
           {notice}
@@ -215,17 +213,6 @@ export function AdminsPage() {
                       }
                     >
                       {t('admin.admins.resetPassword')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        resetSecondStep.mutate(a.user_id, {
-                          onSuccess: () =>
-                            setNotice(t('admin.admins.resetSecondStepDone', { name: a.full_name })),
-                        })
-                      }
-                    >
-                      {t('admin.admins.resetSecondStep')}
                     </Button>
                   </div>
                 )}

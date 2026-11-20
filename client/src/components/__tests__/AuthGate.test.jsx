@@ -13,7 +13,6 @@ describe('AuthGate', () => {
 
   const screens = [
     ['verify-email', 'Confirm your email'],
-    ['second-step', 'Second step'],
     ['join-form', 'Join your section'],
     ['waiting-approval', 'Waiting for approval'],
   ];
@@ -41,20 +40,6 @@ describe('AuthGate', () => {
     });
     renderApp('/account/password');
     expect(await screen.findByRole('heading', { name: 'Semester update' })).toBeInTheDocument();
-  });
-
-  it('AUTH-29 next=setup-totp shows the authenticator setup', async () => {
-    mockApi({
-      'GET /api/auth/me': meResponse('setup-totp'),
-      'POST /api/auth/totp/setup': {
-        ...meResponse('x'),
-        json: async () => ({ data: { otpauth_url: 'otpauth://totp/x?secret=ABC', secret: 'ABC' } }),
-      },
-    });
-    renderApp('/');
-    expect(
-      await screen.findByRole('heading', { name: 'Set up your authenticator app' }),
-    ).toBeInTheDocument();
   });
 
   it('AUTH-29 a person held on a step screen cannot wander to another one', async () => {

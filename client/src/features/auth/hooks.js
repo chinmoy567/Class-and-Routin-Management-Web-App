@@ -29,7 +29,7 @@ export function useDepartments(enabled) {
   });
 }
 
-/** After sign-in, the second step or TOTP setup: refresh /me and go where `next` says. */
+/** After sign-in: refresh /me and go where `next` says. */
 export function useGoNext() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -42,19 +42,6 @@ export function useGoNext() {
 export function useSignIn() {
   const goNext = useGoNext();
   return useMutation({ mutationFn: authApi.signIn, onSuccess: (data) => goNext(data.next) });
-}
-
-export function useSecondStep() {
-  const goNext = useGoNext();
-  return useMutation({
-    mutationFn: authApi.submitSecondStep,
-    onSuccess: (data) => goNext(data.next),
-  });
-}
-
-export function useConfirmTotp() {
-  const goNext = useGoNext();
-  return useMutation({ mutationFn: authApi.confirmTotp, onSuccess: (data) => goNext(data.next) });
 }
 
 export function useSignOut() {

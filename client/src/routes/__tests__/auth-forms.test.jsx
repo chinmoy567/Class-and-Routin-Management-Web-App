@@ -183,84 +183,12 @@ describe('sign-in form', () => {
 
   it('AUTH-29 after sign-in the person goes where the server says', async () => {
     mockApi({
-      'GET /api/auth/me': meResponse('second-step'),
-      'POST /api/auth/login': ok({ next: 'second-step' }),
+      'GET /api/auth/me': meResponse('join-form'),
+      'POST /api/auth/login': ok({ next: 'join-form' }),
     });
     renderApp('/login');
     await fill(userEvent.setup());
-    expect(await screen.findByRole('heading', { name: 'Second step' })).toBeInTheDocument();
-  });
-});
-
-describe('second step and authenticator setup', () => {
-  it('AUTH-17 a 6 digit code is required and sent', async () => {
-    const calls = mockApi({
-      'GET /api/auth/me': [meResponse('second-step'), meResponse('dashboard')],
-      'POST /api/auth/second-step': ok({ next: 'dashboard' }),
-    });
-    renderApp('/second-step');
-    const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('6 digit code'), '12');
-    await user.click(screen.getByRole('button', { name: 'Verify' }));
-    expect(await screen.findByText('Enter the 6 digit code.')).toBeInTheDocument();
-    expect(posts(calls, '/api/auth/second-step')).toHaveLength(0);
-
-    await user.clear(screen.getByLabelText('6 digit code'));
-    await user.type(screen.getByLabelText('6 digit code'), '123456');
-    await user.click(screen.getByRole('button', { name: 'Verify' }));
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(posts(calls, '/api/auth/second-step')[0].body).toEqual({ code: '123456' });
-  });
-
-  it('AUTH-19 "email me a code" asks the server and says so', async () => {
-    const calls = mockApi({
-      'GET /api/auth/me': meResponse('second-step'),
-      'POST /api/auth/second-step/email-code': ok({ accepted: true }),
-    });
-    renderApp('/second-step');
-    await userEvent
-      .setup()
-      .click(await screen.findByRole('button', { name: 'Email me a code instead' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('We emailed you a code.');
-    expect(posts(calls, '/api/auth/second-step/email-code')).toHaveLength(1);
-  });
-
-  it('AUTH-20 a wrong code shows a message, and a ended session disables the form', async () => {
-    mockApi({
-      'GET /api/auth/me': meResponse('second-step'),
-      'POST /api/auth/second-step': [fail(400, 'CODE_INVALID'), fail(401, 'UNAUTHENTICATED')],
-    });
-    renderApp('/second-step');
-    const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('6 digit code'), '000000');
-    await user.click(screen.getByRole('button', { name: 'Verify' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'That code is not valid or has expired.',
-    );
-    await user.click(screen.getByRole('button', { name: 'Verify' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Verify' })).toBeDisabled());
-  });
-
-  it('AUTH-18 the setup screen shows the QR code and the manual key, and confirms with a code', async () => {
-    const calls = mockApi({
-      'GET /api/auth/me': [meResponse('setup-totp'), meResponse('dashboard')],
-      'POST /api/auth/totp/setup': ok({
-        otpauth_url: 'otpauth://totp/Test:a%40b.c?secret=JBSWY3DPEHPK3PXP&issuer=Test',
-        secret: 'JBSWY3DPEHPK3PXP',
-      }),
-      'POST /api/auth/totp/confirm': ok({ next: 'dashboard' }),
-    });
-    renderApp('/setup-totp');
-    const user = userEvent.setup();
-    expect(await screen.findByText('JBSWY3DPEHPK3PXP')).toBeInTheDocument();
-    expect(await screen.findByAltText('QR code for your authenticator app')).toHaveAttribute(
-      'src',
-      expect.stringMatching(/^data:image\/png;base64,/),
-    );
-    await user.type(screen.getByLabelText('6 digit code'), '654321');
-    await user.click(screen.getByRole('button', { name: 'Confirm and continue' }));
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(posts(calls, '/api/auth/totp/confirm')[0].body).toEqual({ code: '654321' });
+    expect(await screen.findByRole('heading', { name: 'Join your section' })).toBeInTheDocument();
   });
 });
 
