@@ -5,13 +5,13 @@ Demo accounts created by `npm run seed:demo` (`server/scripts/seed-demo.js`). **
 - **Password for every demo account below:** `Demo@12345`
 - **Login ID** is the email address.
 - **Admins** (super admin and department admins) also need a 6-digit authenticator code at every sign-in. Add this key to any authenticator app (Google Authenticator, Authy…): `JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP`
-- **Super admin:** not created by the demo seed. It is the account you made with `npm run seed:super-admin -- --email <e> --name <n>`; its password is the one you set through the printed link.
+- **Super admin:** not created by the demo seed. It is `baiust999@gmail.com` (Chinmoy Sarkar), made with `npm run seed:super-admin`. Its password is the one you set through the one-time reset link (not `Demo@12345`), and it sets up its own authenticator at first sign-in.
 
 ## Admins
 
 | Email | Name | Role | Password | 2nd step |
 |---|---|---|---|---|
-| (your own super admin) | – | Super admin | the one you set | yes |
+| baiust999@gmail.com | Chinmoy Sarkar | Super admin | the one you set | yes (own authenticator) |
 | cse.admin@baiust.ac.bd | Dr. Mahbub Alam | CSE dept admin | Demo@12345 | yes |
 | bba.admin@baiust.ac.bd | Ms. Nusrat Jahan | BBA dept admin | Demo@12345 | yes |
 | eee.admin@baiust.ac.bd | Dr. Anwar Hossain | EEE dept admin | Demo@12345 | yes |
