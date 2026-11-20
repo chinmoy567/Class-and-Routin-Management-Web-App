@@ -82,6 +82,34 @@ describe('npm run seed:demo', () => {
     }
   });
 
+  it('gives every active department one admin, teachers, sections and students', async () => {
+    const current = await db().collection('semester').findOne({ status: 'current' });
+    for (const code of ['CSE', 'BBA', 'EEE', 'CIV', 'LAW', 'ENG']) {
+      const d = await db().collection('department').findOne({ code });
+      expect(d, code).toBeTruthy();
+      expect(
+        await count('user_role', { role: 'dept_admin', department_id: d._id, ended_at: null }),
+        `${code} admins`,
+      ).toBe(1);
+      expect(
+        await count('user', { kind: 'teacher', state: 'active', department_id: d._id }),
+        `${code} teachers`,
+      ).toBeGreaterThanOrEqual(5);
+      const sections = await db()
+        .collection('section')
+        .find({ semester_id: current._id, department_id: d._id })
+        .toArray();
+      expect(sections.length, `${code} sections`).toBeGreaterThanOrEqual(2);
+      for (const s of sections) {
+        expect(
+          await count('enrolment', { section_id: s._id, status: 'accepted' }),
+          `${code} students`,
+        ).toBeGreaterThanOrEqual(25);
+      }
+    }
+    expect(await count('user_role', { role: 'dept_admin', ended_at: null })).toBe(6);
+  });
+
   it('has one account in every state and join requests in every status', async () => {
     const states = await db().collection('user').distinct('state');
     expect(states.sort()).toEqual([

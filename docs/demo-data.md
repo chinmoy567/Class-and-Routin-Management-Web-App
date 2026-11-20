@@ -37,14 +37,17 @@ without editing the file.
 - Your own super admin keeps the password you set through the link and sets up its own
   authenticator at first sign-in.
 - **Bulk students** sign in as `<section>.<nn>@baiust.ac.bd`: `cse1ia`, `cse1ib`, `cse2ia`,
-  `cse3ia`, `bba1ia`, `bba1ib`, `bba2ia`, `bba3iia`, with `nn` from `01` (for example
+  `cse3ia`, `bba1ia`, `bba1ib`, `bba2ia`, `bba3iia`, `eee1ia`, `eee2ia`, `civ1ia`, `civ2ia`,
+  `law1ia`, `law2ia`, `eng1ia`, `eng2ia`, with `nn` from `01` (for example
   `cse2ia.07@baiust.ac.bd`). They are all active and accepted in that section.
 
 ## What is in it
 
-- **Organisation:** CSE and BBA with 4 sections each in the current semester (25 or more students
-  per section), EEE with no admin and no routine (shows "no active admin" and "Availability
-  unknown"), and a retired department (ARCH). A current semester, an archived one (with the
+- **Organisation:** six departments, each with exactly one active department admin: CSE, BBA, EEE,
+  Civil (CIV), Law (LAW) and English (ENG), plus a retired one (ARCH). CSE and BBA have 4 sections
+  each; EEE, CIV, LAW and ENG have 2 each (1-I-A and 2-I-A). Every section has 25 or more
+  students, a CR and a DCR (except CSE 3-I-A and BBA 3-II-A), and every department has at least 5
+  active teachers, one teacher waiting for approval and one join request waiting. A current semester, an archived one (with the
   previous-term sections CRs remind from) and a draft one (for the rollover checklist). A second
   allowed email domain.
 - **Routine:** a full Sunday-Thursday week for every section with no section, room or teacher
@@ -77,6 +80,9 @@ without editing the file.
 | (your super admin) | super admin | active | Departments (one retired), admins (warning: fewer than two super admins), semesters (draft, current, archived), any department's dashboard and audit log | Removing the last super admin |
 | `cse.admin@baiust.ac.bd` | dept admin, CSE | active | Dashboard cards (registration, escalated request, flags, appeals, unconfirmed students, recent activity), audit log page 2, flags, appeals, chat reports, students, classrooms, rollover readiness | BBA rosters, BBA dashboard, BBA audit entries |
 | `bba.admin@baiust.ac.bd` | dept admin, BBA | active | The open import with an error, a pending teacher registration, BBA requests and flags | Publishing the import with an error; any CSE data |
+| `eee.admin@`, `civ.admin@`, `law.admin@`, `eng.admin@baiust.ac.bd` | dept admin, EEE / Civil / Law / English | active | Each department's dashboard, teacher queue, join requests, students and routine | Any other department's data |
+| `<dept>.t1@` to `<dept>.t5@baiust.ac.bd` (`eee`, `civ`, `law`, `eng`) | teachers | active | Their department's routine and students | Other departments' sections |
+| `<dept>.pending.t@baiust.ac.bd` and `<dept>.join@baiust.ac.bd` | teacher / student | pending / claim_pending | The waiting screens and the admin queues | Every app screen |
 | `eee.former.admin@baiust.ac.bd` | former EEE admin | deactivated | - | Sign-in (account disabled) |
 | `rahman.t@baiust.ac.bd` | teacher, CSE | active | Routine (1-I-A, 1-I-B), rosters of sections he teaches, his room requests, chat | The roster of 2-I-A (he does not teach it) |
 | `tanjila.t@baiust.ac.bd` | teacher, CSE | active | 2-I-A and 3-I-A routine, an approved booking next week | Requests for 1-I-A |

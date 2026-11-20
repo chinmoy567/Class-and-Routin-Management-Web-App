@@ -213,7 +213,12 @@ export async function seedDemo() {
     ...adminExtra,
   });
   await role(bbaAdmin, { role: 'dept_admin', department_id: bba._id });
-  const adminOf = (deptId) => (String(deptId) === String(bba._id) ? bbaAdmin : cseAdmin);
+  // One active admin per department; the departments added at the end register theirs here.
+  const adminByDept = new Map([
+    [String(cse._id), cseAdmin],
+    [String(bba._id), bbaAdmin],
+  ]);
+  const adminOf = (deptId) => adminByDept.get(String(deptId)) ?? cseAdmin;
 
   // EEE's former admin: the role ended and the account was deactivated, so EEE has no admin
   // (the "departments without an admin" card) and the admins page has history.
@@ -270,6 +275,8 @@ export async function seedDemo() {
   const tHsn = await teacherUser(`hasan.t@${DOMAIN}`, 'Kamrul Hasan', 'HSN', bba);
   const tSlm = await teacherUser(`salma.t@${DOMAIN}`, 'Salma Begum', 'SLM', bba);
   const tFrd = await teacherUser(`farid.t@${DOMAIN}`, 'Farid Ahmed', 'FRD', bba);
+  const tBba4 = await teacherUser(`rubina.t@${DOMAIN}`, 'Rubina Yeasmin', 'RBN', bba);
+  const tBba5 = await teacherUser(`shahin.t@${DOMAIN}`, 'Shahin Alam', 'SHN', bba);
   const tPending = await teacherUser(`nasir.t@${DOMAIN}`, 'Nasir Uddin', 'NSR', cse, 'pending');
   const tPendingBba = await teacherUser(`jannat.t@${DOMAIN}`, 'Jannat Ara', 'JNT', bba, 'pending');
   const tRejected = await teacherUser(`babul.t@${DOMAIN}`, 'Babul Mia', 'BBL', cse, 'pending');
@@ -315,6 +322,8 @@ export async function seedDemo() {
   const HSN = await teacherRecord(bba, 'HSN', 'Kamrul Hasan', tHsn);
   const SLM = await teacherRecord(bba, 'SLM', 'Salma Begum', tSlm);
   const FRD = await teacherRecord(bba, 'FRD', 'Farid Ahmed', tFrd);
+  await teacherRecord(bba, 'RBN', 'Rubina Yeasmin', tBba4);
+  await teacherRecord(bba, 'SHN', 'Shahin Alam', tBba5);
 
   const registration = (u, department, short, status, extra = {}) =>
     ensure(
@@ -345,6 +354,8 @@ export async function seedDemo() {
     [tHsn, bba, 'HSN'],
     [tSlm, bba, 'SLM'],
     [tFrd, bba, 'FRD'],
+    [tBba4, bba, 'RBN'],
+    [tBba5, bba, 'SHN'],
   ]) {
     approvedRegs.push(
       await registration(u, d, s, 'approved', {
@@ -1583,6 +1594,241 @@ export async function seedDemo() {
     'reminder_log',
   );
 
+  // ---------- more departments: EEE, Civil, Law, English ----------
+  // Each gets exactly one active department admin, five teachers (one more waiting for approval),
+  // rooms, two sections (1-I-A and 2-I-A) with a full routine, 26 students per section and a CR
+  // and DCR for each, plus one join request waiting.
+  const civ = await dept('CIV', 'Civil Engineering');
+  const law = await dept('LAW', 'Law');
+  const eng = await dept('ENG', 'English');
+  // [section index, course code, course name, teacher index, sessions a week, periods per session]
+  // A 3-period session is a lab session, so it needs the department's lab room.
+  const moreDepts = [
+    {
+      dept: eee,
+      lab: true,
+      admin: 'Dr. Anwar Hossain',
+      teachers: [
+        ['Dr. Rezaul Karim', 'RZK'],
+        ['Engr. Mahmudul Haque', 'MDH'],
+        ['Sharmin Sultana', 'SHS'],
+        ['Engr. Tarek Aziz', 'TRK'],
+        ['Nilufa Yasmin', 'NLY'],
+      ],
+      pending: ['Engr. Faisal Ahmed', 'FSL'],
+      joiner: 'Imtiaz Hasan',
+      courses: [
+        [0, 'EEE101', 'Electrical Circuits I', 0, 2, 1],
+        [0, 'EEE103', 'Basic Electronics', 1, 2, 1],
+        [0, 'MATH101', 'Calculus I', 2, 2, 1],
+        [0, 'PHY101', 'Physics', 3, 2, 1],
+        [0, 'EEE102', 'Electrical Circuits Lab', 0, 1, 3],
+        [0, 'ENG101', 'Technical English', 4, 1, 1],
+        [1, 'EEE201', 'Electronic Circuits', 1, 2, 1],
+        [1, 'EEE203', 'Signals and Systems', 0, 2, 1],
+        [1, 'EEE205', 'Electrical Machines', 3, 2, 1],
+        [1, 'MATH201', 'Differential Equations', 2, 2, 1],
+        [1, 'EEE202', 'Electronics Lab', 1, 1, 3],
+        [1, 'EEE207', 'Energy Conversion', 4, 1, 1],
+      ],
+    },
+    {
+      dept: civ,
+      lab: true,
+      admin: 'Dr. Habibur Rahman',
+      teachers: [
+        ['Dr. Anisur Rahman', 'ANR'],
+        ['Engr. Shafiqul Islam', 'SFQ'],
+        ['Rokeya Khatun', 'RKY'],
+        ['Engr. Mostafa Kamal', 'MKL'],
+        ['Shirin Akter', 'SHR'],
+      ],
+      pending: ['Engr. Jahidul Alam', 'JHD'],
+      joiner: 'Sajib Mondal',
+      courses: [
+        [0, 'CE101', 'Engineering Mechanics', 0, 2, 1],
+        [0, 'CE103', 'Surveying', 1, 2, 1],
+        [0, 'MATH101', 'Calculus I', 2, 2, 1],
+        [0, 'CHEM101', 'Chemistry', 3, 2, 1],
+        [0, 'CE102', 'Engineering Drawing', 1, 1, 3],
+        [0, 'ENG101', 'Technical English', 4, 1, 1],
+        [1, 'CE201', 'Structural Analysis', 0, 2, 1],
+        [1, 'CE203', 'Fluid Mechanics', 3, 2, 1],
+        [1, 'CE205', 'Geotechnical Engineering', 1, 2, 1],
+        [1, 'MATH201', 'Differential Equations', 2, 2, 1],
+        [1, 'CE202', 'Materials Testing Lab', 0, 1, 3],
+        [1, 'CE207', 'Engineering Economics', 4, 1, 1],
+      ],
+    },
+    {
+      dept: law,
+      lab: false,
+      admin: 'Adv. Kamrul Islam',
+      teachers: [
+        ['Adv. Sultana Razia', 'SRZ'],
+        ['Dr. Fazlul Haque', 'FZH'],
+        ['Adv. Monirul Islam', 'MNR'],
+        ['Tahmina Akter', 'TMA'],
+        ['Adv. Golam Mostafa', 'GLM'],
+      ],
+      pending: ['Adv. Nazmul Huda', 'NZH'],
+      joiner: 'Mehedi Hasan',
+      courses: [
+        [0, 'LAW101', 'Legal Method', 0, 2, 1],
+        [0, 'LAW103', 'Constitutional Law of Bangladesh', 1, 2, 1],
+        [0, 'LAW105', 'Law of Contract', 2, 2, 1],
+        [0, 'LAW107', 'Jurisprudence', 3, 2, 1],
+        [0, 'ENG101', 'English for Lawyers', 4, 1, 1],
+        [0, 'SOC101', 'Sociology', 3, 1, 1],
+        [1, 'LAW201', 'Law of Torts', 0, 2, 1],
+        [1, 'LAW203', 'Criminal Law', 1, 2, 1],
+        [1, 'LAW205', 'Family Law', 2, 2, 1],
+        [1, 'LAW207', 'Administrative Law', 4, 2, 1],
+        [1, 'LAW209', 'Legal Writing', 3, 1, 1],
+        [1, 'HIS201', 'Legal History', 0, 1, 1],
+      ],
+    },
+    {
+      dept: eng,
+      lab: true,
+      admin: 'Dr. Rubina Chowdhury',
+      teachers: [
+        ['Dr. Mahfuzur Rahman', 'MFR'],
+        ['Shamima Nasrin', 'SMN'],
+        ['Arifur Rahman', 'ARR'],
+        ['Dr. Lutfun Nahar', 'LTN'],
+        ['Zakir Hossain', 'ZKR'],
+      ],
+      pending: ['Samia Rahman', 'SMR'],
+      joiner: 'Tonmoy Das',
+      courses: [
+        [0, 'ENG111', 'Introduction to Poetry', 0, 2, 1],
+        [0, 'ENG113', 'English Phonetics', 1, 2, 1],
+        [0, 'ENG115', 'Grammar and Composition', 2, 2, 1],
+        [0, 'ENG117', 'Introduction to Drama', 3, 2, 1],
+        [0, 'ENG112', 'Language Lab', 1, 1, 3],
+        [0, 'BAN101', 'Bangla Language', 4, 1, 1],
+        [1, 'ENG211', 'Introduction to Fiction', 0, 2, 1],
+        [1, 'ENG213', 'Linguistics', 2, 2, 1],
+        [1, 'ENG215', 'Shakespeare', 3, 2, 1],
+        [1, 'ENG217', 'Literary Criticism', 4, 2, 1],
+        [1, 'ENG212', 'Communication Skills Lab', 1, 1, 3],
+        [1, 'ENG219', 'Translation Studies', 0, 1, 1],
+      ],
+    },
+  ];
+
+  for (const spec of moreDepts) {
+    const d = spec.dept;
+    const dc = d.code.toLowerCase();
+    const admin = await user({
+      email: `${dc}.admin@${DOMAIN}`,
+      name: spec.admin,
+      kind: 'staff',
+      state: 'active',
+      department: d,
+      phone: nextPhone(),
+      ...adminExtra,
+    });
+    await role(admin, { role: 'dept_admin', department_id: d._id });
+    adminByDept.set(String(d._id), admin);
+
+    const teachers = [];
+    for (const [i, [name, short]] of spec.teachers.entries()) {
+      const u = await teacherUser(
+        `${dc}.t${i + 1}@${DOMAIN}`,
+        name,
+        short,
+        d,
+        'active',
+        i < 2 ? { phone: nextPhone() } : {},
+      );
+      teachers.push(await teacherRecord(d, short, name, u));
+      await registration(u, d, short, 'approved', {
+        decided_by: admin._id,
+        decided_at: daysAgo(30),
+      });
+    }
+    const [pName, pShort] = spec.pending;
+    const pendingTeacher = await teacherUser(
+      `${dc}.pending.t@${DOMAIN}`,
+      pName,
+      pShort,
+      d,
+      'pending',
+    );
+    await registration(pendingTeacher, d, pShort, 'pending');
+
+    const classrooms = [
+      await room(d, `${d.code}-101`, 'classroom'),
+      await room(d, `${d.code}-102`, 'classroom'),
+      await room(d, `${d.code}-201`, 'classroom'),
+    ];
+    const labRoom = spec.lab ? await room(d, `${d.code}-LAB-1`, 'lab') : null;
+    const secs = [await section(d, 1, 'I', 'A'), await section(d, 2, 'I', 'A')];
+
+    // The same clash-free scheduler as above: classes stay in periods 0-5, so the afternoon is
+    // free for bookings.
+    for (const [si, code, name, ti, sessions, len] of spec.courses) {
+      const sec = secs[si];
+      const rm = len === 3 ? labRoom : classrooms[si === 0 ? 0 : 2];
+      const teacher = teachers[ti];
+      const starts = len === 3 ? [0, 3] : [0, 1, 2, 3, 4, 5];
+      const usedDays = new Set();
+      for (let i = 0; i < sessions; i++) {
+        let placed = false;
+        for (let k = 0; k < 5 && !placed; k++) {
+          const day = (si + i * 2 + k) % 5;
+          if (usedDays.has(day)) continue;
+          for (const p1 of starts) {
+            const p2 = p1 + len - 1;
+            if (!isFree(sec, rm, teacher, day, p1, p2)) continue;
+            mark(sec, rm, teacher, day, p1, p2);
+            usedDays.add(day);
+            const slot = await ensure(
+              RoutineSlot,
+              {
+                semester_id: semester._id,
+                section_id: sec._id,
+                day_of_week: day,
+                start_min: PERIODS[p1].start_min,
+              },
+              {
+                owner_department_id: d._id,
+                end_min: PERIODS[p2].end_min,
+                course_code: code,
+                course_name: name,
+                room_id: rm._id,
+                source: 'manual',
+                published: true,
+              },
+              'routine_slot',
+            );
+            await ensure(
+              RoutineSlotTeacher,
+              { slot_id: slot._id, teacher_id: teacher._id },
+              {},
+              'routine_slot_teacher',
+            );
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) throw new Error(`Demo routine: no free time for ${d.code} ${code}`);
+      }
+    }
+
+    const confirmed = () => ({ confirmed_semester_id: semester._id });
+    for (const [si, prefix] of [`${dc}1ia`, `${dc}2ia`].entries()) {
+      const list = await bulk(prefix, d, 26, 1, confirmed);
+      await accept(list, secs[si]);
+      await rep(list[0], 'cr', d, secs[si]);
+      await rep(list[1], 'dcr', d, secs[si]);
+    }
+    const joiner = await waiting(`${dc}.join@${DOMAIN}`, spec.joiner, d);
+    await enrol(joiner, secs[0], 'pending');
+  }
+
   // ---------- audit log (append-only: only inserted, never changed) ----------
   // Backdated entries that match the demo data, so the audit screen, its filters and its
   // pagination (50 per page) have something to show. Values never carry an email or a phone.
@@ -1600,7 +1846,7 @@ export async function seedDemo() {
     bump('audit_log');
   };
   const scoped = (department, rest = {}) => ({ scope_department_id: department._id, ...rest });
-  for (const d of [cse, bba, eee, arch])
+  for (const d of [cse, bba, eee, civ, law, eng, arch])
     await audit(superAdminId, 'department.create', 'department', d._id, daysAgo(60), {
       new_value: { code: d.code, name: d.name },
     });
@@ -1623,6 +1869,7 @@ export async function seedDemo() {
   for (const [u, d] of [
     [cseAdmin, cse],
     [bbaAdmin, bba],
+    ...moreDepts.map((m) => [adminByDept.get(String(m.dept._id)), m.dept]),
   ]) {
     await audit(
       superAdminId,
@@ -1987,6 +2234,18 @@ export const GUIDE = [
     'BBA import with an error, BBA requests, the BBA teacher queue',
     'Any CSE data; publishing the import with an error',
   ],
+  ...[
+    ['eee', 'EEE'],
+    ['civ', 'Civil'],
+    ['law', 'Law'],
+    ['eng', 'English'],
+  ].map(([dc, name]) => [
+    `${dc}.admin@${DOMAIN}`,
+    `dept admin ${name}`,
+    'active',
+    `${name} dashboard, teacher queue, join requests, students, routine`,
+    `Any other department's data`,
+  ]),
   [
     `eee.former.admin@${DOMAIN}`,
     'former EEE admin',
