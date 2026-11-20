@@ -11,7 +11,7 @@ Rules for fixing:
 - Fix only faults that break a requirement, an acceptance test, a CLAUDE.md "must never be broken" rule, or a failing check. Do not refactor or add features beyond that.
 - Follow `.claude/CLAUDE.md` and the `api-module`, `mongo-patterns` and `ui-conventions` skills for the fixes. Write or update the matching tests with each fix.
 - Never weaken, skip or delete a test, and never add `eslint-disable`. If a fix needs a decision the spec or PRD does not settle (an open question), record it and ask instead of guessing.
-- Don't commit. Leave changes in the working tree for the user to review.
+- Commit each fix and push it to `origin` (see `.claude/CLAUDE.md`).
 - Record every change in the report (file, what changed, which requirement or check it fixes).
 - Only write to `test-results/` and to the source, test and config files needed for a fix. Don't edit specs or the PRD.
 
@@ -92,4 +92,4 @@ Also write `test-results/<folder>/summary.json` (verdict, counts, per-spec statu
 
 ## 8. Tell me
 
-Reply short: verdict before and after fixes, counts, what was fixed, anything still failing or open, and the path to `REPORT.md`. Then offer next steps (review the changes, commit, or handle open items) and wait. Report test output as it is; never claim a check passed that you did not run.
+Reply short: verdict before and after fixes, counts, what was fixed, anything still failing or open, and the path to `REPORT.md`. Then offer next steps (review the changes or handle open items) and wait. Report test output as it is; never claim a check passed that you did not run.

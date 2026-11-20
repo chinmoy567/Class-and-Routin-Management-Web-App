@@ -57,4 +57,4 @@ First plan it in plan mode. Write no code until I approve the plan. After I appr
    - the test results, including any failures, shown as they are
    - anything skipped or still open
 
-   Don't commit unless I ask.
+   Commit the change and push it to `origin` (see `.claude/CLAUDE.md`).

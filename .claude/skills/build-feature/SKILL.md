@@ -80,4 +80,4 @@ Write the code until the tests pass. Stay inside the checklist: don't add featur
    - the checklist with its status,
    - anything left open, assumed or blocked.
 
-Don't commit unless the user asks.
+Commit the change and push it to `origin` (see `.claude/CLAUDE.md`).

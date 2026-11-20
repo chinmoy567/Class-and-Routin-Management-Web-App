@@ -93,4 +93,4 @@ These come from the PRD. If one of them gets in the way, stop and ask. Don't wor
 - Do only what is asked. Don't scaffold, refactor or add features beyond the request.
 - For a change that touches several files or modules, say the plan first.
 - Write the tests together with the code, not afterwards.
-- Keep commits small and about one thing. Commit only when asked.
+- Keep commits small and about one thing. After every change, however small, commit it and push it to `origin`. Never commit secrets or `.env` files.
