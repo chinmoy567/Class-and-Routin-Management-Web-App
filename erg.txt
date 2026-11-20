@@ -1,0 +1,10 @@
+Can you write a proper system password.md file where you will write the all admin, all teacher, all
+  students ID and password, user ID and password, by which they will log in the system. I will use it for
+  testing only.
+
+
+  ❯ Listen, when I log in the app as an admin or student or teacher, sometimes it show me the
+  authentication. It show me that it want me to use the Google Authenticator services. I do not use that
+  authenticator service. I will only log in as a, at first admin will log in as the seat user ID and
+  password, and then he will update the password, and then next from the next time he will join there with
+  the user ID and the password. Okay.
