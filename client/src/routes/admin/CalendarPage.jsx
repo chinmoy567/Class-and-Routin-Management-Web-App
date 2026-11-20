@@ -61,7 +61,7 @@ export function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{t('calendar.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('calendar.title')}</h1>
         {scopeChoices.length > 0 && !dialog && (
           <Button type="button" onClick={() => setDialog({ event: null })}>
             {t('calendar.add')}
@@ -116,7 +116,7 @@ export function CalendarPage() {
           className="space-y-3 rounded-md border bg-background p-4 shadow-lg"
           onKeyDown={(e) => e.key === 'Escape' && setDeleting(null)}
         >
-          <h2 id="cal-delete-h" className="text-lg font-semibold">
+          <h2 id="cal-delete-h" className="text-xl">
             {t('calendar.deleteConfirm.title')}
           </h2>
           <p className="text-sm">

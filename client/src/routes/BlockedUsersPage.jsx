@@ -15,7 +15,7 @@ export function BlockedUsersPage() {
   return (
     <section className="max-w-xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="min-w-0 text-2xl font-semibold">{t('chat.block.title')}</h1>
+        <h1 className="min-w-0 text-3xl md:text-4xl">{t('chat.block.title')}</h1>
         <Link to="/chat" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
           {t('chat.back')}
         </Link>
@@ -47,7 +47,7 @@ export function BlockedUsersPage() {
       <FormError error={unblock.error} />
 
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('chat.report.mineTitle')}</h2>
+        <h2 className="text-xl">{t('chat.report.mineTitle')}</h2>
         {reports.data?.length ? (
           <ul className="divide-y rounded-md border">
             {reports.data.map((r) => (

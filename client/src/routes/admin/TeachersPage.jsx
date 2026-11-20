@@ -227,7 +227,7 @@ export function TeachersPage() {
   return (
     <section className="max-w-3xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{t('teachers.records.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('teachers.records.title')}</h1>
         {!adding && departmentId && (
           <Button onClick={() => setAdding(true)}>{t('teachers.records.add')}</Button>
         )}

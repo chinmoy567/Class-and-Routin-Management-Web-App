@@ -2,46 +2,62 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Direction. Product: live class routine, free rooms and chat for BAIUST students and teachers.
+ * Character: warm, bookish, orderly. World: printed timetables and notice boards, so cream paper and
+ * ink, with the teal and orange of the campus illustration. The page is paper; cards are a lighter
+ * sheet on it; the one accent is teal; orange marks the single thing that matters (now, next, new).
+ * Contrast: ink on paper 14:1, muted on paper 5.6:1, cream on teal 6.4:1, dark orange on paper 5.1:1.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.208 0.042 265.755);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.208 0.042 265.755);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.45 0.04 257);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.55 0.04 257);
-  --radius: 0.625rem;
+  --page: #faf0d2;
+  --background: #fffaea;
+  --foreground: #1b2a29;
+  --card: #fffaea;
+  --card-foreground: #1b2a29;
+  --primary: #0e6b63;
+  --primary-foreground: #fffaea;
+  --secondary: #f1e5c2;
+  --secondary-foreground: #1b2a29;
+  --muted: #f1e5c2;
+  --muted-foreground: #55605b;
+  --accent: #f1e5c2;
+  --accent-foreground: #1b2a29;
+  --signal: #e8832a;
+  --signal-ink: #9c4509;
+  --destructive: #b0362a;
+  --border: rgb(27 42 41 / 14%);
+  --input: rgb(27 42 41 / 28%);
+  --ring: #0e6b63;
+  --radius: 0.75rem;
+  --font-serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.75 0.03 257);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.04 257);
+  --page: #14201f;
+  --background: #1b2a29;
+  --foreground: #f6ecd0;
+  --card: #1b2a29;
+  --card-foreground: #f6ecd0;
+  --primary: #5fd0c2;
+  --primary-foreground: #10201f;
+  --secondary: #26393a;
+  --secondary-foreground: #f6ecd0;
+  --muted: #26393a;
+  --muted-foreground: #b9c2b8;
+  --accent: #26393a;
+  --accent-foreground: #f6ecd0;
+  --signal: #f2a04e;
+  --signal-ink: #f2a04e;
+  --destructive: #f08a7c;
+  --border: rgb(246 236 208 / 14%);
+  --input: rgb(246 236 208 / 28%);
+  --ring: #5fd0c2;
 }
 
 @theme inline {
+  --color-page: var(--page);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -54,35 +70,84 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  html {
+    font-family: var(--font-sans);
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-page text-foreground antialiased;
+  }
+  /* Headings carry the character: a text serif, regular weight, hierarchy from size. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* A serif link with a drawn underline, as on the campus nav. */
+.serif-link {
+  font-family: var(--font-serif);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+  transition:
+    text-decoration-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+.serif-link:hover,
+.serif-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
 
 /*
- * The public landing dashboard (PRD: Visitor landing dashboard). Its own palette, scoped to .landing,
- * so the signed-in app keeps its tokens. Deep forest green, warm sand and a brass accent.
- * Contrast: sand and muted text on the background pass WCAG 2.1 AA; button text is the background colour on brass.
+ * The public landing page (PRD: Visitor landing dashboard). Same paper-and-ink world as the app,
+ * scoped to .landing so the landing components can use the --l-* names.
  */
 .landing {
-  --l-bg: #0d2420;
-  --l-surface: #16342d;
-  --l-line: #2c4f46;
-  --l-sand: #f2e9d6;
-  --l-muted: #bcc9bf;
-  --l-brass: #d9a441;
+  --l-bg: var(--page);
+  --l-surface: var(--background);
+  --l-line: var(--border);
+  --l-sand: var(--foreground);
+  --l-muted: var(--muted-foreground);
+  --l-brass: var(--signal);
+  --l-accent: var(--primary);
   min-height: 100dvh;
   background: var(--l-bg);
   color: var(--l-sand);
@@ -91,14 +156,12 @@
 .landing-card {
   background: var(--l-surface);
   border: 1px solid var(--l-line);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
 }
 
 .landing-tag {
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--l-brass);
+  font-size: 0.875rem;
+  color: var(--signal-ink);
 }
 
 .landing-btn,
@@ -107,140 +170,72 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.6rem 1.1rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
   transition:
-    transform 0.2s ease,
-    background-color 0.2s ease;
+    color 0.15s ease-out,
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out;
 }
 
 .landing-btn {
-  background: var(--l-brass);
-  color: var(--l-bg);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.landing-btn:hover {
+  background: color-mix(in oklab, var(--primary) 88%, black);
 }
 
 .landing-btn-ghost {
-  border: 1px solid var(--l-line);
+  border: 1px solid var(--input);
   color: var(--l-sand);
 }
-
-.landing-btn:hover,
 .landing-btn-ghost:hover {
-  transform: translateY(-1px);
-}
-
-.landing-btn-ghost:hover {
-  border-color: var(--l-brass);
-}
-
-.landing a:focus-visible {
-  outline: 3px solid var(--l-sand);
-  outline-offset: 3px;
-  border-radius: 0.25rem;
+  background: var(--accent);
 }
 
 .landing-index {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 1px solid var(--l-line);
-  border-radius: 999px;
-  font-size: 0.75rem;
+  min-width: 1.75rem;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
-  color: var(--l-brass);
+  color: var(--signal-ink);
 }
 
-/* live status dot with an expanding ring */
+/* the live dot: static in the example, because nothing here is live */
 .landing-pulse {
-  position: relative;
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 999px;
-  background: var(--l-brass);
+  background: var(--signal);
   flex-shrink: 0;
 }
 
-.landing-pulse::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 2px solid var(--l-brass);
-  animation: landing-ring 2.2s ease-out infinite;
-}
-
-/* the countdown bar fills, holds, then starts again */
 .landing-progress {
-  width: 0;
-  animation: landing-fill 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-/* the "now" line moves down a day column */
-.landing-now {
-  animation: landing-scan 5s ease-in-out infinite;
+  width: 62%;
 }
 
 /* reveal on scroll; hidden only after the hook has run, so content never depends on JavaScript */
 .reveal-ready [data-reveal] {
   transition:
-    opacity 0.6s ease,
-    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity 0.4s ease-out,
+    transform 0.4s ease-out;
 }
-
 .reveal-ready [data-reveal]:not(.is-visible) {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(8px);
 }
-
 .reveal-ready [data-reveal].is-visible {
   opacity: 1;
   transform: none;
 }
 
-@keyframes landing-ring {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2.6);
-    opacity: 0;
-  }
-}
-
-@keyframes landing-fill {
-  0% {
-    width: 0;
-  }
-  60%,
-  100% {
-    width: 62%;
-  }
-}
-
-@keyframes landing-scan {
-  0% {
-    top: 0;
-  }
-  50% {
-    top: calc(100% - 2px);
-  }
-  100% {
-    top: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .landing *,
   .landing *::after {
-    animation: none !important;
     transition: none !important;
-  }
-  .landing-progress {
-    width: 62%;
   }
   .reveal-ready [data-reveal] {
     opacity: 1;

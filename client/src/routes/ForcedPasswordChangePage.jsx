@@ -33,7 +33,7 @@ export function ForcedPasswordChangePage() {
 
   return (
     <section className="max-w-sm space-y-6">
-      <h1 className="text-2xl font-semibold">{t('auth.forceChange.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('auth.forceChange.title')}</h1>
       <p className="text-sm">{t('auth.forceChange.intro')}</p>
       <form
         onSubmit={handleSubmit((values) => change.mutate(values))}

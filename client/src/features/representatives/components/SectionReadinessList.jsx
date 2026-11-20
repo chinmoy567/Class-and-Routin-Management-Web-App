@@ -5,7 +5,7 @@ export function SectionReadinessList({ sections, selectedId, onSelect }) {
   const missing = sections.filter((s) => !s.has_cr).length;
   return (
     <section aria-labelledby="rep-ready" className="space-y-2">
-      <h2 id="rep-ready" className="text-lg font-medium">
+      <h2 id="rep-ready" className="text-xl font-medium">
         {t('representatives.readiness')}
       </h2>
       {sections.length === 0 ? (

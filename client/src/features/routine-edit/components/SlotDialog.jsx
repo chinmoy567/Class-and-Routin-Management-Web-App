@@ -104,7 +104,7 @@ export function SlotDialog({ slot, groups, save, onClose }) {
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
       className="space-y-3 rounded-md border bg-background p-4 shadow-lg"
     >
-      <h2 id="slot-h" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+      <h2 id="slot-h" ref={heading} tabIndex={-1} className="text-xl">
         {t(slot ? 'routineEdit.slot.editTitle' : 'routineEdit.slot.addTitle')}
       </h2>
       {pending ? (

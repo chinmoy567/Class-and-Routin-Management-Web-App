@@ -62,7 +62,7 @@ export function AdminRoomRequestsPage() {
   if (!released) {
     return (
       <section className="space-y-2 p-4">
-        <h1 className="text-xl font-semibold">{t('roomRequests.queue.title')}</h1>
+        <h1 className="text-xl">{t('roomRequests.queue.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('roomRequests.queue.notReleased')}</p>
       </section>
     );
@@ -72,7 +72,7 @@ export function AdminRoomRequestsPage() {
 
   return (
     <section className="space-y-4 p-4">
-      <h1 className="text-xl font-semibold">{t('roomRequests.queue.title')}</h1>
+      <h1 className="text-xl">{t('roomRequests.queue.title')}</h1>
       <p className="text-sm text-muted-foreground">{t('roomRequests.queue.intro')}</p>
       {decide.isError && (
         <p
@@ -93,7 +93,7 @@ export function AdminRoomRequestsPage() {
           aria-label={`${group.room_code} ${group.date}`}
           className="rounded-md border p-4"
         >
-          <h2 className="text-base font-semibold">
+          <h2 className="text-xl">
             {t('roomRequests.queue.slot', {
               room: group.room_code,
               date: group.date,

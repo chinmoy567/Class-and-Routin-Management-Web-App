@@ -126,7 +126,7 @@ export function EventDialog({ event, scopeChoices, save, onClose }) {
         className="space-y-3 rounded-md border bg-background p-4 shadow-lg"
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       >
-        <h2 id="event-affected-h" className="text-lg font-semibold">
+        <h2 id="event-affected-h" className="text-xl">
           {t('calendar.affected.title')}
         </h2>
         <p className="text-sm">{t('calendar.affected.body', { count: pending.bookings.length })}</p>
@@ -155,7 +155,7 @@ export function EventDialog({ event, scopeChoices, save, onClose }) {
       className="space-y-4 rounded-md border bg-background p-4 shadow-lg"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
-      <h2 id="event-dialog-h" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+      <h2 id="event-dialog-h" ref={heading} tabIndex={-1} className="text-xl">
         {event ? t('calendar.dialogEdit') : t('calendar.dialogAdd')}
       </h2>
       <form noValidate onSubmit={submit} className="grid gap-4 sm:grid-cols-2">

@@ -13,7 +13,7 @@ export function HomePage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-semibold">{t('home.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('home.title')}</h1>
       <p className="mt-2 text-muted-foreground">{t('home.intro')}</p>
     </section>
   );

@@ -18,7 +18,7 @@ export function SignInPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('auth.login.title')}</h1>
+      <h1 className="text-4xl">{t('auth.login.title')}</h1>
       <form
         onSubmit={handleSubmit((values) => signIn.mutate(values))}
         noValidate

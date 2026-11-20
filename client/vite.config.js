@@ -16,8 +16,8 @@ export default defineConfig({
         short_name: 'Routine',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#0f172a',
+        background_color: '#faf0d2',
+        theme_color: '#faf0d2',
         icons: [
           { src: '/icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: '/icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },

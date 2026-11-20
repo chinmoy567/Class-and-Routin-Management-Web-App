@@ -108,7 +108,7 @@ export function RequestRoomDialog({ room, date, from, to, targets, onClose }) {
       className="space-y-4 rounded-md border bg-background p-4 shadow-lg"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
-      <h2 id="request-room-h" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+      <h2 id="request-room-h" ref={heading} tabIndex={-1} className="text-xl">
         {t('roomRequests.form.title', { room: room.code })}
       </h2>
       <p className="text-sm text-muted-foreground">{t('roomRequests.form.intro', { date })}</p>

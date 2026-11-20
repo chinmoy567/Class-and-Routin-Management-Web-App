@@ -40,7 +40,7 @@ export function FreeRoomsNowCard() {
 
   return (
     <section aria-labelledby="free-rooms-now" className="rounded-lg border p-4">
-      <h2 id="free-rooms-now" className="mb-2 text-base font-semibold">
+      <h2 id="free-rooms-now" className="mb-2 text-xl">
         {t('freeRooms.cardTitle')}
       </h2>
       {body}

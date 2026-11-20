@@ -100,7 +100,7 @@ export function RolloverPage() {
   if (!draft) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold">{t('rollover.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('rollover.title')}</h1>
         <p>{t('rollover.noDraft')}</p>
       </section>
     );
@@ -130,7 +130,7 @@ export function RolloverPage() {
   return (
     <section className="max-w-3xl space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">{t('rollover.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('rollover.title')}</h1>
         <p className="text-muted-foreground">
           {t('rollover.intro')} {draft.name}
         </p>

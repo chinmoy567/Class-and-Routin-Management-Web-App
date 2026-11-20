@@ -124,7 +124,7 @@ export function ConversationPage() {
     return (
       <section className="max-w-xl space-y-4">
         <BackLink />
-        <h1 className="text-xl font-semibold">{conversation.name ?? t('chat.title')}</h1>
+        <h1 className="text-xl">{conversation.name ?? t('chat.title')}</h1>
         <p role="status" className="rounded-md border p-3 text-sm">
           {t('chat.removed.body')}
         </p>
@@ -163,7 +163,7 @@ export function ConversationPage() {
     <section className="flex max-w-2xl flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <BackLink />
-        <h1 className="min-w-0 truncate text-xl font-semibold">
+        <h1 className="min-w-0 truncate text-xl">
           {conversation?.name ?? t('chat.conversationTitle')}
         </h1>
       </div>

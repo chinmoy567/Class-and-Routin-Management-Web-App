@@ -203,7 +203,7 @@ export function AdminStudentsPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('admin.students.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('admin.students.title')}</h1>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1.5">

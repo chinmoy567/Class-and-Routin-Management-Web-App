@@ -12,7 +12,7 @@ export function WaitingPage() {
   const request = mine.data;
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('join.waiting.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('join.waiting.title')}</h1>
       {mine.isPending && <p>{t('common.loading')}</p>}
       {request && (
         <p>
@@ -23,7 +23,7 @@ export function WaitingPage() {
       )}
       {request?.representatives?.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-lg font-medium">{t('join.waiting.contacts')}</h2>
+          <h2 className="text-xl font-medium">{t('join.waiting.contacts')}</h2>
           <ul className="space-y-2">
             {request.representatives.map((r) => (
               <li key={r.user_id} className="flex items-center gap-3 rounded-md border p-3">

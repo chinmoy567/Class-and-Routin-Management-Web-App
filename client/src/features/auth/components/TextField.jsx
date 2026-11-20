@@ -7,7 +7,7 @@ export function TextField({ id, name, label, hint, error, register, type, ...inp
   const errorId = error ? `${id}-error` : undefined;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium">
+      <label htmlFor={id} className="block text-sm font-medium text-foreground">
         {label}
       </label>
       <Input

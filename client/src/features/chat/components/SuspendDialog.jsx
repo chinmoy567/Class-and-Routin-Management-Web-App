@@ -26,7 +26,7 @@ export function SuspendDialog({ userId, name, onClose }) {
   return (
     <FormDialog title={t('chat.suspension.title').replace('{name}', name)} onClose={onClose}>
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold">{t('chat.suspension.active')}</h3>
+        <h3 className="text-sm">{t('chat.suspension.active')}</h3>
         {active.data?.length ? (
           <ul className="space-y-2">
             {active.data.map((s) => (

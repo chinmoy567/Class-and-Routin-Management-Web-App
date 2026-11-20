@@ -30,7 +30,7 @@ export function TempPasswordDialog({ name, password, onClose }) {
           if (event.key === 'Escape') onClose();
         }}
       >
-        <h2 id={`${id}-title`} className="text-lg font-semibold">
+        <h2 id={`${id}-title`} className="text-xl">
           {t('admin.students.tempTitle', { name })}
         </h2>
         <p className="text-sm">{t('admin.students.tempShown')}</p>

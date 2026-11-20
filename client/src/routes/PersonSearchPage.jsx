@@ -24,7 +24,7 @@ export function PersonSearchPage() {
   return (
     <section className="max-w-xl space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('chat.search.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('chat.search.title')}</h1>
         <Link to="/chat" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
           {t('chat.back')}
         </Link>

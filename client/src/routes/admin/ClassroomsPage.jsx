@@ -303,7 +303,7 @@ export function ClassroomsPage() {
   return (
     <section className="max-w-3xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{t('admin.classrooms.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('admin.classrooms.title')}</h1>
         {!adding && departmentId && (
           <Button onClick={() => setAdding(true)}>{t('admin.classrooms.add')}</Button>
         )}
@@ -345,7 +345,7 @@ export function ClassroomsPage() {
       )}
 
       <section aria-labelledby="shared-with-me" className="space-y-2">
-        <h2 id="shared-with-me" className="text-lg font-semibold">
+        <h2 id="shared-with-me" className="text-xl">
           {t('admin.classrooms.sharedWithMe')}
         </h2>
         {rooms.data?.shared_with_me.length ? (

@@ -29,7 +29,9 @@
     "adminFlags": "Flags",
     "adminAppeals": "Appeals",
     "adminReports": "Chat reports",
-    "adminAudit": "Audit log"
+    "adminAudit": "Audit log",
+    "sectionAdmin": "Administration",
+    "sectionSuper": "University"
   },
   "chat": {
     "title": "Chat",

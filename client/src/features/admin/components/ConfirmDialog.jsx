@@ -34,7 +34,7 @@ export function ConfirmDialog({
           if (event.key === 'Escape') onCancel();
         }}
       >
-        <h2 id={`${id}-title`} className="text-lg font-semibold">
+        <h2 id={`${id}-title`} className="text-xl">
           {title}
         </h2>
         <p id={`${id}-body`} className="text-sm">

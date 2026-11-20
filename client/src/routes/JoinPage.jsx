@@ -102,7 +102,7 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
   if (options.isPending || mine.isPending || options.isError) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold">{t('join.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('join.title')}</h1>
         {options.isError ? <FormError error={options.error} /> : <p>{t('common.loading')}</p>}
       </section>
     );
@@ -118,7 +118,7 @@ export function JoinPage({ prefill = null, title, intro, footer } = {}) {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{title ?? t('join.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{title ?? t('join.title')}</h1>
       {last?.status === 'rejected' && <RejectionNotice request={last} />}
       <p>{intro ?? t('join.intro')}</p>
       <form onSubmit={handleSubmit(onValid)} className="space-y-3" noValidate>

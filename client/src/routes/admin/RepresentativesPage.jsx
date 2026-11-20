@@ -73,7 +73,7 @@ function SectionDetail({ sectionId, departmentId }) {
   return (
     <div className="space-y-6">
       <section aria-labelledby="rep-slots" className="space-y-3">
-        <h2 id="rep-slots" className="text-lg font-medium">
+        <h2 id="rep-slots" className="text-xl font-medium">
           {t('representatives.slots', { name: section.name })}
         </h2>
         {status === 'draft' && <p className="text-sm">{t('representatives.draftNote')}</p>}
@@ -155,7 +155,7 @@ export function RepresentativesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('representatives.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('representatives.title')}</h1>
       <DepartmentPicker id="rep-dept" choices={choices} value={departmentId} onChange={setChosen} />
       {semesters.isSuccess && usable.length === 0 ? (
         <p>{t('representatives.noSemester')}</p>

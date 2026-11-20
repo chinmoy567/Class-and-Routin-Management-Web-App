@@ -27,8 +27,8 @@ export function ChangePasswordPage() {
 
   return (
     <section className="max-w-sm space-y-6">
-      <h1 className="text-2xl font-semibold">{t('auth.changePassword.title')}</h1>
-      <h2 className="text-lg font-medium">{t('auth.changePassword.heading')}</h2>
+      <h1 className="text-3xl md:text-4xl">{t('auth.changePassword.title')}</h1>
+      <h2 className="text-xl font-medium">{t('auth.changePassword.heading')}</h2>
       <form
         onSubmit={handleSubmit((values) => change.mutate(values))}
         noValidate

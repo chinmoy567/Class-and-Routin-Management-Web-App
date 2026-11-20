@@ -17,7 +17,7 @@ export function CrHeader({ overview }) {
   ];
   return (
     <header className="space-y-3">
-      <h1 className="text-xl font-semibold">{section.name}</h1>
+      <h1 className="text-xl">{section.name}</h1>
       <p className="text-sm text-muted-foreground">
         {t('cr.sectionLine')
           .replace('{semester}', semester.name)

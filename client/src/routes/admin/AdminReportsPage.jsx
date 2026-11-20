@@ -19,7 +19,7 @@ export function AdminReportsPage() {
 
   return (
     <section aria-labelledby="reports-title" className="max-w-3xl space-y-4">
-      <h1 id="reports-title" className="text-2xl font-semibold">
+      <h1 id="reports-title" className="text-3xl md:text-4xl">
         {t('adminReports.title')}
       </h1>
 
@@ -91,7 +91,7 @@ function ReportDetail({ id }) {
 
   return (
     <section aria-labelledby={headingId} className="space-y-4 rounded-lg border p-4">
-      <h2 id={headingId} className="text-lg font-semibold">
+      <h2 id={headingId} className="text-xl">
         {t(`chat.report.categories.${r.category}`)} · {r.target.full_name}
       </h2>
       <p role="note" className="rounded-md bg-secondary p-3 text-sm">
@@ -139,7 +139,7 @@ function ReportDetail({ id }) {
             close.mutate({ id: r.id, outcome, note: note.trim() || undefined });
           }}
         >
-          <h3 className="text-base font-semibold">{t('adminReports.closeTitle')}</h3>
+          <h3 className="text-xl">{t('adminReports.closeTitle')}</h3>
           <label className="block text-sm font-medium" htmlFor={`${headingId}-outcome`}>
             {t('adminReports.outcome')}
           </label>

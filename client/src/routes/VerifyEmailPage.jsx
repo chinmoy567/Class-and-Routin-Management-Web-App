@@ -24,7 +24,7 @@ export function VerifyEmailPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('auth.verifyEmail.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('auth.verifyEmail.title')}</h1>
       <p>{t('auth.verifyEmail.body')}</p>
       <form
         onSubmit={handleSubmit((values) => resend.mutate(values.email))}

@@ -34,13 +34,13 @@ export function ProfilePage() {
       <header className="flex items-center gap-4">
         <Avatar name={profile.full_name} url={profile.photo.url} />
         <div>
-          <h1 className="text-2xl font-semibold">{profile.full_name}</h1>
+          <h1 className="text-3xl md:text-4xl">{profile.full_name}</h1>
           <p className="text-sm text-muted-foreground">{t(`profile.kind.${profile.kind}`)}</p>
         </div>
       </header>
 
       <section aria-labelledby="details" className="space-y-3">
-        <h2 id="details" className="text-lg font-medium">
+        <h2 id="details" className="text-xl font-medium">
           {t('profile.details')}
         </h2>
         <dl className="space-y-3">
@@ -89,14 +89,14 @@ export function ProfilePage() {
       </section>
 
       <section aria-labelledby="photo" className="space-y-3">
-        <h2 id="photo" className="text-lg font-medium">
+        <h2 id="photo" className="text-xl font-medium">
           {t('profile.photo.title')}
         </h2>
         <PhotoCard profile={profile} />
       </section>
 
       <section aria-labelledby="phone-heading" className="space-y-3">
-        <h2 id="phone-heading" className="text-lg font-medium">
+        <h2 id="phone-heading" className="text-xl font-medium">
           {t('profile.phone.title')}
         </h2>
         <PhoneForm phone={profile.phone} />
@@ -104,7 +104,7 @@ export function ProfilePage() {
 
       {profile.kind === 'student' && (
         <section aria-labelledby="uvid-heading" className="space-y-3">
-          <h2 id="uvid-heading" className="text-lg font-medium">
+          <h2 id="uvid-heading" className="text-xl font-medium">
             {t('profile.uvId.title')}
           </h2>
           <UvIdForm uvId={profile.uv_id} />
@@ -112,7 +112,7 @@ export function ProfilePage() {
       )}
 
       <section id="email" aria-labelledby="email-heading" className="space-y-3">
-        <h2 id="email-heading" className="text-lg font-medium">
+        <h2 id="email-heading" className="text-xl font-medium">
           {t('profile.email.title')}
         </h2>
         <ChangeEmailForm currentEmail={profile.email} />

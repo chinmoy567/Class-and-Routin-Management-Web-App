@@ -19,7 +19,7 @@ export function ForgotPasswordPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('auth.forgot.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('auth.forgot.title')}</h1>
       {request.isSuccess ? (
         <p role="status">{t('auth.forgot.sent')}</p>
       ) : (

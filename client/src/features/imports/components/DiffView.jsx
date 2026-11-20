@@ -29,7 +29,7 @@ export function DiffView({ diff, onChoose, saving }) {
   const empty = !diff.added.length && !diff.removed.length && !diff.changed.length;
   return (
     <section aria-labelledby="diff-h" className="space-y-3">
-      <h2 id="diff-h" className="text-lg font-semibold">
+      <h2 id="diff-h" className="text-xl">
         {t('imports.diff')}
       </h2>
       {empty && <p className="text-sm text-muted-foreground">{t('imports.noDiff')}</p>}

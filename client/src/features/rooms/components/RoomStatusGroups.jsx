@@ -23,7 +23,7 @@ export function RoomStatusGroups({ rooms, onRequest }) {
         const headingId = `room-group-${status}`;
         return (
           <section key={status} aria-labelledby={headingId}>
-            <h2 id={headingId} className="mb-2 text-base font-semibold">
+            <h2 id={headingId} className="mb-2 text-xl">
               {t(`freeRooms.groups.${status}`)} ({list.length})
             </h2>
             {list.length ? (

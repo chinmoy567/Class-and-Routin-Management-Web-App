@@ -24,7 +24,7 @@ export function FormDialog({ title, onClose, children }) {
           if (event.key === 'Escape') onClose();
         }}
       >
-        <h2 id={`${id}-title`} className="text-lg font-semibold">
+        <h2 id={`${id}-title`} className="text-xl">
           {title}
         </h2>
         {children}

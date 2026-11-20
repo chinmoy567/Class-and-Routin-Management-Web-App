@@ -9,7 +9,7 @@ const reasonText = (code) => {
 export function ReappointResult({ result }) {
   return (
     <section aria-labelledby="rep-result" role="status" className="space-y-2 rounded-md border p-3">
-      <h2 id="rep-result" className="text-lg font-medium">
+      <h2 id="rep-result" className="text-xl font-medium">
         {t('representatives.result.title')}
       </h2>
       {result.assigned.length === 0 && result.skipped.length === 0 && (

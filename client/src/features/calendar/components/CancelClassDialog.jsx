@@ -103,7 +103,7 @@ export function CancelClassDialog({ slot, semester, onClose }) {
       className="space-y-4 rounded-md border bg-background p-4 shadow-lg"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
-      <h2 id="cancel-class-h" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+      <h2 id="cancel-class-h" ref={heading} tabIndex={-1} className="text-xl">
         {t('calendar.cancelClass.title')}
       </h2>
       <p className="text-sm">

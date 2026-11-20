@@ -139,7 +139,7 @@ export function TeacherRegistrationsPage() {
 
   return (
     <section className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold">{t('teachers.registrations.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('teachers.registrations.title')}</h1>
       <DepartmentPicker
         id="registrations-department"
         choices={choices}

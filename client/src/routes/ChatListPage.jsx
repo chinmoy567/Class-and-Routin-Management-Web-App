@@ -25,7 +25,7 @@ export function ChatListPage() {
   return (
     <section className="max-w-2xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('chat.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('chat.title')}</h1>
         <Link to="/chat/new" className={cn(buttonVariants({ size: 'sm' }))}>
           {t('chat.newChat')}
         </Link>

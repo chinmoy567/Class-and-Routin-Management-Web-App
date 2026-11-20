@@ -25,7 +25,7 @@ export function PublicProfilePage() {
     <section className="max-w-sm space-y-4">
       <div className="flex items-center gap-4">
         <Avatar name={person.full_name} url={person.photo_url} />
-        <h1 className="text-2xl font-semibold">{person.full_name}</h1>
+        <h1 className="text-3xl md:text-4xl">{person.full_name}</h1>
       </div>
       <ul aria-label={t('profile.rolesLabel')} className="flex flex-wrap gap-2">
         {person.roles.map((role) => (

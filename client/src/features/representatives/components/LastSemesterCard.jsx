@@ -6,7 +6,7 @@ export function LastSemesterCard({ last, editable, working, onReappoint }) {
   if (!last || last.representatives.length === 0) {
     return (
       <section aria-labelledby="rep-last" className="space-y-2">
-        <h2 id="rep-last" className="text-lg font-medium">
+        <h2 id="rep-last" className="text-xl font-medium">
           {t('representatives.last.title', { semester: last?.semester ?? '—' })}
         </h2>
         <p className="text-sm text-muted-foreground">{t('representatives.last.none')}</p>
@@ -15,7 +15,7 @@ export function LastSemesterCard({ last, editable, working, onReappoint }) {
   }
   return (
     <section aria-labelledby="rep-last" className="space-y-2">
-      <h2 id="rep-last" className="text-lg font-medium">
+      <h2 id="rep-last" className="text-xl font-medium">
         {t('representatives.last.title', { semester: last.semester })}
       </h2>
       <p className="text-sm text-muted-foreground">

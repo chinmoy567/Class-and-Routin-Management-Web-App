@@ -56,7 +56,7 @@ export function CrDashboardPage() {
       <UnconfirmedCard sectionId={id} unconfirmed={data.unconfirmed} />
       <SectionRoutineCard routine={routine.data} />
       <section aria-labelledby="cr-rooms-title" className="rounded-lg border bg-background p-4">
-        <h2 id="cr-rooms-title" className="mb-2 text-base font-semibold">
+        <h2 id="cr-rooms-title" className="mb-2 text-xl">
           {t('cr.rooms.heading')}
         </h2>
         <FreeRoomsFinder requestTargets={requestTargets} />

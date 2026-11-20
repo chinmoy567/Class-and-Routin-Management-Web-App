@@ -13,7 +13,7 @@ export function IssueList({ issues, canConfirm, onConfirm, confirming }) {
   const shown = issues.filter((i) => (filter === 'all' ? true : i.severity === filter));
   return (
     <section aria-labelledby="issues-h" className="space-y-3">
-      <h2 id="issues-h" className="text-lg font-semibold">
+      <h2 id="issues-h" className="text-xl">
         {t('imports.issues')}
       </h2>
       <div role="group" aria-labelledby="issues-h" className="flex flex-wrap gap-2">

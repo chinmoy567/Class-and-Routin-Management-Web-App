@@ -16,7 +16,7 @@ export function DeleteConfirm({ slot, deleting, error, onConfirm, onCancel }) {
       onKeyDown={(e) => e.key === 'Escape' && onCancel()}
       className="space-y-3 rounded-md border bg-background p-4 shadow-lg"
     >
-      <h2 id="delete-h" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+      <h2 id="delete-h" ref={heading} tabIndex={-1} className="text-xl">
         {t('routineEdit.deleteConfirm.title')}
       </h2>
       <p className="text-sm">

@@ -6,7 +6,7 @@ function Input({ className, type = 'text', ...props }) {
     <input
       type={type}
       className={cn(
-        'min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive',
+        'min-h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors hover:border-foreground/50 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive',
         className,
       )}
       {...props}

@@ -90,7 +90,7 @@ export function DepartmentsPage() {
   return (
     <section className="max-w-2xl space-y-6">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{t('admin.departments.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('admin.departments.title')}</h1>
         {mode !== 'new' && (
           <Button onClick={() => setMode('new')}>{t('admin.departments.add')}</Button>
         )}

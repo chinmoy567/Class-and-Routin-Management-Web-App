@@ -25,7 +25,7 @@ export function AdminDashboardPage() {
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold">{t('admin.dashboard.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('admin.dashboard.title')}</h1>
         {isSuper && <DepartmentFilter value={departmentId} onChange={setDepartmentId} />}
       </div>
 

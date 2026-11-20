@@ -4,7 +4,7 @@ import { hhmm } from './time.js';
 export function SectionPreview({ sections }) {
   return (
     <section aria-labelledby="preview-h" className="space-y-3">
-      <h2 id="preview-h" className="text-lg font-semibold">
+      <h2 id="preview-h" className="text-xl">
         {t('imports.preview')}
       </h2>
       {sections.map((s) => (

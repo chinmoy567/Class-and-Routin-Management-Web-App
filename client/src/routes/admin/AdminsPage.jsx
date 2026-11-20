@@ -37,7 +37,7 @@ function GrantPanel() {
 
   return (
     <section aria-labelledby="grant-title" className="space-y-3 rounded-md border p-4">
-      <h2 id="grant-title" className="text-lg font-medium">
+      <h2 id="grant-title" className="text-xl font-medium">
         {t('admin.admins.grantTitle')}
       </h2>
       <div className="space-y-1.5">
@@ -155,7 +155,7 @@ export function AdminsPage() {
 
   return (
     <section className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold">{t('admin.admins.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('admin.admins.title')}</h1>
 
       {data.fewer_than_two_super_admins && (
         <p role="alert" className="rounded-md border border-destructive p-3 text-sm">

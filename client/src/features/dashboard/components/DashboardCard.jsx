@@ -1,8 +1,8 @@
 /** One card on a dashboard: a titled region. Each card handles its own loading, empty and error states. */
 export function DashboardCard({ id, title, children }) {
   return (
-    <section aria-labelledby={id} className="rounded-lg border bg-background p-4">
-      <h2 id={id} className="mb-2 text-base font-semibold">
+    <section aria-labelledby={id} className="rounded-xl border bg-card p-5">
+      <h2 id={id} className="mb-3 text-xl">
         {title}
       </h2>
       {children}

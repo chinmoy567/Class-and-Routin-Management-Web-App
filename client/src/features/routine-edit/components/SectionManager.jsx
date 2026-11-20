@@ -161,7 +161,7 @@ function AddSection({ semesterId, departmentId }) {
 export function SectionManager({ semesterId, departmentId, section }) {
   return (
     <section aria-labelledby="sections-h" className="space-y-4 rounded-md border p-4">
-      <h2 id="sections-h" className="text-lg font-semibold">
+      <h2 id="sections-h" className="text-xl">
         {t('routineEdit.sections.title')}
       </h2>
       {departmentId && <AddSection semesterId={semesterId} departmentId={departmentId} />}

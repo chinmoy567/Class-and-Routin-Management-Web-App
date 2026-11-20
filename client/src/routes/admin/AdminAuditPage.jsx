@@ -75,7 +75,7 @@ export function AdminAuditPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('admin.audit.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('admin.audit.title')}</h1>
       <p className="text-sm text-muted-foreground">{t('admin.audit.readOnly')}</p>
 
       <form onSubmit={apply} noValidate className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

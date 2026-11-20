@@ -34,7 +34,7 @@ export function VerifyPage() {
   if (!token || verify.isError) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold">{t('auth.verify.expiredTitle')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('auth.verify.expiredTitle')}</h1>
         <p>{t('auth.verify.expired')}</p>
         <form
           onSubmit={handleSubmit((values) => resend.mutate(values.email))}
@@ -62,7 +62,7 @@ export function VerifyPage() {
 
   return (
     <section className="space-y-4" aria-live="polite">
-      <h1 className="text-2xl font-semibold">{t('auth.verify.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('auth.verify.title')}</h1>
       {verify.isSuccess ? (
         <>
           <p>{t('auth.verify.done')}</p>

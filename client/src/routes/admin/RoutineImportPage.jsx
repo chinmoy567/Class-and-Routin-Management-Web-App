@@ -128,7 +128,7 @@ export function RoutineImportPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('imports.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('imports.title')}</h1>
       <DepartmentPicker
         id="import-dept"
         choices={choices}

@@ -24,7 +24,7 @@ export function ResetPasswordPage() {
   if (!token) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold">{t('auth.reset.title')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('auth.reset.title')}</h1>
         <p>{t('auth.reset.missing')}</p>
         <Link to="/forgot-password" className="font-medium underline">
           {t('auth.reset.again')}
@@ -35,7 +35,7 @@ export function ResetPasswordPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('auth.reset.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('auth.reset.title')}</h1>
       {reset.isSuccess ? (
         <>
           <p role="status">{t('auth.reset.done')}</p>

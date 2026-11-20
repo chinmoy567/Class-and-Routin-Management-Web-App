@@ -22,7 +22,7 @@ export function ConfirmEmailPage() {
   if (!token) {
     return (
       <section className="space-y-4">
-        <h1 className="text-2xl font-semibold">{t('profile.confirmEmail.invalidTitle')}</h1>
+        <h1 className="text-3xl md:text-4xl">{t('profile.confirmEmail.invalidTitle')}</h1>
         <p>{t('profile.confirmEmail.missing')}</p>
       </section>
     );
@@ -30,7 +30,7 @@ export function ConfirmEmailPage() {
 
   return (
     <section className="space-y-4" aria-live="polite">
-      <h1 className="text-2xl font-semibold">{t('profile.confirmEmail.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('profile.confirmEmail.title')}</h1>
       {confirm.isSuccess && (
         <>
           <p>{t('profile.confirmEmail.done')}</p>

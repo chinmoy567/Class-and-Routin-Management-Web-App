@@ -32,7 +32,7 @@ export function TeacherRejectedPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('teachers.rejected.title')}</h1>
+      <h1 className="text-3xl md:text-4xl">{t('teachers.rejected.title')}</h1>
       {current?.reason && (
         <div className="rounded-md border p-3">
           <p className="text-sm font-medium">{t('teachers.rejected.reasonLabel')}</p>

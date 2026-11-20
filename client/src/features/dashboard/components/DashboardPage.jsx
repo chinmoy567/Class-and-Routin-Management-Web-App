@@ -118,7 +118,7 @@ export function DashboardPage({ kind }) {
 
   return (
     <section aria-labelledby="dashboard-title" className="space-y-4">
-      <h1 id="dashboard-title" className="text-2xl font-semibold">
+      <h1 id="dashboard-title" className="text-3xl md:text-4xl">
         {t('dashboard.title')}
       </h1>
       {body}

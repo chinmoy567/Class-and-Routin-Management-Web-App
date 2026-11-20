@@ -11,7 +11,7 @@ export function MembersPanel({ conversationId, members, isOwner }) {
   const remove = useRemoveMember();
   return (
     <section aria-labelledby="chat-members-title" className="space-y-2">
-      <h2 id="chat-members-title" className="text-base font-semibold">
+      <h2 id="chat-members-title" className="text-xl">
         {t('chat.members.title')}
       </h2>
       <ul className="space-y-2">

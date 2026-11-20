@@ -33,7 +33,7 @@ export function MyRoutinePage() {
   if (first.isLoading) {
     return (
       <section>
-        <h1 className="mb-4 flex items-center gap-2 text-2xl font-semibold">
+        <h1 className="mb-4 flex items-center gap-2 text-3xl md:text-4xl">
           <CalendarDays className="size-6" aria-hidden="true" />
           {t('routine.title')}
         </h1>
@@ -45,7 +45,7 @@ export function MyRoutinePage() {
   if (first.isError || !routineData) {
     return (
       <section>
-        <h1 className="mb-4 flex items-center gap-2 text-2xl font-semibold">
+        <h1 className="mb-4 flex items-center gap-2 text-3xl md:text-4xl">
           <CalendarDays className="size-6" aria-hidden="true" />
           {t('routine.title')}
         </h1>
@@ -59,7 +59,7 @@ export function MyRoutinePage() {
 
   return (
     <section>
-      <h1 className="mb-4 flex items-center gap-2 text-2xl font-semibold">
+      <h1 className="mb-4 flex items-center gap-2 text-3xl md:text-4xl">
         <CalendarDays className="size-6" aria-hidden="true" />
         {t('routine.title')}
       </h1>
@@ -73,7 +73,7 @@ export function MyRoutinePage() {
       )}
 
       <section aria-label={t('routine.todayClasses')} className="mb-6 hidden md:block">
-        <h2 className="mb-2 text-lg font-semibold">{t('routine.todayClasses')}</h2>
+        <h2 className="mb-2 text-xl">{t('routine.todayClasses')}</h2>
         {todayDay?.slots?.length ? (
           <ul className="space-y-2">
             {todayDay.slots.map((slot) => (
