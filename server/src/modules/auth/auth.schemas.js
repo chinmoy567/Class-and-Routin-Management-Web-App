@@ -3,7 +3,6 @@ export {
   loginBody,
   verifyBody,
   resendBody,
-  secondStepBody,
   resetRequestBody,
   resetConfirmBody,
   changePasswordBody,

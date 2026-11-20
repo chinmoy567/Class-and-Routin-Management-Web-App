@@ -9,7 +9,7 @@ import {
 
 const { Schema } = mongoose;
 
-// AUTH-01, AUTH-03. email_enc, phone_enc, password_hash and totp_secret_enc are never selected by default.
+// AUTH-01, AUTH-03. email_enc, phone_enc, password_hash  are never selected by default.
 const userSchema = new Schema(
   {
     kind: { type: String, enum: USER_KINDS, required: true },
@@ -35,8 +35,6 @@ const userSchema = new Schema(
     photo_scan_failed_at: { type: Date },
     password_hash: { type: String, select: false },
     password_changed_at: { type: Date },
-    totp_secret_enc: { type: String, select: false },
-    totp_enabled_at: { type: Date },
     department_id: { type: Schema.Types.ObjectId },
     requested_short_code: { type: String },
     chat_suspended_until: { type: Date },

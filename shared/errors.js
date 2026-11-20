@@ -1,7 +1,6 @@
 export const ERROR_CODES = Object.freeze({
   VALIDATION_ERROR: { code: 'VALIDATION_ERROR', status: 400 },
   UNAUTHENTICATED: { code: 'UNAUTHENTICATED', status: 401 },
-  SECOND_STEP_REQUIRED: { code: 'SECOND_STEP_REQUIRED', status: 401 },
   CSRF_FAILED: { code: 'CSRF_FAILED', status: 403 },
   FORBIDDEN: { code: 'FORBIDDEN', status: 403 },
   STATE_NOT_ALLOWED: { code: 'STATE_NOT_ALLOWED', status: 403 },
@@ -61,7 +60,6 @@ export const ERROR_CODES = Object.freeze({
 
 export const VALIDATION_ERROR = 'VALIDATION_ERROR';
 export const UNAUTHENTICATED = 'UNAUTHENTICATED';
-export const SECOND_STEP_REQUIRED = 'SECOND_STEP_REQUIRED';
 export const CSRF_FAILED = 'CSRF_FAILED';
 export const FORBIDDEN = 'FORBIDDEN';
 export const STATE_NOT_ALLOWED = 'STATE_NOT_ALLOWED';

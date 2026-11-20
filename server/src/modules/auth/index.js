@@ -39,7 +39,6 @@ export {
   passwordChangeGate,
   ensureSessionIndex,
   enforceSessionLifetime,
-  secondStepGate,
 } from './sessions.js';
 export { registerOpenJoinRequestCheck, registerPendingScreen } from './next.js';
 export { User, UserRole } from './auth.model.js';

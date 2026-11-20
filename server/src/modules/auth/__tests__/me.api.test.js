@@ -58,22 +58,14 @@ describe('GET /api/auth/me (AUTH-29)', () => {
     expect((await meOf(other)).body.data.next).toBe('join-form');
   });
 
-  it('AUTH-29 an admin lands on the second step or the authenticator setup until it is done', async () => {
-    const withTotp = await makeUser({
+  it('AUTH-29 an admin lands on the dashboard straight after the password', async () => {
+    const admin = await makeUser({
       kind: 'staff',
       roles: [{ role: 'super_admin' }],
       password: TEST_PASSWORD,
-      totp: true,
     });
-    const without = await makeUser({
-      kind: 'teacher',
-      roles: [{ role: 'dept_admin', department_id: makeDepartment()._id }],
-      password: TEST_PASSWORD,
-    });
-    const a = await signIn(app, withTotp.email, TEST_PASSWORD);
-    expect((await a.agent.get('/api/auth/me')).body.data.next).toBe('second-step');
-    const b = await signIn(app, without.email, TEST_PASSWORD);
-    expect((await b.agent.get('/api/auth/me')).body.data.next).toBe('setup-totp');
+    const a = await signIn(app, admin.email, TEST_PASSWORD);
+    expect((await a.agent.get('/api/auth/me')).body.data.next).toBe('dashboard');
   });
 
   it('AUTH-29 returns the roles in effect', async () => {
@@ -90,19 +82,11 @@ describe('GET /api/auth/me (AUTH-29)', () => {
   });
 
   it('AUTH-03 AUTH-29 never returns email, phone, hashes or secrets', async () => {
-    const user = await makeUser({ password: TEST_PASSWORD, totp: true });
+    const user = await makeUser({ password: TEST_PASSWORD });
     await User.updateOne({ _id: user._id }, { $set: { phone_enc: 'ciphertext' } });
     const res = await meOf(user);
     const body = JSON.stringify(res.body);
-    for (const secret of [
-      user.email,
-      'ciphertext',
-      'argon2',
-      'email_enc',
-      'email_hmac',
-      'phone',
-      'totp',
-    ]) {
+    for (const secret of [user.email, 'ciphertext', 'argon2', 'email_enc', 'email_hmac', 'phone']) {
       expect(body).not.toContain(secret);
     }
     expect(Object.keys(res.body.data.user).sort()).toEqual(

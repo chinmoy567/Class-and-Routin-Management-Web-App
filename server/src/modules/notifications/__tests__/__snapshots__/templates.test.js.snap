@@ -24,20 +24,11 @@ http://localhost:5173
 You were signed out everywhere.",
   },
   "admin_role_changed": {
-    "html": "<p>Hello,</p><p>Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue; admin accounts always use the second step.</p><p>Open the app: http://localhost:5173</p>",
+    "html": "<p>Hello,</p><p>Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue.</p><p>Open the app: http://localhost:5173</p>",
     "subject": "Your admin access changed",
     "text": "Hello,
 
-Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue; admin accounts always use the second step.
-
-Open the app: http://localhost:5173",
-  },
-  "admin_second_step_reset": {
-    "html": "<p>Hello Ayesha Rahman,</p><p>A super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again.</p><p>Open the app: http://localhost:5173</p>",
-    "subject": "Your second step was reset",
-    "text": "Hello Ayesha Rahman,
-
-A super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again.
+Your admin access was changed (sample-change: sample-role). You were signed out everywhere. Sign in again to continue.
 
 Open the app: http://localhost:5173",
   },
@@ -247,15 +238,6 @@ The class routine for Fall 2026 changed:
 
 Open the app to see the latest routine:
 http://localhost:5173",
-  },
-  "second_step_code": {
-    "html": "<p>Hello Ayesha Rahman,</p><p>Your sign-in code is sample-code. It works once and lasts 10 minutes. If you did not try to sign in, change your password.</p><p>Open the app: http://localhost:5173</p>",
-    "subject": "Your sign-in code",
-    "text": "Hello Ayesha Rahman,
-
-Your sign-in code is sample-code. It works once and lasts 10 minutes. If you did not try to sign in, change your password.
-
-Open the app: http://localhost:5173",
   },
   "semester_update_reminder": {
     "html": "<p>Hello Ayesha Rahman,</p><p>The semester Fall 2026 has started. Please complete your semester update so your section and routine are right. Open the app to continue:<br>http://localhost:5173</p>",

@@ -22,7 +22,7 @@ describe('privacy in the auth module', () => {
 
   it('AUTH-03 the sensitive user fields are not selected by default', async () => {
     const { User } = await import('../auth.model.js');
-    for (const field of ['email_enc', 'phone_enc', 'password_hash', 'totp_secret_enc']) {
+    for (const field of ['email_enc', 'phone_enc', 'password_hash']) {
       expect(User.schema.path(field).options.select, field).toBe(false);
     }
   });

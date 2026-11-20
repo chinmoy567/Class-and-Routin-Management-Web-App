@@ -181,7 +181,7 @@ describe('reset password (AUTH-26)', () => {
     );
     const { res } = await signIn(app, 'root@baiust.ac.bd', NEW_PASSWORD);
     expect(res.status).toBe(200);
-    expect(res.body.data.next).toBe('setup-totp'); // a super admin sets up the authenticator first
+    expect(res.body.data.next).toBe('dashboard');
   });
 });
 

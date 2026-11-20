@@ -23,18 +23,11 @@ export const SOCKET_EVENTS = Object.freeze({
 
 export const ADMIN_ROLES = Object.freeze(['super_admin', 'dept_admin']);
 
-export const TOKEN_PURPOSES = Object.freeze([
-  'verify_email',
-  'reset_password',
-  'second_step',
-  'change_email',
-]);
+export const TOKEN_PURPOSES = Object.freeze(['verify_email', 'reset_password', 'change_email']);
 
 /** The screen the client shows, worked out by the server (AUTH-29). */
 export const NEXT_SCREENS = Object.freeze([
   'verify-email',
-  'second-step',
-  'setup-totp',
   'join-form',
   'waiting-approval',
   'teacher-rejected',

@@ -25,21 +25,6 @@ authRouter.post('/login', validate({ body: schemas.loginBody }), controller.logi
 authRouter.post('/logout', requireAuth, controller.logout);
 
 authRouter.post(
-  '/second-step',
-  requireAuth,
-  validate({ body: schemas.secondStepBody }),
-  controller.secondStepCode,
-);
-authRouter.post('/second-step/email-code', requireAuth, controller.emailCode);
-authRouter.post('/totp/setup', requireAuth, controller.totpSetup);
-authRouter.post(
-  '/totp/confirm',
-  requireAuth,
-  validate({ body: schemas.secondStepBody }),
-  controller.totpConfirm,
-);
-
-authRouter.post(
   '/reset/request',
   resetLimit,
   validate({ body: schemas.resetRequestBody }),

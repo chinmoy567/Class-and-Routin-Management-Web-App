@@ -14,9 +14,4 @@ adminRolesRouter.post(
   validate({ params: adminUserIdParam }),
   controller.resetPassword,
 );
-adminRolesRouter.post(
-  '/admins/:userId/reset-second-step',
-  validate({ params: adminUserIdParam }),
-  controller.resetSecondStep,
-);
 adminRolesRouter.get('/users/search', validate({ query: userSearchQuery }), controller.search);

@@ -25,7 +25,9 @@ function sourceFiles(dirs) {
 describe('OPS-03 the app role covers every collection the code uses', () => {
   const init = read('deploy/mongo/init-users.js');
   const listed = new Set(
-    [...init.match(/APP_COLLECTIONS = \[([\s\S]*?)\];/)[1].matchAll(/'([\w.]+)'/g)].map((m) => m[1]),
+    [...init.match(/APP_COLLECTIONS = \[([\s\S]*?)\];/)[1].matchAll(/'([\w.]+)'/g)].map(
+      (m) => m[1],
+    ),
   );
 
   it('OPS-03 every literal collection or GridFS bucket in server code is in APP_COLLECTIONS', () => {

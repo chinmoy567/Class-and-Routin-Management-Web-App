@@ -17,7 +17,3 @@ export async function resetPassword(req, res) {
   await service.resetAdminPassword(req.user, req.params.userId);
   res.status(202).json({ data: { accepted: true } });
 }
-export async function resetSecondStep(req, res) {
-  await service.resetAdminSecondStep(req.user, req.params.userId);
-  res.json({ data: { reset: true } });
-}

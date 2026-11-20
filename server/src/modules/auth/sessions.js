@@ -28,13 +28,7 @@ export async function endAllSessions(userId, { exceptSid } = {}) {
 
 /** Take the person out of the session but keep the CSRF token. */
 export function clearAuth(session) {
-  for (const key of [
-    'userId',
-    'signedInAt',
-    'lastSeenAt',
-    'secondStepPending',
-    'secondStepFails',
-  ]) {
+  for (const key of ['userId', 'signedInAt', 'lastSeenAt']) {
     delete session[key];
   }
 }
@@ -43,7 +37,7 @@ export function clearAuth(session) {
  * AUTH-16: after a good password check, the session id is regenerated (no session fixation).
  * The CSRF token is carried over so the page's token keeps working.
  */
-export async function establishSession(req, user, { secondStepPending }) {
+export async function establishSession(req, user) {
   const csrf = req.session.csrf;
   await new Promise((resolve, reject) => {
     req.session.regenerate((err) => (err ? reject(err) : resolve()));
@@ -53,8 +47,6 @@ export async function establishSession(req, user, { secondStepPending }) {
   req.session.userId = String(user._id);
   req.session.signedInAt = now;
   req.session.lastSeenAt = now;
-  req.session.secondStepPending = Boolean(secondStepPending);
-  req.session.secondStepFails = 0;
 }
 
 /**
@@ -89,30 +81,6 @@ export function enforceSessionLifetime(req, _res, next) {
     session.lastSeenAt = now.toISOString();
   }
   session.cookie.maxAge = idleLimit; // rolling: the cookie is renewed on every response
-  next();
-}
-
-// Everything a half-signed-in admin may still reach (AUTH-17).
-const SECOND_STEP_ALLOWED = new Set([
-  '/api/health',
-  '/api/auth/csrf',
-  '/api/auth/captcha',
-  '/api/auth/login',
-  '/api/auth/logout',
-  '/api/auth/me',
-  '/api/auth/second-step',
-  '/api/auth/second-step/email-code',
-  '/api/auth/totp/setup',
-  '/api/auth/totp/confirm',
-]);
-
-/** AUTH-17: until the second step is passed, every other endpoint answers 401 SECOND_STEP_REQUIRED. */
-export function secondStepGate(req, _res, next) {
-  if (req.user && req.session?.secondStepPending && !SECOND_STEP_ALLOWED.has(req.path)) {
-    return next(
-      new AppError(401, 'SECOND_STEP_REQUIRED', 'Finish signing in with the second step.'),
-    );
-  }
   next();
 }
 

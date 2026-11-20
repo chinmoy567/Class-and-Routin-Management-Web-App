@@ -1,5 +1,4 @@
 import * as service from './auth.service.js';
-import * as secondStep from './secondStep.service.js';
 import { issueChallenge } from './captcha.service.js';
 import { establishSession } from './sessions.js';
 import { assertCan } from '../../policy/index.js';
@@ -28,34 +27,16 @@ export async function resend(req, res) {
 }
 
 export async function login(req, res) {
-  const { requestUser, secondStepPending, next, email_action_required } = await service.logIn(
-    req.body,
-    { ip: req.ip },
-  );
-  await establishSession(req, requestUser, { secondStepPending });
+  const { requestUser, next, email_action_required } = await service.logIn(req.body, {
+    ip: req.ip,
+  });
+  await establishSession(req, requestUser);
   res.json({ data: { next, email_action_required } });
 }
 
 export async function logout(req, res) {
   await new Promise((resolve) => req.session.destroy(resolve));
   res.status(204).end();
-}
-
-export async function secondStepCode(req, res) {
-  res.json({ data: await secondStep.verifySecondStep(req, req.body.code) });
-}
-
-export async function emailCode(req, res) {
-  await secondStep.sendEmailCode(req);
-  accepted(res);
-}
-
-export async function totpSetup(req, res) {
-  res.json({ data: await secondStep.setupTotp(req) });
-}
-
-export async function totpConfirm(req, res) {
-  res.json({ data: await secondStep.confirmTotp(req, req.body.code) });
 }
 
 export async function resetRequest(req, res) {
@@ -75,5 +56,5 @@ export async function changePassword(req, res) {
 
 export async function me(req, res) {
   assertCan(req.user, 'account.view_me');
-  res.json({ data: await service.getMe(req.user, req.session) });
+  res.json({ data: await service.getMe(req.user) });
 }

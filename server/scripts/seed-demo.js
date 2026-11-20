@@ -58,8 +58,6 @@ import { PERIODS } from '@crm/shared';
  * What each account is for: docs/demo-data.md (also printed at the end of a run).
  */
 export const PASSWORD = 'Demo@12345';
-// A fixed authenticator secret so the demo admins can sign in (the second step is required for admins).
-export const ADMIN_TOTP_SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const DOMAIN = 'baiust.ac.bd';
 const DAY_MIN = 24 * 60;
 
@@ -189,10 +187,6 @@ export async function seedDemo() {
     bump('user_role');
   }
 
-  const adminExtra = {
-    totp_secret_enc: encrypt(ADMIN_TOTP_SECRET),
-    totp_enabled_at: now,
-  };
   const cseAdmin = await user({
     email: `cse.admin@${DOMAIN}`,
     name: 'Dr. Mahbub Alam',
@@ -200,7 +194,6 @@ export async function seedDemo() {
     state: 'active',
     department: cse,
     phone: nextPhone(),
-    ...adminExtra,
   });
   await role(cseAdmin, { role: 'dept_admin', department_id: cse._id });
   const bbaAdmin = await user({
@@ -210,7 +203,6 @@ export async function seedDemo() {
     state: 'active',
     department: bba,
     phone: nextPhone(),
-    ...adminExtra,
   });
   await role(bbaAdmin, { role: 'dept_admin', department_id: bba._id });
   // One active admin per department; the departments added at the end register theirs here.
@@ -229,7 +221,6 @@ export async function seedDemo() {
     state: 'deactivated',
     department: eee,
     state_before_deactivation: 'active',
-    ...adminExtra,
   });
   const eeeFormerRole = await ensure(
     UserRole,
@@ -1728,7 +1719,6 @@ export async function seedDemo() {
       state: 'active',
       department: d,
       phone: nextPhone(),
-      ...adminExtra,
     });
     await role(admin, { role: 'dept_admin', department_id: d._id });
     adminByDept.set(String(d._id), admin);
@@ -2465,8 +2455,6 @@ async function main() {
       })),
     );
     console.log(`Every demo account uses the password: ${PASSWORD}`);
-    console.log('Admins also need a 6-digit code from an authenticator app (time-based, 30 s).');
-    console.log(`Add this key to the app once: ${ADMIN_TOTP_SECRET}`);
     console.log('Bulk students sign in as <section>.<nn>@baiust.ac.bd, e.g. cse1ia.01, bba2ia.07.');
     if (config.SMTP_HOST && config.SMTP_USER) {
       console.warn(

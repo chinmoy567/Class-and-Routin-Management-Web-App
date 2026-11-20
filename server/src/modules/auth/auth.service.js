@@ -11,7 +11,7 @@ import {
   recordFailure,
 } from './throttle.service.js';
 import { nextScreen } from './next.js';
-import { endAllSessions, isAdmin } from './sessions.js';
+import { endAllSessions } from './sessions.js';
 import { can } from '../../policy/index.js';
 import { getConfig } from '../../config.js';
 import { decrypt, emailHmac, encrypt, randomToken } from '../../lib/crypto.js';
@@ -276,12 +276,9 @@ export async function logIn({ email, password, captcha }, { ip }) {
   await clearAccount(hmac);
 
   const requestUser = await loadRequestUser(user._id);
-  const secondStepPending = isAdmin(requestUser);
-  const totpEnabled = Boolean(user.totp_enabled_at);
   return {
     requestUser,
-    secondStepPending,
-    next: await nextScreen({ user: requestUser, totpEnabled, secondStepPending }),
+    next: await nextScreen({ user: requestUser }),
     // EML-09: the sign-in says so too, so the client can ask for a new address straight away.
     email_action_required: Boolean(user.email_bouncing),
   };
@@ -379,19 +376,14 @@ export async function changePassword(actor, sessionId, { current_password, new_p
 // ---------------------------------------------------------------------------------------------
 
 /** AUTH-29 */
-export async function getMe(actor, session) {
+export async function getMe(actor) {
   const user = await User.findById(actor._id).lean();
-  const secondStepPending = Boolean(session?.secondStepPending);
   return {
     user: toPublicUser(user),
     roles: actor.roles,
     // PRF-06: the client shows a banner at every sign-in until the email is changed.
     email_action_required: Boolean(user.email_bouncing),
-    next: await nextScreen({
-      user: actor,
-      totpEnabled: Boolean(user.totp_enabled_at),
-      secondStepPending,
-    }),
+    next: await nextScreen({ user: actor }),
   };
 }
 

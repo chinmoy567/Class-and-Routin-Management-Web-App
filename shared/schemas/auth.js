@@ -62,14 +62,6 @@ export const loginBody = z.object({
 export const verifyBody = z.object({ token: z.string().min(10).max(200) });
 export const resendBody = z.object({ email: emailSchema });
 
-/** A 6 digit code from the authenticator app or from the email. */
-export const secondStepBody = z.object({
-  code: z
-    .string({ error: 'is required' })
-    .trim()
-    .regex(/^\d{6}$/, 'Enter 6 digits'),
-});
-
 export const resetRequestBody = z.object({ email: emailSchema });
 export const resetConfirmBody = z.object({
   token: z.string().min(10).max(200),

@@ -18,8 +18,6 @@ import {
 import { TEST_PASSWORD, makeUser } from '../../../../test/factories.js';
 import { User, UserRole } from '../auth.model.js';
 import { endAllSessions } from '../index.js';
-import { totpCode } from '../../../lib/totp.js';
-import { clock } from '../../../lib/time.js';
 import { addAllowedDomain } from '../../organisation/index.js';
 
 let app;
@@ -48,7 +46,6 @@ const DAY = 24 * HOUR;
 
 async function signInAdmin(admin) {
   const { agent } = await signIn(app, admin.email, TEST_PASSWORD);
-  await agent.post('/api/auth/second-step').send({ code: totpCode(admin.totpSecret, clock.now()) });
   return agent;
 }
 const makeAdmin = () =>
@@ -56,7 +53,6 @@ const makeAdmin = () =>
     kind: 'staff',
     roles: [{ role: 'super_admin' }],
     password: TEST_PASSWORD,
-    totp: true,
   });
 const sessionCount = (userId) =>
   mongoose.connection.collection('sessions').countDocuments({ 'session.userId': String(userId) });

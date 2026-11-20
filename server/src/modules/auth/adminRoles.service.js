@@ -311,32 +311,6 @@ export async function resetAdminPassword(actor, userId) {
   await endAllSessions(target._id);
 }
 
-/** Clears the authenticator: the admin must set it up again at the next sign-in. */
-export async function resetAdminSecondStep(actor, userId) {
-  const target = await adminTarget(actor, userId);
-  await withTransaction(async (session) => {
-    await User.updateOne(
-      { _id: target._id },
-      { $unset: { totp_secret_enc: 1, totp_enabled_at: 1 } },
-      { session },
-    );
-    await record({
-      actor,
-      action: 'admin.second_step_reset',
-      target: { type: 'user', id: target._id },
-      session,
-    });
-    await afterCommit(() =>
-      enqueue({
-        to_user_id: target._id,
-        template: 'admin_second_step_reset',
-        data: { name: target.full_name },
-      }),
-    );
-  });
-  await endAllSessions(target._id);
-}
-
 // ---------------------------------------------------------------------------------------------
 // Coverage (DEP-12)
 // ---------------------------------------------------------------------------------------------

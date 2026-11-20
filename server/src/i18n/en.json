@@ -40,21 +40,13 @@
       "subject": "Many failed sign-in attempts on your account",
       "body": "Hello {name},\n\nThere were many failed attempts to sign in to your account in the last hour. Your account is not locked. If this was not you, consider changing your password:\n{reset_link}"
     },
-    "second_step_code": {
-      "subject": "Your sign-in code",
-      "body": "Hello {name},\n\nYour sign-in code is {code}. It works once and lasts 10 minutes. If you did not try to sign in, change your password."
-    },
     "admin_role_changed": {
       "subject": "Your admin access changed",
-      "body": "Hello,\n\nYour admin access was changed ({change}: {role}). You were signed out everywhere. Sign in again to continue; admin accounts always use the second step."
+      "body": "Hello,\n\nYour admin access was changed ({change}: {role}). You were signed out everywhere. Sign in again to continue."
     },
     "admin_password_reset": {
       "subject": "A super admin reset your password",
       "body": "Hello {name},\n\nA super admin started a password reset for your account. Open this link to choose a new password. It works once and lasts 1 hour:\n{link}\n\nYou were signed out everywhere."
-    },
-    "admin_second_step_reset": {
-      "subject": "Your second step was reset",
-      "body": "Hello {name},\n\nA super admin reset your second step. You were signed out everywhere. At your next sign-in you will set up the authenticator app again."
     },
     "teacher_approved": {
       "subject": "Your teacher account was approved",

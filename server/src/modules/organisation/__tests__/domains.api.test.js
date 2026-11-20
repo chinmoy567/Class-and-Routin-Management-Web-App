@@ -6,14 +6,8 @@ import {
   connectTestDb,
   disconnectTestDb,
   loginAs,
-  signIn,
 } from '../../../../test/harness.js';
-import {
-  TEST_PASSWORD,
-  createDepartment,
-  makeDepartment,
-  makeUser,
-} from '../../../../test/factories.js';
+import { createDepartment, makeDepartment, makeUser } from '../../../../test/factories.js';
 import { AllowedDomain } from '../organisation.model.js';
 import { addAllowedDomain, isDomainAllowed } from '../index.js';
 import { list as auditList } from '../../audit/index.js';
@@ -176,22 +170,6 @@ describe('who may manage domains (cross-scope refusals)', () => {
     });
     const agent = await loginAs(admin, app);
     for (const call of calls) expect((await call(agent)).status).toBe(403);
-    expect(await domains()).toEqual(['baiust.ac.bd']);
-  });
-
-  it('AUTH-28 a super admin who has not passed the second step gets SECOND_STEP_REQUIRED', async () => {
-    const admin = await makeUser({
-      kind: 'staff',
-      roles: [{ role: 'super_admin' }],
-      password: TEST_PASSWORD,
-      totp: true,
-    });
-    const { agent } = await signIn(app, admin.email, TEST_PASSWORD);
-    for (const call of calls) {
-      const res = await call(agent);
-      expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('SECOND_STEP_REQUIRED');
-    }
     expect(await domains()).toEqual(['baiust.ac.bd']);
   });
 

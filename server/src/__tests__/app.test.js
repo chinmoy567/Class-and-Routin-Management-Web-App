@@ -123,7 +123,6 @@ describe('errors and validation', () => {
         'REQUEST_LIMIT',
         'ROOM_IN_USE',
         'ROOM_NOT_FREE',
-        'SECOND_STEP_REQUIRED',
         'SEMESTER_ARCHIVED',
         'SEMESTER_IN_USE',
         'SLOT_INVALID',

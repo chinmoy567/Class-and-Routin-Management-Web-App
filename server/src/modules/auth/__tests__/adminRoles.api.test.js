@@ -262,12 +262,11 @@ describe('remove admin roles (DEP-07, DEP-08, DEP-09)', () => {
     expect(await activeRoles(root._id)).toHaveLength(1);
   });
 
-  it('DEP-09 a grant ends the target sessions and the next sign-in asks for the second step', async () => {
+  it('DEP-09 a grant ends the target sessions and the next sign-in works', async () => {
     const dept = await createDepartment();
     const teacher = await makeUser({
       kind: 'teacher',
       password: TEST_PASSWORD,
-      totp: true,
       roles: [{ role: 'teacher', department_id: dept._id }],
     });
     const first = await signIn(app, teacher.email, TEST_PASSWORD);
@@ -284,7 +283,7 @@ describe('remove admin roles (DEP-07, DEP-08, DEP-09)', () => {
     expect(old.status).toBe(401);
     expect(old.body.error.code).toBe('UNAUTHENTICATED');
     const again = await signIn(app, teacher.email, TEST_PASSWORD);
-    expect(again.res.body.data.next).toBe('second-step');
+    expect(again.res.body.data.next).toBe('dashboard');
   });
 
   it('DEP-09 a removal also ends the target sessions', async () => {
@@ -292,12 +291,11 @@ describe('remove admin roles (DEP-07, DEP-08, DEP-09)', () => {
     const admin = await makeUser({
       kind: 'teacher',
       password: TEST_PASSWORD,
-      totp: true,
       roles: [{ role: 'dept_admin', department_id: dept._id }],
     });
     const role = await UserRole.findOne({ user_id: admin._id });
     const session = await signIn(app, admin.email, TEST_PASSWORD);
-    expect(session.res.body.data.next).toBe('second-step');
+    expect(session.res.body.data.next).toBe('dashboard');
     await (await loginAs(await superAdmin(), app)).delete(`/api/admin/admins/${role._id}`);
     expect((await session.agent.get('/api/auth/me')).status).toBe(401);
     const next = await signIn(app, admin.email, TEST_PASSWORD);
@@ -330,46 +328,21 @@ describe('resets (DEP-11)', () => {
     expect(await auditList({ action: 'admin.password_reset' })).toHaveLength(1);
   });
 
-  it('DEP-11 resetting the second step clears the authenticator', async () => {
-    const dept = await createDepartment();
-    const admin = await makeUser({
-      kind: 'teacher',
-      password: TEST_PASSWORD,
-      totp: true,
-      roles: [{ role: 'dept_admin', department_id: dept._id }],
-    });
-    const res = await (
-      await loginAs(await superAdmin(), app)
-    ).post(`/api/admin/admins/${admin._id}/reset-second-step`);
-    expect(res.status).toBe(200);
-    const user = await User.findById(admin._id).select('+totp_secret_enc').lean();
-    expect(user.totp_enabled_at).toBeUndefined();
-    expect(user.totp_secret_enc).toBeUndefined();
-    const next = await signIn(app, admin.email, TEST_PASSWORD);
-    expect(next.res.body.data.next).toBe('setup-totp');
-    expect(await auditList({ action: 'admin.second_step_reset' })).toHaveLength(1);
-  });
-
   it('DEP-11 a super admin can reset another super admin, never themselves', async () => {
     const a = await superAdmin();
     const b = await superAdmin();
     const agent = await loginAs(a, app);
-    expect((await agent.post(`/api/admin/admins/${b._id}/reset-second-step`)).status).toBe(200);
     expect((await agent.post(`/api/admin/admins/${b._id}/reset-password`)).status).toBe(202);
-    for (const path of ['reset-password', 'reset-second-step']) {
-      const self = await agent.post(`/api/admin/admins/${a._id}/${path}`);
-      expect(self.status).toBe(403);
-      expect(self.body.error.code).toBe('FORBIDDEN');
-    }
+    const self = await agent.post(`/api/admin/admins/${a._id}/reset-password`);
+    expect(self.status).toBe(403);
+    expect(self.body.error.code).toBe('FORBIDDEN');
   });
 
   it('DEP-11 an account without an admin role is not reset through this route', async () => {
     const student = await makeUser({ kind: 'student' });
     const agent = await loginAs(await superAdmin(), app);
-    for (const path of ['reset-password', 'reset-second-step']) {
-      const res = await agent.post(`/api/admin/admins/${student._id}/${path}`);
-      expect(res.status).toBe(404);
-    }
+    const res = await agent.post(`/api/admin/admins/${student._id}/reset-password`);
+    expect(res.status).toBe(404);
     expect(await drainMail()).toHaveLength(0);
   });
 });
@@ -428,7 +401,6 @@ describe('cross-scope and role refusals (DEP-14)', () => {
         grant(agent, { user_id: String(victim._id), role: 'super_admin' }),
         agent.delete(`/api/admin/admins/${role._id}`),
         agent.post(`/api/admin/admins/${victim._id}/reset-password`),
-        agent.post(`/api/admin/admins/${victim._id}/reset-second-step`),
         agent.get('/api/admin/users/search').query({ q: 'test' }),
       ];
       for (const res of await Promise.all(calls)) {

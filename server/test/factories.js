@@ -5,7 +5,6 @@ import { loadRequestUser } from '../src/modules/auth/auth.service.js';
 import { hashPassword } from '../src/modules/auth/password.js';
 import { encrypt, emailHmac } from '../src/lib/crypto.js';
 import { Department } from '../src/modules/organisation/organisation.model.js';
-import { generateSecret } from '../src/lib/totp.js';
 
 const rand = () => crypto.randomBytes(4).toString('hex');
 export const makeId = () => new mongoose.Types.ObjectId();
@@ -38,8 +37,7 @@ export async function createDepartment({ code, name, retired = false } = {}) {
 
 /**
  * Create a user with roles. Returns the request-user shape plus `email` for tests.
- * Pass `password` to be able to sign in with it. Pass `totp: true` to turn the authenticator on;
- * the secret is then returned as `totpSecret`.
+ * Pass `password` to be able to sign in with it.
  */
 export async function makeUser({
   kind = 'student',
@@ -48,12 +46,10 @@ export async function makeUser({
   name = 'Test User',
   email = `u${rand()}@baiust.ac.bd`,
   password,
-  totp = false,
   phone,
   departmentId,
   uv_id,
 } = {}) {
-  const totpSecret = totp ? generateSecret() : undefined;
   const user = await User.create({
     kind,
     state,
@@ -65,10 +61,7 @@ export async function makeUser({
     ...(departmentId && { department_id: departmentId }),
     ...(uv_id && { uv_id }),
     ...(password && { password_hash: await hashPassword(password) }),
-    ...(totp && { totp_secret_enc: encrypt(totpSecret), totp_enabled_at: new Date() }),
   });
   if (roles.length) await UserRole.create(roles.map((r) => ({ ...r, user_id: user._id })));
-  const requestUser = { ...(await loadRequestUser(user._id)), email };
-  if (totp) Object.defineProperty(requestUser, 'totpSecret', { value: totpSecret });
-  return requestUser;
+  return { ...(await loadRequestUser(user._id)), email };
 }

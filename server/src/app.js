@@ -19,7 +19,6 @@ import {
   loadUser,
   requireAuth,
   enforceSessionLifetime,
-  secondStepGate,
   passwordChangeGate,
 } from './modules/auth/index.js';
 import {
@@ -104,7 +103,6 @@ export function createApp(
   app.use(csrfProtection);
   app.use(loadUser); // AUTH-24: state and roles are read fresh on every request
   app.use(enforceSessionLifetime);
-  app.use(secondStepGate);
   app.use(passwordChangeGate);
 
   app.get('/api/health', async (_req, res) => {
