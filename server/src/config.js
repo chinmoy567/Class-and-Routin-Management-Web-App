@@ -7,30 +7,46 @@ const base64Key32 = z
 
 const nonEmpty = z.string({ error: 'is required' }).min(1, 'is required');
 
-const schema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().positive().default(4000),
-  MONGO_URL: nonEmpty,
-  SESSION_SECRET: z.string({ error: 'is required' }).min(16, 'must be at least 16 characters'),
-  DATA_ENC_KEY: base64Key32,
-  EMAIL_HMAC_KEY: nonEmpty,
-  FILE_LINK_KEY: nonEmpty,
-  SMTP_HOST: nonEmpty,
-  SMTP_PORT: z.coerce.number().int().positive().default(587),
-  SMTP_USER: z.string().default(''),
-  SMTP_PASS: z.string().default(''),
-  MAIL_FROM: nonEmpty,
-  APP_URL: z.string().url(),
-  // EML-09: shared secret the email provider sends with its bounce webhook. Unset = webhook refused.
-  EMAIL_WEBHOOK_SECRET: z.string().default(''),
-  CLAMAV_HOST: nonEmpty,
-  CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
-  // Optional: comma-separated DNS servers for mongodb+srv lookups when the OS resolver can't do SRV
-  DNS_SERVERS: z.string().default(''),
-  // OPS-12/13: where the daily ops report and error alerts go. Empty = logged, not sent.
-  OPS_ALERT_EMAIL: z.union([z.literal(''), z.string().email()]).default(''),
-  LOG_LEVEL: z.string().default('info'),
-});
+const schema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().int().positive().default(4000),
+    MONGO_URL: nonEmpty,
+    SESSION_SECRET: z.string({ error: 'is required' }).min(16, 'must be at least 16 characters'),
+    DATA_ENC_KEY: base64Key32,
+    EMAIL_HMAC_KEY: nonEmpty,
+    FILE_LINK_KEY: nonEmpty,
+    SMTP_HOST: nonEmpty,
+    SMTP_PORT: z.coerce.number().int().positive().default(587),
+    SMTP_USER: z.string().default(''),
+    SMTP_PASS: z.string().default(''),
+    MAIL_FROM: nonEmpty,
+    APP_URL: z.string().url(),
+    // EML-09: shared secret the email provider sends with its bounce webhook. Unset = webhook refused.
+    EMAIL_WEBHOOK_SECRET: z.string().default(''),
+    // Render free cannot run ClamAV, so UPLOADS_ENABLED=false turns every upload off (no unscanned files).
+    UPLOADS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
+    // Render: one service serves the API and the built client (same origin, so cookies and CSRF work).
+    SERVE_CLIENT: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    CLAMAV_HOST: z.string().default(''),
+    CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
+    // Optional: comma-separated DNS servers for mongodb+srv lookups when the OS resolver can't do SRV
+    DNS_SERVERS: z.string().default(''),
+    // OPS-12/13: where the daily ops report and error alerts go. Empty = logged, not sent.
+    OPS_ALERT_EMAIL: z.union([z.literal(''), z.string().email()]).default(''),
+    LOG_LEVEL: z.string().default('info'),
+  })
+  .superRefine((v, ctx) => {
+    if (v.UPLOADS_ENABLED && !v.CLAMAV_HOST) {
+      ctx.addIssue({ code: 'custom', path: ['CLAMAV_HOST'], message: 'is required' });
+    }
+  });
 
 export class ConfigError extends Error {
   constructor(problems) {

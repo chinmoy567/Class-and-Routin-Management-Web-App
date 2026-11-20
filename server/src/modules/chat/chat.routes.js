@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import { AppError } from '../../lib/errors.js';
+import { requireUploadsEnabled } from '../../lib/uploadsGate.js';
 import { FILE_MAX_BYTES } from './chat.files.service.js';
 import { validate } from '../../lib/validate.js';
 import { requireAuth } from '../auth/index.js';
@@ -135,6 +136,7 @@ chatRouter.post(
   '/conversations/:id/files',
   requireAuth,
   validate({ params: idParam }),
+  requireUploadsEnabled,
   uploadBody,
   c.uploadFile,
 );

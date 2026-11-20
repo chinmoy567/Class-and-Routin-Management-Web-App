@@ -17,6 +17,7 @@ import {
 } from '@crm/shared';
 import { validate } from '../../lib/validate.js';
 import { AppError } from '../../lib/errors.js';
+import { requireUploadsEnabled } from '../../lib/uploadsGate.js';
 import { requireAuth } from '../auth/index.js';
 import * as c from './routine.controller.js';
 
@@ -43,6 +44,7 @@ routineRouter.post(
   '/semesters/:id/imports',
   requireAuth,
   validate({ params: semesterIdParam, query: importDepartmentQuery }),
+  requireUploadsEnabled,
   fileBody,
   c.upload,
 );

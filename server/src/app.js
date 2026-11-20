@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import session from 'express-session';
@@ -71,10 +73,10 @@ export function createSessionMiddleware(config) {
  */
 export function createApp(
   config,
-  { sessionMiddleware, rateLimitOptions = {}, mountBefore, mountApi } = {},
+  { sessionMiddleware, rateLimitOptions = {}, mountBefore, mountApi, clientDir } = {},
 ) {
   const app = express();
-  app.set('trust proxy', 1); // Caddy sits in front
+  app.set('trust proxy', 1); // Caddy or Render's proxy sits in front
   app.disable('x-powered-by');
 
   app.use(requestLogger());
@@ -146,6 +148,16 @@ export function createApp(
   // EML-11: the dev outbox exists only in development.
   if (config.NODE_ENV === 'development') app.use('/dev', devOutboxRouter);
   if (mountApi) mountApi(app);
+
+  // Render: serve the built client. Unknown /api and /socket.io paths still fall through to the 404.
+  if (config.SERVE_CLIENT) {
+    const dist =
+      clientDir ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../client/dist');
+    app.use(express.static(dist, { index: false, maxAge: '1h' }));
+    app.get(/^\/(?!api\/|socket\.io\/|dev\/).*/, (_req, res) => {
+      res.sendFile(path.join(dist, 'index.html'));
+    });
+  }
 
   app.use(notFoundHandler);
   app.use(errorMiddleware);

@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { validate } from '../../lib/validate.js';
 import { AppError } from '../../lib/errors.js';
+import { requireUploadsEnabled } from '../../lib/uploadsGate.js';
 import {
   changeEmailBody,
   confirmEmailBody,
@@ -35,7 +36,7 @@ meProfileRouter.patch(
   validate({ body: updateProfileBody }),
   controller.patchProfile,
 );
-meProfileRouter.put('/photo', requireAuth, photoBody, controller.putPhoto);
+meProfileRouter.put('/photo', requireAuth, requireUploadsEnabled, photoBody, controller.putPhoto);
 meProfileRouter.delete('/photo', requireAuth, controller.removePhoto);
 meProfileRouter.post(
   '/email',

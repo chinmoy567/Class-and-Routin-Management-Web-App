@@ -1,0 +1,42 @@
+# Render Blueprint: one free web service serves the API and the built client (same origin).
+# MongoDB is external (Atlas M0). ClamAV cannot run on Render free, so uploads are switched off.
+services:
+  - type: web
+    name: class-routine-management
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npm run build -w @crm/client
+    startCommand: npm run start -w @crm/server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.2
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_CLIENT
+        value: 'true'
+      - key: UPLOADS_ENABLED
+        value: 'false'
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MONGO_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: DATA_ENC_KEY
+        sync: false
+      - key: EMAIL_HMAC_KEY
+        sync: false
+      - key: FILE_LINK_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: OPS_ALERT_EMAIL
+        sync: false

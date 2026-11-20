@@ -21,7 +21,7 @@ export async function buildOpsReport({
   const filter = { failedAt: { $gte: since } };
   const failedCount = await db.collection('agendaJobs').countDocuments(filter);
   const failedNames = (await db.collection('agendaJobs').distinct('name', filter)).sort();
-  const clamavUp = await ping();
+  const clamavUp = getConfig().UPLOADS_ENABLED ? await ping() : null; // null: no scanner here
   return { failedCount, failedNames, clamavUp };
 }
 
@@ -40,7 +40,7 @@ export async function sendOpsReport(deps = {}) {
     data: {
       failed_count: String(report.failedCount),
       failed_names: report.failedNames.length ? report.failedNames.join(', ') : 'none',
-      clamav: report.clamavUp ? 'up' : 'DOWN',
+      clamav: report.clamavUp === null ? 'off (uploads disabled)' : report.clamavUp ? 'up' : 'DOWN',
     },
     dedupe_key: `ops-report:${day}`,
   });
