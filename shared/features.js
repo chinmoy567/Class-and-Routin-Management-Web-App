@@ -4,7 +4,7 @@
 export const RELEASE_ORDER = Object.freeze({ R1: 1, R2: 2, R3: 3, LATER: 4 });
 
 /** The release the running app is built for. Bump it when a release ships. */
-export const CURRENT_RELEASE = 'R1';
+export const CURRENT_RELEASE = 'R3';
 
 export const FEATURE_RELEASE = Object.freeze({
   // Student dashboard
