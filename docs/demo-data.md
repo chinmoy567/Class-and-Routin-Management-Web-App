@@ -32,6 +32,11 @@ without editing the file.
 - **Password for every demo account:** `Demo@12345`
 - **Admins** (super admin and department admins) sign in with email and password only. There is no authenticator or second step.
 - Your own super admin keeps the password you set through the link.
+- **Extra sections (added later):** CSE 3-II-A, 3-II-B, 3-I-B, 4-I-A, 4-II-A and 4-II-B (prefixes
+  `cse3iia`, `cse3iib`, `cse3ib`, `cse4ia`, `cse4iia`, `cse4iib`; CSE 4-II-B has no CR yet), BBA 3-I-A and
+  4-I-A (`bba3ia`, `bba4ia`), and 3-I-A and 4-I-A in EEE, CIV, LAW and ENG (`eee3ia`, `eee4ia`, and so
+  on; the 4-I-A sections have no CR yet). Eight more CSE teachers sign in as `<code>.t@baiust.ac.bd`
+  (`ar`, `sbk`, `zr`, `faz`, `kjr`, `mjj`, `kms`, `ssm`).
 - **Bulk students** sign in as `<section>.<nn>@baiust.ac.bd`: `cse1ia`, `cse1ib`, `cse2ia`,
   `cse3ia`, `bba1ia`, `bba1ib`, `bba2ia`, `bba3iia`, `eee1ia`, `eee2ia`, `civ1ia`, `civ2ia`,
   `law1ia`, `law2ia`, `eng1ia`, `eng2ia`, with `nn` from `01` (for example
@@ -73,7 +78,8 @@ without editing the file.
 
 | Email | Role | State | Try | Should be refused |
 | --- | --- | --- | --- | --- |
-| (your super admin) | super admin | active | Departments (one retired), admins (warning: fewer than two super admins), semesters (draft, current, archived), any department's dashboard and audit log | Removing the last super admin |
+| (your super admin) | super admin | active | Departments (one retired), admins, semesters (draft, current, archived), any department's dashboard and audit log | Removing the last super admin |
+| `super.admin2@baiust.ac.bd` | second super admin | active | Same as above; removing one of the two (never the last) | Removing the last super admin |
 | `cse.admin@baiust.ac.bd` | dept admin, CSE | active | Dashboard cards (registration, escalated request, flags, appeals, unconfirmed students, recent activity), audit log page 2, flags, appeals, chat reports, students, classrooms, rollover readiness | BBA rosters, BBA dashboard, BBA audit entries |
 | `bba.admin@baiust.ac.bd` | dept admin, BBA | active | The open import with an error, a pending teacher registration, BBA requests and flags | Publishing the import with an error; any CSE data |
 | `eee.admin@`, `civ.admin@`, `law.admin@`, `eng.admin@baiust.ac.bd` | dept admin, EEE / Civil / Law / English | active | Each department's dashboard, teacher queue, join requests, students and routine | Any other department's data |

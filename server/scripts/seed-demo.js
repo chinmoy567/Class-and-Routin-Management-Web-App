@@ -1709,6 +1709,57 @@ export async function seedDemo() {
     },
   ];
 
+  // Places one course in a section without a clash for the section, the room or the teacher.
+  // `groups` (lab groups) gives one session per group, on different days; otherwise `sessions`.
+  // Classes stay in periods 0-5 so the afternoon stays free for bookings.
+  const schedule = async (sec, owner, rm, teacher, code, name, sessions, len, groups, offset) => {
+    const runs = groups ? groups.map((g) => ({ g })) : Array.from({ length: sessions }, () => ({}));
+    const starts = len === 3 ? [0, 3, 1, 2] : [0, 1, 2, 3, 4, 5];
+    const used = new Set();
+    for (const [i, run] of runs.entries()) {
+      let placed = false;
+      for (let k = 0; k < 5 && !placed; k++) {
+        const day = (offset + i * 2 + k) % 5;
+        if (used.has(day)) continue;
+        for (const p1 of starts) {
+          const p2 = p1 + len - 1;
+          if (!isFree(sec, rm, teacher, day, p1, p2)) continue;
+          mark(sec, rm, teacher, day, p1, p2);
+          used.add(day);
+          const slot = await ensure(
+            RoutineSlot,
+            {
+              semester_id: semester._id,
+              section_id: sec._id,
+              day_of_week: day,
+              start_min: PERIODS[p1].start_min,
+            },
+            {
+              owner_department_id: owner._id,
+              group_id: run.g?._id,
+              end_min: PERIODS[p2].end_min,
+              course_code: code,
+              course_name: name,
+              room_id: rm._id,
+              source: 'manual',
+              published: true,
+            },
+            'routine_slot',
+          );
+          await ensure(
+            RoutineSlotTeacher,
+            { slot_id: slot._id, teacher_id: teacher._id },
+            {},
+            'routine_slot_teacher',
+          );
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) throw new Error(`Demo routine: no free time for ${owner.code} ${code}`);
+    }
+  };
+
   for (const spec of moreDepts) {
     const d = spec.dept;
     const dc = d.code.toLowerCase();
@@ -1817,6 +1868,271 @@ export async function seedDemo() {
     }
     const joiner = await waiting(`${dc}.join@${DOMAIN}`, spec.joiner, d);
     await enrol(joiner, secs[0], 'pending');
+
+    // Levels 3 and 4 (term I): a full week and 26 students each, a CR and a DCR for 3-I-A, none
+    // yet for 4-I-A (so the CR assignment screen has a section to fill).
+    const upper = [
+      [
+        3,
+        classrooms[1],
+        1,
+        'Core Course I',
+        'Core Course II',
+        'Elective I',
+        'Elective II',
+        'Seminar',
+      ],
+      [
+        4,
+        classrooms[0],
+        3,
+        'Advanced Core I',
+        'Advanced Core II',
+        'Elective III',
+        'Elective IV',
+        'Project',
+      ],
+    ];
+    for (const [level, rm, offset, ...names] of upper) {
+      const sec = await section(d, level, 'I', 'A');
+      for (const [i, n] of names.entries()) {
+        const code = `${d.code}${level}0${i * 2 + 1}`;
+        await schedule(
+          sec,
+          d,
+          rm,
+          teachers[i % teachers.length],
+          code,
+          n,
+          i < 3 ? 2 : 1,
+          1,
+          null,
+          offset,
+        );
+      }
+      const list = await bulk(`${dc}${level}ia`, d, 26, 1, confirmed);
+      await accept(list, sec);
+      if (level === 3) {
+        await rep(list[0], 'cr', d, sec);
+        await rep(list[1], 'dcr', d, sec);
+      }
+    }
+  }
+
+  // ---------- a second super admin, more CSE teachers and sections, BBA levels 3 and 4 ----------
+  // A second super admin, so the "fewer than two super admins" warning goes away and one can be
+  // removed without breaking the rule that one must always remain.
+  const superAdmin2 = await user({
+    email: `super.admin2@${DOMAIN}`,
+    name: 'Prof. Dr. Nasreen Akter',
+    kind: 'staff',
+    state: 'active',
+    phone: nextPhone(),
+  });
+  await role(superAdmin2, { role: 'super_admin' });
+
+  // Eight more CSE teachers (short codes as in the real sheet), all active with a record.
+  const cseMore = {};
+  for (const [code, name] of [
+    ['AR', 'Dr. Arif Rahman'],
+    ['SBK', 'Dr. Shafiul Bari Khan'],
+    ['ZR', 'Zahidur Rahman'],
+    ['FAZ', 'Fahmida Zaman'],
+    ['KJR', 'Khondoker Jahir Rayhan'],
+    ['MJJ', 'Md. Jahid Jamal'],
+    ['KMS', 'Kazi Mehedi Sohel'],
+    ['SSM', 'Sadia Sultana Meem'],
+  ]) {
+    const u = await teacherUser(`${code.toLowerCase()}.t@${DOMAIN}`, name, code, cse);
+    cseMore[code] = await teacherRecord(cse, code, name, u);
+    await registration(u, cse, code, 'approved', {
+      decided_by: cseAdmin._id,
+      decided_at: daysAgo(30),
+    });
+  }
+  const cr303 = await room(cse, 'CSE-303', 'classroom');
+  const cr304 = await room(cse, 'CSE-304', 'classroom');
+  const cr305 = await room(cse, 'CSE-305', 'classroom');
+  const labRooms = [await room(cse, 'CSE-LAB-3', 'lab'), await room(cse, 'CSE-LAB-4', 'lab')];
+
+  // [level, term, letter, theory room, lab room, day offset, first group number, student prefix,
+  //  CR and DCR?, theory courses [code, name, teacher, sessions a week], lab [code, name, teacher]]
+  const cseUpper = [
+    [
+      3,
+      'II',
+      'A',
+      cr303,
+      labRooms[0],
+      0,
+      1,
+      'cse3iia',
+      true,
+      [
+        ['CSE321', 'Compiler Design', 'ZR', 2],
+        ['CSE323', 'Computer Graphics', 'KMS', 2],
+        ['CSE325', 'Artificial Intelligence', 'SBK', 2],
+        ['CSE327', 'Information Systems', 'FAZ', 1],
+      ],
+      ['CSE322', 'Compiler Design Lab', 'MJJ'],
+    ],
+    [
+      3,
+      'II',
+      'B',
+      cr304,
+      labRooms[1],
+      1,
+      3,
+      'cse3iib',
+      true,
+      [
+        ['CSE321', 'Compiler Design', 'AR', 2],
+        ['CSE323', 'Computer Graphics', 'KJR', 2],
+        ['CSE325', 'Artificial Intelligence', 'SBK', 2],
+        ['CSE327', 'Information Systems', 'SSM', 1],
+      ],
+      ['CSE322', 'Compiler Design Lab', 'KMS'],
+    ],
+    [
+      3,
+      'I',
+      'B',
+      cr305,
+      labRooms[0],
+      2,
+      3,
+      'cse3ib',
+      true,
+      [
+        ['CSE311', 'Algorithms', 'SSM', 2],
+        ['CSE313', 'Computer Networks', 'KJR', 2],
+        ['CSE315', 'Microprocessors', 'AR', 2],
+        ['CSE317', 'Software Engineering', 'FAZ', 1],
+      ],
+      ['CSE312', 'Algorithms Lab', 'MJJ'],
+    ],
+    [
+      4,
+      'I',
+      'A',
+      cr303,
+      labRooms[1],
+      3,
+      1,
+      'cse4ia',
+      true,
+      [
+        ['CSE411', 'Distributed Systems', 'KJR', 2],
+        ['CSE413', 'Cryptography', 'AR', 2],
+        ['CSE415', 'Data Mining', 'SBK', 2],
+        ['GED401', 'Professional Ethics', 'FAZ', 1],
+      ],
+      ['CSE412', 'Network Security Lab', 'ZR'],
+    ],
+    [
+      4,
+      'II',
+      'A',
+      cr304,
+      labRooms[0],
+      4,
+      1,
+      'cse4iia',
+      true,
+      [
+        ['CSE421', 'Machine Learning', 'AR', 2],
+        ['CSE423', 'Cloud Computing', 'SBK', 2],
+        ['CSE425', 'Internet of Things', 'KMS', 2],
+        ['GED423', 'Entrepreneurship', 'FAZ', 1],
+      ],
+      ['CSE422', 'Machine Learning Lab', 'AR'],
+    ],
+    // No CR yet, so the CR assignment screen has a section to fill.
+    [
+      4,
+      'II',
+      'B',
+      cr305,
+      labRooms[1],
+      0,
+      3,
+      'cse4iib',
+      false,
+      [
+        ['CSE441', 'Robotics', 'ZR', 2],
+        ['CSE443', 'Big Data Analytics', 'MJJ', 2],
+        ['CSE445', 'Mobile Computing', 'SSM', 2],
+        ['GED443', 'Engineering Economics', 'KJR', 1],
+      ],
+      ['CSE444', 'Robotics Lab', 'SSM'],
+    ],
+  ];
+  for (const [
+    level,
+    term,
+    letter,
+    rm,
+    labRm,
+    offset,
+    g0,
+    prefix,
+    withCr,
+    theory,
+    lab,
+  ] of cseUpper) {
+    const sec = await section(cse, level, term, letter);
+    const groups = [await sectionGroup(sec, `G${g0}`), await sectionGroup(sec, `G${g0 + 1}`)];
+    // The lab first: it needs three free periods in a row, which theory classes would use up.
+    await schedule(sec, cse, labRm, cseMore[lab[2]], lab[0], lab[1], 2, 3, groups, offset + 1);
+    for (const [code, name, t, n] of theory)
+      await schedule(sec, cse, rm, cseMore[t], code, name, n, 1, null, offset);
+    const list = await bulk(prefix, cse, 26, 1, () => ({ confirmed_semester_id: semester._id }));
+    await accept(list, sec, groups);
+    if (withCr) {
+      await rep(list[0], 'cr', cse, sec);
+      await rep(list[1], 'dcr', cse, sec);
+    }
+  }
+
+  // BBA levels 3 and 4 (term I), taught by the BBA teachers who had no classes yet.
+  const bbaT = {};
+  for (const code of ['HSN', 'SLM', 'FRD', 'RBN', 'SHN'])
+    bbaT[code] = await Teacher.findOne({ department_id: bba._id, short_code: code }).lean();
+  const bbaUpper = [
+    [
+      3,
+      b201,
+      1,
+      'bba3ia',
+      [
+        ['BBA301', 'Corporate Finance', 'RBN', 2],
+        ['BBA303', 'Human Resource Management', 'SHN', 2],
+        ['BBA305', 'Operations Management', 'FRD', 2],
+        ['BBA307', 'Business Law', 'SLM', 1],
+      ],
+    ],
+    [
+      4,
+      b202,
+      3,
+      'bba4ia',
+      [
+        ['BBA401', 'International Business', 'SHN', 2],
+        ['BBA403', 'Banking and Insurance', 'RBN', 2],
+        ['BBA405', 'Project Management', 'HSN', 2],
+        ['BBA407', 'Research Methods', 'SLM', 1],
+      ],
+    ],
+  ];
+  for (const [level, rm, offset, prefix, theory] of bbaUpper) {
+    const sec = await section(bba, level, 'I', 'A');
+    for (const [code, name, t, n] of theory)
+      await schedule(sec, bba, rm, bbaT[t], code, name, n, 1, null, offset);
+    const list = await bulk(prefix, bba, 26, 1, () => ({ confirmed_semester_id: semester._id }));
+    await accept(list, sec);
+    await rep(list[0], 'cr', bba, sec);
+    await rep(list[1], 'dcr', bba, sec);
   }
 
   // ---------- audit log (append-only: only inserted, never changed) ----------
@@ -2209,6 +2525,13 @@ export const GUIDE = [
     'active',
     'Every department, semesters, admins, audit log',
     'Nothing in scope; at least one super admin must remain',
+  ],
+  [
+    `super.admin2@${DOMAIN}`,
+    'super admin',
+    'active',
+    'The same as the first; one of two super admins can be removed',
+    'Removing the last super admin',
   ],
   [
     `cse.admin@${DOMAIN}`,
