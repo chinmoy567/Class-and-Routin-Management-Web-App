@@ -64,7 +64,7 @@ These come from the PRD. If one of them gets in the way, stop and ask. Don't wor
 **Privacy and security**
 - Email and phone are stored encrypted (`email_enc`, `phone_enc`). Look up accounts by `email_hmac` (HMAC-SHA256 of the lower-cased email). Keep keys outside the database.
 - Only the owner sees their own email and phone. The two exceptions are in the PRD's Privacy rule. Never return them in rosters, profiles, chat or admin lists.
-- Passwords are hashed with argon2id. Admin accounts need the second step at every sign-in.
+- Passwords are hashed with argon2id. Admins sign in with email and password only: there is no second step (authenticator) for any account.
 - CSRF protection on every state-changing request. HTTP-only session cookies.
 - Uploaded files are not available until ClamAV has scanned them.
 - Admins can never read users' private messages.
