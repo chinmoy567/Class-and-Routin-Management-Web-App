@@ -931,6 +931,8 @@ export async function seedDemo() {
     ['12-25', 'Christmas Day'],
     ['02-21', 'International Mother Language Day'],
     ['03-26', 'Independence Day'],
+    ['04-14', 'Pohela Boishakh'],
+    ['05-01', 'May Day'],
   ].map(([mmdd, label]) => [nextOccurrence(mmdd), label]);
   const holidaySet = new Set(holidays.map(([d]) => d));
   const nextWorkday = (from, offset, wanted = null) => {
@@ -1723,8 +1725,10 @@ export async function seedDemo() {
         if (used.has(day)) continue;
         for (const p1 of starts) {
           const p2 = p1 + len - 1;
-          if (!isFree(sec, rm, teacher, day, p1, p2)) continue;
-          mark(sec, rm, teacher, day, p1, p2);
+          // `rm` may be one room or a list: the first free room is used.
+          const rr = [].concat(rm).find((r) => isFree(sec, r, teacher, day, p1, p2));
+          if (!rr) continue;
+          mark(sec, rr, teacher, day, p1, p2);
           used.add(day);
           const slot = await ensure(
             RoutineSlot,
@@ -1740,7 +1744,7 @@ export async function seedDemo() {
               end_min: PERIODS[p2].end_min,
               course_code: code,
               course_name: name,
-              room_id: rm._id,
+              room_id: rr._id,
               source: 'manual',
               published: true,
             },
@@ -1911,6 +1915,16 @@ export async function seedDemo() {
         );
       }
       const list = await bulk(`${dc}${level}ia`, d, 26, 1, confirmed);
+      await accept(list, sec);
+      if (level === 3) {
+        await rep(list[0], 'cr', d, sec);
+        await rep(list[1], 'dcr', d, sec);
+      }
+    }
+    // Term II batches (levels 3 and 4); their routine is filled by the density step below.
+    for (const level of [3, 4]) {
+      const sec = await section(d, level, 'II', 'A');
+      const list = await bulk(`${dc}${level}iia`, d, 26, 1, confirmed);
       await accept(list, sec);
       if (level === 3) {
         await rep(list[0], 'cr', d, sec);
@@ -2133,6 +2147,206 @@ export async function seedDemo() {
     await accept(list, sec);
     await rep(list[0], 'cr', bba, sec);
     await rep(list[1], 'dcr', bba, sec);
+  }
+
+  // ---------- more teachers, rooms and a fuller week for every section ----------
+  const deptByCode = { CSE: cse, BBA: bba, EEE: eee, CIV: civ, LAW: law, ENG: eng };
+
+  // BBA 4-II-A, the last term II batch.
+  const bba4ii = await section(bba, 4, 'II', 'A');
+  const bba4iiList = await bulk('bba4iia', bba, 26, 1, () => ({
+    confirmed_semester_id: semester._id,
+  }));
+  await accept(bba4iiList, bba4ii);
+  await rep(bba4iiList[0], 'cr', bba, bba4ii);
+  await rep(bba4iiList[1], 'dcr', bba, bba4ii);
+
+  // Three more teachers for every department except CSE (which got eight above), so no teacher
+  // carries a whole department's routine.
+  const moreTeachers = {
+    BBA: [
+      ['Mahbub Alam Khan', 'MAK'],
+      ['Farhana Yeasmin', 'FRY'],
+      ['Tareq Mahmud', 'TQM'],
+    ],
+    EEE: [
+      ['Dr. Shamsul Arefin', 'SMA'],
+      ['Engr. Rubel Hossain', 'RBH'],
+      ['Nusrat Jahan Mim', 'NJM'],
+    ],
+    CIV: [
+      ['Dr. Golam Rabbani', 'GLR'],
+      ['Engr. Sumon Ahmed', 'SMK'],
+      ['Tahmina Nasrin', 'TNV'],
+    ],
+    LAW: [
+      ['Adv. Ahsanul Haque', 'AHQ'],
+      ['Adv. Razia Nasrin', 'RZN'],
+      ['Dr. Imtiaz Talukder', 'IMT'],
+    ],
+    ENG: [
+      ['Dr. Khaled Bin Anwar', 'KHB'],
+      ['Nasima Sultana', 'NSM'],
+      ['Parvez Reza', 'PRV'],
+    ],
+  };
+  for (const [code, list] of Object.entries(moreTeachers)) {
+    const d = deptByCode[code];
+    const admin = adminOf(d._id);
+    for (const [i, [name, short]] of list.entries()) {
+      const u = await teacherUser(`${code.toLowerCase()}.t${i + 6}@${DOMAIN}`, name, short, d);
+      await teacherRecord(d, short, name, u);
+      await registration(u, d, short, 'approved', {
+        decided_by: admin._id,
+        decided_at: daysAgo(30),
+      });
+    }
+  }
+
+  // Extra classrooms, so the routine never touches the rooms the demo bookings use.
+  const extraRooms = {};
+  for (const [code, d] of Object.entries(deptByCode)) {
+    extraRooms[code] = [];
+    for (let n = 1; n <= (code === 'CSE' ? 5 : 4); n++)
+      extraRooms[code].push(await room(d, `${code}-5${String(n).padStart(2, '0')}`, 'classroom'));
+  }
+
+  // Course names by department. Teachers who are part of a documented demo case (RHN, TNJ, ZHD and
+  // so on in CSE) are left out, so their "refused" cases still hold.
+  const POOL = {
+    CSE: [
+      'Software Testing',
+      'Computer Architecture',
+      'Digital Image Processing',
+      'Numerical Methods',
+      'Wireless Networks',
+      'Embedded Systems',
+      'Human Computer Interaction',
+      'Parallel Computing',
+      'Bioinformatics',
+      'Computational Geometry',
+      'Simulation and Modelling',
+      'Pattern Recognition',
+    ],
+    BBA: [
+      'Marketing Management',
+      'Financial Management',
+      'Business Communication',
+      'Management Accounting',
+      'Business Ethics',
+      'Supply Chain Management',
+      'E-Commerce',
+      'Taxation',
+      'International Marketing',
+      'Investment Analysis',
+      'Organisational Development',
+      'Retail Management',
+    ],
+    EEE: [
+      'Power Systems',
+      'Control Systems',
+      'Digital Signal Processing',
+      'Communication Engineering',
+      'Microprocessors',
+      'Power Electronics',
+      'VLSI Design',
+      'Renewable Energy',
+      'Electrical Measurements',
+      'High Voltage Engineering',
+      'Electromagnetics',
+      'Engineering Economics',
+    ],
+    CIV: [
+      'Structural Analysis',
+      'Soil Mechanics',
+      'Hydraulics',
+      'Transportation Engineering',
+      'Concrete Design',
+      'Environmental Engineering',
+      'Surveying',
+      'Steel Structures',
+      'Foundation Engineering',
+      'Water Resources',
+      'Construction Management',
+      'Engineering Geology',
+    ],
+    LAW: [
+      'Constitutional Law',
+      'Contract Law',
+      'Criminal Law',
+      'Law of Torts',
+      'Family Law',
+      'Property Law',
+      'Jurisprudence',
+      'International Law',
+      'Company Law',
+      'Law of Evidence',
+      'Administrative Law',
+      'Legal Writing',
+    ],
+    ENG: [
+      'Poetry',
+      'Drama',
+      'Modern Fiction',
+      'Applied Linguistics',
+      'Literary Theory',
+      'Romantic Literature',
+      'Victorian Literature',
+      'Postcolonial Studies',
+      'Phonetics',
+      'Creative Writing',
+      'American Literature',
+      'ELT Methods',
+    ],
+  };
+  const deptCodeById = new Map(Object.entries(deptByCode).map(([c, d]) => [String(d._id), c]));
+  const teacherPool = { CSE: Object.values(cseMore) };
+  for (const code of ['BBA', 'EEE', 'CIV', 'LAW', 'ENG'])
+    teacherPool[code] = await Teacher.find({
+      department_id: deptByCode[code]._id,
+      user_id: { $ne: null },
+    }).lean();
+
+  // Top every section up to about 18 weekly class slots with three-session courses.
+  const allSections = await Section.find({ semester_id: semester._id })
+    .sort({ department_id: 1, level: 1, term: 1, letter: 1 })
+    .lean();
+  const load = new Map(); // weekly density-step sessions per teacher, to spread the work
+  for (const [si, sec] of allSections.entries()) {
+    const code = deptCodeById.get(String(sec.department_id));
+    if (!code) continue;
+    // Already topped up by an earlier run: skip, because this run's clash tracking only knows the
+    // slots it created itself.
+    const termDigit = sec.term === 'I' ? 1 : 2;
+    const codeRe = new RegExp(`^${code}-[0-9]{3,4}$`);
+    if (await RoutineSlot.exists({ section_id: sec._id, course_code: codeRe })) continue;
+    // Skip names the section already has from the base seed.
+    const taken = new Set(await RoutineSlot.distinct('course_name', { section_id: sec._id }));
+    const names = POOL[code].filter((n) => !taken.has(n));
+    const have = await RoutineSlot.countDocuments({ section_id: sec._id });
+    const need = Math.ceil(Math.max(0, 18 - have) / 3);
+    for (let i = 0; i < need; i++) {
+      const teacher = [...teacherPool[code]].sort(
+        (x, y) => (load.get(String(x._id)) ?? 0) - (load.get(String(y._id)) ?? 0),
+      )[0];
+      load.set(String(teacher._id), (load.get(String(teacher._id)) ?? 0) + 3);
+      try {
+        await schedule(
+          sec,
+          deptByCode[code],
+          extraRooms[code],
+          teacher,
+          `${code}-${sec.level}${termDigit}${2 * i + 7}`,
+          names[(si * 3 + i) % names.length],
+          3,
+          1,
+          null,
+          si + i,
+        );
+      } catch {
+        // No free window left for this teacher: the course keeps the sessions it already got.
+      }
+    }
   }
 
   // ---------- audit log (append-only: only inserted, never changed) ----------

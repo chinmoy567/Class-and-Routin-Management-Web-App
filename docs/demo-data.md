@@ -37,6 +37,14 @@ without editing the file.
   4-I-A (`bba3ia`, `bba4ia`), and 3-I-A and 4-I-A in EEE, CIV, LAW and ENG (`eee3ia`, `eee4ia`, and so
   on; the 4-I-A sections have no CR yet). Eight more CSE teachers sign in as `<code>.t@baiust.ac.bd`
   (`ar`, `sbk`, `zr`, `faz`, `kjr`, `mjj`, `kms`, `ssm`).
+- **Fuller week and more people (latest):** every section has 16 to 20 class slots a week (three-session
+  courses on top of the base routine, hyphenated codes such as `CSE-327`), with no teacher, room or section
+  clash. Each department also has extra teachers: three more in BBA, EEE, CIV, LAW and ENG (`<dept>.t6@` to
+  `<dept>.t8@baiust.ac.bd`), and extra classrooms numbered `<DEPT>-501` and up. Term II batches were added:
+  BBA 4-II-A and 3-II-A and 4-II-A in EEE, CIV, LAW and ENG (prefixes such as `eee3iia`, `bba4iia`; the
+  4-II-A batches have no CR yet). In total: 41 sections, about 1,100 students, 57 teachers, 58 rooms.
+- **Fall 2027 (draft)** has no sections or routine on purpose: upload the files in `docs/demo-import/` to
+  create them. Two more holidays (Pohela Boishakh, May Day) were added to the calendar.
 - **Bulk students** sign in as `<section>.<nn>@baiust.ac.bd`: `cse1ia`, `cse1ib`, `cse2ia`,
   `cse3ia`, `bba1ia`, `bba1ib`, `bba2ia`, `bba3iia`, `eee1ia`, `eee2ia`, `civ1ia`, `civ2ia`,
   `law1ia`, `law2ia`, `eng1ia`, `eng2ia`, with `nn` from `01` (for example
