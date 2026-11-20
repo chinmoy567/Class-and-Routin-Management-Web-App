@@ -66,14 +66,13 @@ const signUp = async (body) => {
 };
 
 describe('sign-up', () => {
-  it('OS-01 AUTH-05 a student may use any email domain; a teacher needs an allowed one', async () => {
+  it('OS-01 AUTH-05 students and teachers may both use any email domain', async () => {
     const gmail = await signUp(student({ email: 'x@gmail.com' }));
     expect(gmail.status).toBe(202);
     expect(await User.countDocuments({ kind: 'student' })).toBe(1);
-    const badTeacher = await signUp(teacher({ email: 't@gmail.com' }));
-    expect(badTeacher.status).toBe(400);
-    expect(badTeacher.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
-    expect(await User.countDocuments({ kind: 'teacher' })).toBe(0);
+    const gmailTeacher = await signUp(teacher({ email: 't@gmail.com' }));
+    expect(gmailTeacher.status).toBe(202);
+    expect(await User.countDocuments({ kind: 'teacher' })).toBe(1);
     const okTeacher = await signUp(teacher({ email: 't@baiust.ac.bd' }));
     expect(okTeacher.status).toBe(202);
   });
@@ -123,13 +122,6 @@ describe('sign-up', () => {
     const again = await signUp(student({ email: 'same@gmail.com' }));
     expect(again.status).toBe(202);
     expect(await User.countDocuments()).toBe(1);
-  });
-
-  it('AUTH-05 a teacher subdomain is not allowed unless listed', async () => {
-    const res = await signUp(teacher({ email: 'x@mail.baiust.ac.bd' }));
-    expect(res.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
-    await addAllowedDomain('mail.baiust.ac.bd');
-    expect((await signUp(teacher({ email: 'x@mail.baiust.ac.bd' }))).status).toBe(202);
   });
 
   it('AUTH-01 AUTH-07 a new account is email_unverified and gets a verification email', async () => {

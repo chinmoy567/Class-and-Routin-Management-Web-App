@@ -82,7 +82,12 @@ describe('sign-up form', () => {
       screen.getByText('Any email address you can open, university or personal.'),
     ).toBeInTheDocument();
     await user.click(screen.getByLabelText('Teacher'));
-    expect(await screen.findByText(/Teachers: use your university address/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByTestId('signup-captcha-note')).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText('Any email address you can open, university or personal.'),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId('signup-captcha-note')).not.toBeInTheDocument();
   });
 

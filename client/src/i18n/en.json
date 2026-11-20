@@ -447,7 +447,7 @@
       "teacher": "Teacher",
       "fullName": "Full name",
       "email": "Email",
-      "emailHint": "Teachers: use your university address, for example name@baiust.ac.bd.",
+      "emailHint": "Any email address you can open, university or personal.",
       "emailHintStudent": "Any email address you can open, university or personal.",
       "captchaNote": "Student sign-up includes a short automatic security check. Your browser does it for you; it takes a few seconds.",
       "captchaWorking": "Running the security check…",

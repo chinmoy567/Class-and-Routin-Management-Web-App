@@ -8,7 +8,6 @@ import { AppError, rateLimited } from '../../lib/errors.js';
 import { hit } from '../../lib/rateLimit.js';
 import { clock } from '../../lib/time.js';
 import { record } from '../audit/index.js';
-import { isDomainAllowed } from '../organisation/index.js';
 import { enqueue } from '../notifications/index.js';
 
 const HOUR = 60 * 60 * 1000;
@@ -25,12 +24,6 @@ export async function requestEmailChange(actor, newEmail) {
   const limit = await hit('email-change', String(actor._id), { windowMs: HOUR, limit: 3 });
   if (!limit.allowed) throw rateLimited(limit.retryAfter);
 
-  // PRF-05 (spec 24): the allowed-domain list applies to teachers only.
-  if (actor.kind === 'teacher' && !(await isDomainAllowed(newEmail.split('@')[1]))) {
-    throw new AppError(400, 'EMAIL_DOMAIN_NOT_ALLOWED', 'Use your university email address.', {
-      new_email: 'Use your university email address.',
-    });
-  }
   const hmac = emailHmac(newEmail);
   if (await User.exists({ email_hmac: hmac })) throw taken();
 
