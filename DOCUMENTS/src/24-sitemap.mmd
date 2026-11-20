@@ -5,7 +5,7 @@ flowchart LR
   Gate -- "student not in a section / unconfirmed" --> Join["Join form / semester update"] --> Wait2["Waiting for CR/DCR"]
   Gate -- "student active" --> SD["Student dashboard"]
   Gate -- "teacher active" --> TD["Teacher dashboard"]
-  Gate -- "admin + OTP" --> AD["Admin dashboard"]
+  Gate -- "admin" --> AD["Admin dashboard"]
 
   SD --> S1["My routine (today / week)"]
   SD --> S2["Free rooms (view only)"]

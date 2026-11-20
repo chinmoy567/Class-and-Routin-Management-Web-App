@@ -32,7 +32,7 @@ npx -p @mermaid-js/mermaid-cli mmdc -i src/05-er-diagram.mmd -o svg/05-er-diagra
 | 14 | [Live status](svg/14-activity-live-status.svg) | Activity | How "In class / Free" and the countdown are worked out each minute |
 | 15 | [Join request](svg/15-seq-join-request.svg) | Sequence | Student submits, CR accepts, first action wins |
 | 16 | [Room request](svg/16-seq-room-request.svg) | Sequence | Free-room query, request, approval, auto-expiry job |
-| 17 | [Sign-in](svg/17-seq-auth-login.svg) | Sequence | Lockout, email verification, admin one-time code, routing by account state |
+| 17 | [Sign-in](svg/17-seq-auth-login.svg) | Sequence | Lockout, email verification, routing by account state |
 | 18 | [Chat message](svg/18-seq-chat-message.svg) | Sequence | Permission checks, file scan, realtime delivery, sent/delivered/seen |
 | 19 | [Account lifecycle](svg/19-state-account.svg) | State | Teacher and student account states |
 | 20 | [Join request states](svg/20-state-join-request.svg) | State | Pending, accepted, rejected, escalated, revoked |

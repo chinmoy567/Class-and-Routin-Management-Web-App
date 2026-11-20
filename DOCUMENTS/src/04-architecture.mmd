@@ -7,7 +7,7 @@ flowchart TB
 
   subgraph Server["Node.js + Express API (HTTPS, REST)"]
     GW["Middleware<br/>auth, sessions, rate limits,<br/>role + department scope checks"]
-    Auth["Auth module<br/>sign-up, verify, lockout,<br/>reset, admin OTP"]
+    Auth["Auth module<br/>sign-up, verify, lockout,<br/>reset"]
     Users["Users & profiles<br/>join requests, optional UV ID, roles"]
     Rout["Routine module<br/>Excel import, validate, edit, publish, archive"]
     Room["Rooms & booking<br/>free-room query, 12 h rule, decisions"]
