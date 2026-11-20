@@ -9,6 +9,7 @@
     "test": "vitest run",
     "build": "echo server has no build step",
     "seed:super-admin": "node --env-file=.env scripts/seed-super-admin.js",
+    "seed:demo": "node --env-file=.env scripts/seed-demo.js",
     "migrate": "node --env-file=.env scripts/migrate.js",
     "migrate:drop-uv-claims": "node --env-file=.env scripts/migrate-drop-uv-claims.js"
   },
